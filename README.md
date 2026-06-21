@@ -6,15 +6,6 @@ Personal batch-processing scripts. Pulls structured data on a schedule, runs it 
 
 - `core.py` — single self-contained entry point. Loads config, fetches data, runs scoring, sends notifications. No external project modules required.
 
-## Setup
-
-```bash
-pip install -r requirements.txt
-cp config.example.json config.json
-```
-
-Fill in your own values in `config.json` before running.
-
 ## Usage
 
 ```bash
