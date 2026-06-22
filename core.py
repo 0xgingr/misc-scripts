@@ -399,7 +399,7 @@ CORR_MATRIX_MIN_SAMPLE: int = 20              # minimum overlapping-return sampl
 LEVERAGE_BASE_RISK_PCT: float = 10.0
 LEVERAGE_RANGE_LOW_RISK_PCT: float = 5.0
 LEVERAGE_RANGE_HIGH_RISK_PCT: float = 15.0
-LEVERAGE_MAX: float = 15.0
+LEVERAGE_MAX: float = 10.0
 
 # [Logic-16] S/R lookback window
 SR_LOOKBACK_BARS: int = 200  # was 100 — extended for major S/R levels
