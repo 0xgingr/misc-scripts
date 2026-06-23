@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "15.5.5"  # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
+__version__ = "15.5.5.1"  # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
                             # control, replacing the static, hand-maintained CORR_GROUPS
