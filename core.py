@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "15.5.5.1"  # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
+__version__ = "15.5.5.2"    # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
                             # control, replacing the static, hand-maintained CORR_GROUPS
@@ -170,7 +170,7 @@ ADX_SCORE_MIN   = 20.0
 
 RSI_BREAK_LONG_MIN  = 50.0;  RSI_BREAK_LONG_MAX  = 75.0
 RSI_BREAK_SHORT_MIN = 25.0;  RSI_BREAK_SHORT_MAX = 50.0
-RSI_PULL_LONG_MIN   = 38.0;  RSI_PULL_LONG_MAX   = 65.0
+RSI_PULL_LONG_MIN   = 38.0;  RSI_PULL_LONG_MAX   = 58.0  # [PATCH-7a] 65→58: RSI 59–65 is recovery momentum, not a dip
 RSI_PULL_SHORT_MIN  = 38.0;  RSI_PULL_SHORT_MAX  = 62.0
 RSI_1H_PULL_LONG_MAX  = 70.0
 RSI_1H_PULL_SHORT_MIN = 30.0
@@ -181,9 +181,9 @@ MIN_ATR_PCT     = 0.2
 WICK_FILTER     = 0.45
 RANGE_PCT_BREAK = 0.20
 PULL_ZONE_MULT  = 0.25
-PULL_TOUCH_LOOKBACK   = 5
-PULL_RECOVER_ATR_MULT_TREND: float = 0.25
-PULL_RECOVER_ATR_MULT_MIXED: float = 0.10
+PULL_TOUCH_LOOKBACK   = 3  # [PATCH-7b] 5→3 bars (75 min→45 min): eliminate stale-touch entries
+PULL_RECOVER_ATR_MULT_TREND: float = 0.50  # [PATCH-7c] 0.25→0.50: require meaningful recovery, not a single tick
+PULL_RECOVER_ATR_MULT_MIXED: float = 0.25  # [PATCH-7c] 0.10→0.25: same ratio scaling as trend
 TREND_HOLD_BARS = 2
 USE_EXHAUSTION_SHORT:       bool = True
 EXHAUSTION_SHORT_SCORE_ADJ: int  = -1
@@ -2061,8 +2061,14 @@ def get_effective_min_score(btc_regime: dict | None, breadth_pct: float) -> int:
     if btc_regime is None:
         return MIN_SCORE
     bearish = btc_regime.get("bearish", False)
+    # [PATCH-6] Original condition (bearish AND breadth > 75%) was inverted for the
+    # real risk case: a confirmed bear regime with near-capitulation breadth (<10%)
+    # is the common loss environment and should raise the bar most. The old condition
+    # never fired in observed data (breadth was 4%). Both branches now preserved.
+    if bearish and breadth_pct < 0.10:
+        return MIN_SCORE + 2   # confirmed bear + near-capitulation breadth
     if bearish and breadth_pct > 0.75:
-        return MIN_SCORE + 1
+        return MIN_SCORE + 1   # original condition preserved
     return MIN_SCORE
 
 def get_dynamic_max_signals(btc_regime: dict | None, breadth_pct: float) -> int:
@@ -2538,10 +2544,19 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
 
     # Recompute vol_score_ok_pull now that signal_type is known
     # [Fix-43] Same fail-closed pattern as vol_score_ok: a zero baseline must fail, not pass.
+    # [PATCH-2] Fix dead branch. For PULL signals, healthy volume is LOW
+    # (declining into the EMA is the classic retracement signature). Accept
+    # any vol_ratio in [0.10, 1.30] as "healthy" for PULL display purposes.
+    # Values > 1.30 on a pullback candle suggest distribution or reversal.
+    # The base score still uses vol_score_ok (BREAK threshold, >= 0.75x) —
+    # the PULL low-vol correction in _apply_scoring_and_filters (PATCH-3)
+    # restores the missed base-score point for the 0.10–0.75x band.
+    PULL_VOL_RATIO_MIN: float = 0.10
+    PULL_VOL_RATIO_MAX: float = 1.30
     if res.fire_long or res.fire_short:
         res._ctx["vol_score_ok_pull"] = False if vm15 == 0 else (
             cur_v >= vm15 * VOL_SCORE_MULT if res.signal_type == "BREAK"
-            else cur_v <= vm15 * 1.3
+            else PULL_VOL_RATIO_MIN <= (cur_v / vm15) <= PULL_VOL_RATIO_MAX
         )
 
     return res
@@ -2744,37 +2759,38 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     if res.signal_type == "PULL":
         vm15_apply = safe(ind["vol_ma15"][-1]) if "vol_ma15" in ind else 0.0
         cur_v_apply = ind["v15"][-1]
-        # [Fix-BUG-H2] PULL volume base-score correction.
-        # The base score uses vol_score_ok (>= 0.75x avg) which is the BREAK threshold.
-        # For PULL signals, low/moderate volume is the correct expectation — the pullback
-        # should be on declining volume. If volume is genuinely low (<= 0.75x avg) and
-        # this caused the base score to miss the vol component, restore +1 here.
-        _pull_vol_low_bonus_ok = (
-            vm15_apply > 0
-            and cur_v_apply < vm15_apply * VOL_SCORE_MULT   # would have missed the base-score vol point
-            and cur_v_apply > 0                              # sanity guard
-        )
-        if _pull_vol_low_bonus_ok:
-            adjusted_score += 1
-            adjs.append(("PULL low-vol correction (healthy pullback volume)", +1, "secondary"))
-
+        # [PATCH-8] Removed price_dir == "down" guard. On a PULL entry bar price
+        # is always "up" (green recovery bar is required by pull_recover_long), so
+        # the original condition was structurally always False — OI falling on PULL
+        # was never penalized. OI falling on the recovery bar means no institutional
+        # longs are being added as price recovers: genuinely low conviction.
         _oi_falling_bearish = (
             oi_data.get("oi_trend") == "falling"
             and oi_data.get("score_adj", 0) == 0
-            and price_dir == "down"
         )
         if _oi_falling_bearish:
             adjusted_score -= 1
-            adjs.append(("OI falling on PULL with price down (Step-1 neutral)", -1, "secondary"))
+            adjs.append(("OI falling on PULL entry (no new longs on recovery)", -1, "secondary"))
 
         if vol_ratio is not None:
             _vol_floor = (PULL_VOL_FLOOR_OVERBOUGHT
                             if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH
                             else PULL_VOL_FLOOR)
             if vol_ratio <= _vol_floor:
+                # Very low volume — lack of buyer conviction.
                 adjusted_score -= 1
                 adjs.append((f"Vol floor (ratio {vol_ratio:.2f}x <= {_vol_floor:.2f}x"
                              f"{' overbought' if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH else ''})", -1, "secondary"))
+            elif vol_ratio < VOL_SCORE_MULT:
+                # [PATCH-3] Mutually exclusive with floor check. Vol is between the
+                # floor and the BREAK threshold (0.40x–0.75x): classic declining-volume
+                # pullback signature. The base score penalised it (vol_score_ok failed),
+                # restore +1 here. Floor fires ≤ 0.40x; this fires 0.40x < vol < 0.75x.
+                # (Replaces the standalone _pull_vol_low_bonus_ok block above which was
+                # non-mutually-exclusive — could add +1 and then immediately lose -1 on
+                # the floor check for the same vol_ratio.)
+                adjusted_score += 1
+                adjs.append(("PULL low-vol correction (healthy pullback volume)", +1, "secondary"))
 
         candle_range = cur_h - cur_l
         body_size    = abs(cur_c - cur_o)
@@ -2811,6 +2827,24 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     adjs.append((f"RS negative on BREAK ({rs_pct:+.1f}%, "
                                  f"{rs_percentile*100:.0f}th pct)", -1, "rs_negative"))
 
+    elif res.signal_type == "PULL":
+        # [PATCH-4] PULL RS gate. BREAK has hard + soft gates; PULL had none.
+        # A coin underperforming BTC on a PULL entry suggests structural weakness,
+        # not healthy retracement. Softer thresholds than BREAK to preserve frequency.
+        RS_PULL_SOFT_GATE_PCT: float = -1.0   # softer than BREAK's 0% bottom-pct check
+        RS_PULL_HARD_GATE_PCT: float = -4.0   # softer than BREAK's -6.0%
+        rs_pct = rs_data.get("rs_pct")
+        if rs_pct is not None:
+            if rs_pct < RS_PULL_HARD_GATE_PCT:
+                adjusted_score -= 2
+                adjs.append((f"RS strongly negative on PULL ({rs_pct:+.1f}% < "
+                             f"{RS_PULL_HARD_GATE_PCT:.1f}%)", -2, "rs_negative"))
+            elif rs_pct < RS_PULL_SOFT_GATE_PCT:
+                adjusted_score -= 1
+                adjs.append((f"RS negative on PULL ({rs_pct:+.1f}% < "
+                             f"{RS_PULL_SOFT_GATE_PCT:.1f}%)", -1, "rs_negative"))
+
+    if res.signal_type == "BREAK":
         if direction == "long" and res.resistances:
             nearest_res = res.resistances[0]
             if res.entry < nearest_res < res.tp1:
@@ -2829,6 +2863,30 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     if blocked_pct >= TP1_WALL_MIN_CLEARANCE:
                         adjusted_score -= 1
                         adjs.append((f"Support blocks TP1 ({blocked_pct*100:.0f}%)", -1, "secondary"))
+
+    if res.signal_type == "PULL":
+        # [PATCH-5] PULL TP1 resistance wall check. Mirrors the BREAK check above.
+        # PULL entries sit closer to recent swing lows, making resistance overhead
+        # more likely to be within TP1 range. Uses the same TP1_WALL_MIN_CLEARANCE
+        # threshold (0.40): resistance blocking ≥ 40% of path to TP1 degrades R:R.
+        if direction == "long" and res.resistances:
+            nearest_res = res.resistances[0]
+            if res.entry < nearest_res < res.tp1:
+                tp_range = res.tp1 - res.entry
+                if tp_range > 0:
+                    blocked_pct = (nearest_res - res.entry) / tp_range
+                    if blocked_pct >= TP1_WALL_MIN_CLEARANCE:
+                        adjusted_score -= 1
+                        adjs.append((f"Resistance blocks PULL TP1 ({blocked_pct*100:.0f}%)", -1, "secondary"))
+        elif direction == "short" and res.supports:
+            nearest_sup = res.supports[0]
+            if res.tp1 < nearest_sup < res.entry:
+                tp_range = res.entry - res.tp1
+                if tp_range > 0:
+                    blocked_pct = (res.entry - nearest_sup) / tp_range
+                    if blocked_pct >= TP1_WALL_MIN_CLEARANCE:
+                        adjusted_score -= 1
+                        adjs.append((f"Support blocks PULL TP1 ({blocked_pct*100:.0f}%)", -1, "secondary"))
 
     # ── Step 7: D200 Soft Bonus/Penalty ──────────────────────
     if USE_D200_FILTER:
@@ -3895,7 +3953,7 @@ def send_summary(state: dict):
         overall_wr = wins / total
 
     lines = [
-        f"📊 Signal Summary (last 24h)  •  v{__version__}",
+        "📊 Signal Summary (last 24h)",
         f"✅ Winners: {winners} (🔥×{tp1_count}  🏆×{tp2_count})",
         f"❌ Losers:  {losers} (😭×{sl_count})",
     ]
