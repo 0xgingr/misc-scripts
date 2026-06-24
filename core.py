@@ -116,7 +116,7 @@ OBV_LEN   = 10
 
 # ── RISK / SCORE ─────────────────────────────────────────────
 MIN_SCORE            = 4
-MAX_SIGNALS_PER_SCAN = 3
+MAX_SIGNALS_PER_SCAN = 4  # IMP-S17-5 — increased by 1 (was 3)
 MAX_SIGNAL_HISTORY   = 2000
 # [Fix-7] MIN_OI_USD kept at 500K per "Implementation All except MIN_OI_USD"
 MIN_OI_USD: float = 500_000.0
@@ -155,8 +155,8 @@ FUNDING_CARRY_BONUS: int = 1
 # ── DYNAMIC MAX_SIGNALS_PER_SCAN ───────────────────────────
 USE_DYNAMIC_MAX_SIGNALS: bool = True
 # [Fix-5] Increased caps by 1 each: in strong trends, 5 signals across 25 coins is restrictive
-MAX_SIGNALS_BULL_TREND: int = 5  
-MAX_SIGNALS_DEFAULT: int = 3    
+MAX_SIGNALS_BULL_TREND: int = 6  # IMP-S17-5 — increased by 1 (was 5)
+MAX_SIGNALS_DEFAULT: int = 4     # IMP-S17-5 — increased by 1 (was 3)
 BREADTH_BULL_THRESHOLD: float = 0.70
 
 # ── FALSE BREAKOUT PATTERN DETECTION ───────────────────────
@@ -168,20 +168,20 @@ FALSE_BREAKOUT_BONUS: int = 1
 ADX_BREAK_GATE  = 25.0
 ADX_SCORE_MIN   = 20.0
 
-RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 75.0  # Catches breakouts launching from neutral RSI territory
-RSI_BREAK_SHORT_MIN = 25.0;  RSI_BREAK_SHORT_MAX = 55.0  # Symmetric
-RSI_PULL_LONG_MIN   = 42.0;  RSI_PULL_LONG_MAX   = 55.0  # RSI < 42 = breakdown signature, not pullback; RSI > 55 = barely pulled back, poor R:R
-RSI_PULL_SHORT_MIN  = 45.0;  RSI_PULL_SHORT_MAX  = 58.0  # Symmetric
+RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 70.0  # IMP-S15-7 — tightened from 75 to remove top-buying-risk tail; Catches breakouts launching from neutral RSI territory
+RSI_BREAK_SHORT_MIN = 30.0;  RSI_BREAK_SHORT_MAX = 55.0  # IMP-S15-7 — mirror tightening (100-70); Symmetric
+RSI_PULL_LONG_MIN   = 40.0;  RSI_PULL_LONG_MAX   = 58.0  # IMP-S17-3 — widened from [42,55]; RSI < 40 = breakdown signature, not pullback; RSI > 58 = barely pulled back, poor R:R
+RSI_PULL_SHORT_MIN  = 42.0;  RSI_PULL_SHORT_MAX  = 60.0  # IMP-S17-3 — mirror widening from [45,58]
 RSI_1H_PULL_LONG_MAX  = 70.0
 RSI_1H_PULL_SHORT_MIN = 30.0
 
-VOL_SCORE_MULT  = 0.75
+VOL_SCORE_MULT  = 1.0  # IMP-S15-9 — raised from 0.75x; BREAK now requires at least average volume as a hard gate (also used as PULL low-vol-bonus reference below)
 MAX_ATR_PCT     = 10.0
 MIN_ATR_PCT     = 0.2
 WICK_FILTER     = 0.45
 RANGE_PCT_BREAK = 0.20
 PULL_ZONE_MULT  = 0.25
-PULL_TOUCH_LOOKBACK   = 3  # [PATCH-7b] 5→3 bars (75 min→45 min): eliminate stale-touch entries
+PULL_TOUCH_LOOKBACK   = 5  # IMP-S16-5 — 3→5 bars (45 min→75 min): captures slow EMA-dip pullbacks (supersedes [PATCH-7b]'s 5→3 narrowing)
 PULL_RECOVER_ATR_MULT_TREND: float = 0.30  # Catches entries closer to actual EMA touch
 PULL_RECOVER_ATR_MULT_MIXED: float = 0.25  # [PATCH-7c] 0.10→0.25: same ratio scaling as trend
 TREND_HOLD_BARS = 2
@@ -190,7 +190,7 @@ TREND_HOLD_BARS_BREAK: int = 1   # Only 1 bar of 4H EMA alignment required for B
 TREND_HOLD_BARS_PULL:  int = 2   # Keep 2 bars for PULL (confirmed trend needed)
 
 # 4H momentum quality gate for PULL
-MIN_4H_SPREAD_ATR_MULT: float = 0.30  # 4H EMA spread must be >= 0.3x 4H ATR
+MIN_4H_SPREAD_ATR_MULT: float = 0.20  # IMP-S17-8 — lowered from 0.30; allows earlier entries into nascent trends. 4H EMA spread must be >= 0.2x 4H ATR
 
 # 4H exhaustion suppressor for BREAK
 EXHAUSTION_SPREAD_LOOKBACK: int = 3   # Bars back to compare spread for BREAK exhaustion check
@@ -301,7 +301,7 @@ SPREAD_DYNAMIC_AVG_THRESHOLD: float = 0.15  # 0.10 -> 0.15
 WIN_RATE_MIN_SAMPLE: int    = 20
 WIN_RATE_HIGH_THRESH: float = 0.65
 WIN_RATE_LOW_THRESH: float  = 0.45
-WIN_RATE_MIN_SAMPLE_FOR_ADJ: int = 80
+WIN_RATE_MIN_SAMPLE_FOR_ADJ: int = 100  # IMP-S17-9 — raised from 80; require more samples before trusting WR adjustment
 WIN_RATE_LOOKBACK_DAYS:  int   = 30
 WIN_RATE_RECENT_DAYS:    int   = 7
 WIN_RATE_RECENT_WEIGHT:  float = 2.0  # [P0-2] Now actually used
@@ -407,7 +407,7 @@ RS_BEARISH_REGIME_EXEMPT_PCT: float = 3.0
 # watchlist. Renamed from v15.8.1's LAYER1_CLUSTER_CORR_THRESHOLD since it's
 # no longer specific to the "layer1" group — it now drives clustering across
 # the whole watchlist. Same default value (0.75) carried over unchanged.
-DYNAMIC_CORR_CLUSTER_THRESHOLD: float = 0.75  # |correlation| >= this unions two symbols into the same cluster
+DYNAMIC_CORR_CLUSTER_THRESHOLD: float = 0.85  # IMP-S17-4 — raised from 0.75; tighter clusters, more decorrelated signals get through. |correlation| >= this unions two symbols into the same cluster
 CORR_MATRIX_MIN_SAMPLE: int = 20              # minimum overlapping-return sample size before a pair is scored at all
 
 # [Risk-34] Leverage sizing (concurrent-position deduction removed — see v15.8.1)
@@ -537,10 +537,28 @@ def get_candles(symbol: str, interval: str, n: int,
     candles = filter_closed_candles(candles, interval, ref_ms)
     return candles[-n:]
 
+def _detect_candle_gaps(candles: list[dict], interval_ms: int,
+                        max_gap_mult: float = 2.0, symbol: str = "") -> list[dict]:
+    """Log and skip symbols with candle timestamp gaps. Returns candles unchanged,
+    or [] if a gap > max_gap_mult * interval_ms is found (caller should skip the
+    symbol for this scan since indicator values would reference the wrong bars)."""  # IMP-S18-5
+    for i in range(1, len(candles)):
+        gap_ms = candles[i]["t"] - candles[i - 1]["t"]
+        if gap_ms > interval_ms * max_gap_mult:
+            gap_min = gap_ms / 60_000
+            print(f"  [CANDLE GAP] {symbol} 15m candle gap detected: {gap_min:.1f} min "
+                  f"at index {i} (ts={candles[i]['t']}). Skipping symbol.")
+            return []   # IMP-S18-5 — return empty to trigger symbol-skip in caller
+    return candles
+
 def fetch_all_candles(symbol: str, reference_ms: int | None = None) -> tuple[list, list, list, list] | None:
     candles_15m = get_candles(symbol, "15m", N_15M, reference_ms=reference_ms)
     if len(candles_15m) < 50:
         return None
+    candles_15m = _detect_candle_gaps(candles_15m, interval_ms=INTERVAL_MS["15m"],
+                                       symbol=symbol)   # IMP-S18-5
+    if not candles_15m:
+        return None   # IMP-S18-5 — skip symbol on detected gap
     results = {}
     with ThreadPoolExecutor(max_workers=max(1, HL_TF_WORKERS)) as ex:
         futures = {
@@ -662,8 +680,26 @@ def update_oi_history(state: dict, symbol: str, oi_usd: float | None) -> None:
 
 def compute_oi_trend(state: dict, symbol: str, current_price: float,
                      price_direction: str, trade_direction: str) -> dict:
+    OI_FRESHNESS_CUTOFF_S = 30 * 60   # IMP-S18-4 — 30 minutes
     with _state_lock:
         oi_hist = list(state.get("oi_history", {}).get(symbol, []))
+    if not oi_hist:
+        return {
+            "oi_trend": "unknown", "oi_change_pct": None,
+            "oi_acceleration": None, "score_adj": 0,
+            "label": "OI Trend: Unknown", "breakdown_tag": "OI?",
+            "condition": "Unknown",
+        }
+    _last_ts_s18_4 = oi_hist[-1].get("ts", 0)
+    if (time.time() - _last_ts_s18_4) > OI_FRESHNESS_CUTOFF_S:             # IMP-S18-4
+        print(f"  [OI FRESHNESS] {symbol} OI data is stale "
+              f"({(time.time() - _last_ts_s18_4) / 60:.1f} min) — returning unknown")
+        return {
+            "oi_trend": "unknown", "oi_change_pct": None,
+            "oi_acceleration": None, "score_adj": 0,
+            "label": "OI Trend: Unknown (stale)", "breakdown_tag": "OI?",
+            "condition": "Unknown",
+        }
     if len(oi_hist) < 2:
         return {
             "oi_trend": "unknown", "oi_change_pct": None,
@@ -1988,6 +2024,10 @@ def prune_state(state: dict) -> None:
             e for e in state.get("resolved_signals", [])
             if now - e.get("resolved_at", 0) < 259200
         ]
+        MAX_RESOLVED_SIGNALS = 500   # IMP-S18-9 — cap resolved signal list to bound RAM use
+        if len(state.get("resolved_signals", [])) > MAX_RESOLVED_SIGNALS:
+            state["resolved_signals"] = state["resolved_signals"][-MAX_RESOLVED_SIGNALS:]   # IMP-S18-9
+            print(f"  [STATE PRUNE] resolved_signals capped to {MAX_RESOLVED_SIGNALS} entries")
 
         for sym in list(state.get("funding_history", {}).keys()):
             state["funding_history"][sym] = [
@@ -2063,7 +2103,8 @@ def record_market_inputs_from_candles(symbol: str,
     c15 = [c["c"] for c in candles_15m]
     c4h = [c["c"] for c in candles_4h]
     ema_s4h = ema(c4h, SLOW_LEN)
-    price_above_ema50_4h = c4h[-1] > safe(ema_s4h[-1])
+    _h4h_mid = (candles_4h[-1]["h"] + candles_4h[-1]["l"]) / 2   # IMP-S16-10 — midpoint reduces wick noise in trend-direction flag
+    price_above_ema50_4h = _h4h_mid > safe(ema_s4h[-1])   # IMP-S16-10
     record_breadth_result(symbol, price_above_ema50_4h)
     # [Logic-19] Return None for insufficient history instead of 0.0
     if len(c4h) >= 42:
@@ -2353,6 +2394,7 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     # noise-rejection filter.
     vol_score_ok = False if vm15 == 0 else (cur_v >= vm15 * VOL_SCORE_MULT)
     vol_ratio    = (cur_v / vm15) if vm15 > 0 else None
+    vol_ok_break_hard = (cur_v >= vm15 * VOL_SCORE_MULT) if vm15 > 0 else False   # IMP-S15-9 — hard gate, BREAK requires >= 1.0x avg volume
 
     _ref_ts_vol = (reference_ms / 1000) if reference_ms is not None else time.time()
     _is_weekend = datetime.fromtimestamp(_ref_ts_vol, tz=timezone.utc).weekday() >= 5
@@ -2424,6 +2466,29 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     h4_trend_held_bull_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], True)
     h4_trend_held_bear_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], False)
 
+    # IMP-S15-8 — require a stricter 3-bar 4H trend hold for PULL specifically when the
+    # BTC regime is "mixed" (ambiguous higher timeframe + minimal confirmation is risky).
+    _btc_label_s15_8 = (btc_regime or {}).get("label", "")
+    _mixed_regime_s15_8 = "mixed" in _btc_label_s15_8.lower()
+    _h4_hold_required_pull = 3 if _mixed_regime_s15_8 else TREND_HOLD_BARS   # IMP-S15-8
+
+    def trend_held_for_pull(ef_arr, es_arr, bull: bool) -> bool:
+        """Regime-aware 4H EMA hold check for PULL — stricter hold in mixed regime."""  # IMP-S15-8
+        for offset in range(1, _h4_hold_required_pull + 1):
+            idx = -(offset + 1)
+            if len(ef_arr) < offset + 2:
+                return False
+            ef_v = safe(ef_arr[idx])
+            es_v = safe(es_arr[idx])
+            if bull and ef_v <= es_v:
+                return False
+            if not bull and ef_v >= es_v:
+                return False
+        return True
+
+    h4_trend_held_bull_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], True)    # IMP-S15-8
+    h4_trend_held_bear_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], False)   # IMP-S15-8
+
     # Daily 200 EMA + ADX
     if ind["ema_d200"] is not None:
         d200 = safe(ind["ema_d200"][-1])
@@ -2485,18 +2550,18 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     # unlike exhaustion), but 1H has temporarily moved against it. This is the
     # "dip inside a held swing trend" case — PULL-only, never feeds BREAK.
     if USE_PULLBACK_ALIGNMENT:
-        pullback_long_align  = h4_bull and h4_trend_held_bull and h1_bear
-        pullback_short_align = h4_bear and h4_trend_held_bear and h1_bull
+        pullback_long_align  = h4_bull and h4_trend_held_bull_pull and h1_bear    # IMP-S15-8
+        pullback_short_align = h4_bear and h4_trend_held_bear_pull and h1_bull    # IMP-S15-8
     else:
         pullback_long_align  = False
         pullback_short_align = False
 
-    pull_long_align  = (h4_bull and h4_trend_held_bull and h1_bull) \
-                        if get_pull_requires_4h(symbol, btc_regime) else (h4_trend_held_bull and h1_bull)
+    pull_long_align  = (h4_bull and h4_trend_held_bull_pull and h1_bull) \
+                        if get_pull_requires_4h(symbol, btc_regime) else (h4_trend_held_bull_pull and h1_bull)
     pull_short_align = (
-        (h4_bear and h4_trend_held_bear and h1_bear)
+        (h4_bear and h4_trend_held_bear_pull and h1_bear)
         if get_pull_requires_4h(symbol, btc_regime)
-        else (h4_trend_held_bear and h1_bear)
+        else (h4_trend_held_bear_pull and h1_bear)
     )
     if USE_EXHAUSTION_SHORT and exhaustion_short_align:
         pull_short_align = True
@@ -2567,12 +2632,12 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
 
     # [Fix-11] Gate raised from MIN_SCORE-1 to MIN_SCORE (proportionally with new 6th component)
     long_break  = (daily_adx_ok and (full_long_align_break or exhaustion_long_align) and break_bull_bar
-                   and adx_break_ok and rsi_break_long
+                   and adx_break_ok and rsi_break_long and vol_ok_break_hard  # IMP-S15-9
                    and long_score  >= MIN_SCORE and market_ok)
     short_break = (daily_adx_ok
                    and (full_short_align_break or exhaustion_short_align)
                    and break_bear_bar
-                   and adx_break_ok and rsi_break_short
+                   and adx_break_ok and rsi_break_short and vol_ok_break_hard  # IMP-S15-9
                    and short_score >= MIN_SCORE and market_ok)
 
     # Tier A Premium Pullback detection (highest win probability, +1 bonus)
@@ -3078,7 +3143,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         # [PATCH-4] PULL RS gate. BREAK has hard + soft gates; PULL had none.
         # A coin underperforming BTC on a PULL entry suggests structural weakness,
         # not healthy retracement. Softer thresholds than BREAK to preserve frequency.
-        RS_PULL_SOFT_GATE_PCT: float = -1.0   # softer than BREAK's 0% bottom-pct check
+        RS_PULL_SOFT_GATE_PCT: float = -2.0   # IMP-S17-10 — loosened from -1.0%; mild negative RS is normal in healthy rotation. Softer than BREAK's 0% bottom-pct check
         RS_PULL_HARD_GATE_PCT: float = -4.0   # softer than BREAK's -6.0%
         rs_pct = rs_data.get("rs_pct")
         if rs_pct is not None:
@@ -3170,7 +3235,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     else:
         _atr_pct_thresh = atr_val
     _low_atr        = atr_val <= _atr_pct_thresh
-    session_penalty = _in_dead and _low_atr
+    session_penalty = _in_dead and _low_atr and res.signal_type != "BREAK"   # IMP-S17-7 — BREAK exempt from dead-zone penalty
     if session_penalty:
         adjusted_score -= 1
         adjs.append((f"Low-liquidity session ({_now_utc.hour:02d}:xx UTC, thin ATR)", -1, "secondary"))
@@ -3604,6 +3669,23 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
 # COOLDOWN STATE
 # ═══════════════════════════════════════════════════════════════
 
+def _migrate_state(old: dict, target_version) -> dict:    # IMP-S18-2
+    """Preserve key history fields across state schema version bumps, instead of
+    silently dropping all historical state when `_version` changes."""
+    new = {
+        "_version": target_version,
+        "oi_history": {}, "signal_history": [], "macro_calendar_cache": {},
+        "post_loss_cooldown": {}, "atr_history": {}, "funding_history": {},
+        "signal_cooldowns": {}, "last_signal_outcome": {},
+        "failed_breakouts": {}, "active_signals": [], "resolved_signals": [],
+        "spread_history": {},
+    }
+    for field in ("signal_history", "resolved_signals", "post_loss_cooldown",
+                  "oi_history", "spread_history"):
+        if field in old:
+            new[field] = old[field]
+    return new   # IMP-S18-2
+
 def load_state() -> dict:
     _fresh = {
         "_version": STATE_VERSION,
@@ -3618,8 +3700,9 @@ def load_state() -> dict:
             try:
                 s = json.loads(Path(path).read_text())
                 if s.get("_version", 1) != STATE_VERSION:
-                    print(f"[STATE] Schema version mismatch in {path}. Starting fresh.")
-                    continue
+                    print(f"[STATE] Schema version mismatch in {path} — migrating state "
+                          f"(preserving signal/resolved/cooldown/oi/spread history)")  # IMP-S18-2
+                    s = _migrate_state(s, STATE_VERSION)   # IMP-S18-2
                 s.setdefault("oi_history", {})
                 s.setdefault("signal_history", [])
                 s.setdefault("macro_calendar_cache", {})
@@ -3687,7 +3770,9 @@ def check_cooldown(state, coin, direction, bar_index, signal_type: str = "",
         elif candidate_score >= SIGNAL_HIGHSCORE_THRESHOLD:
             required_bars = SIGNAL_COOLDOWN_BARS_HIGHSCORE
         else:
-            required_bars = SIGNAL_COOLDOWN_BARS
+            _regime_label_s16_9 = (get_btc_regime() or {}).get("label", "")
+            _bear_regime_s16_9 = "bear" in _regime_label_s16_9.lower()
+            required_bars = SIGNAL_COOLDOWN_BARS if _bear_regime_s16_9 else 1   # IMP-S16-9 — 1 bar (15min) in neutral/bull, 2 bars in bear
 
         if bars_elapsed < required_bars:
             remaining_bars = required_bars - bars_elapsed
@@ -3755,7 +3840,7 @@ def send_telegram(text: str) -> int | None:
             time.sleep(2)
     return None
 
-def react_to_message(message_id: int, emoji: str):
+def react_to_message(message_id: int, emoji: str) -> bool:
     url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/setMessageReaction"
     try:
         r = requests.post(url, json={
@@ -3766,9 +3851,26 @@ def react_to_message(message_id: int, emoji: str):
         }, timeout=10)
         r.raise_for_status()
         print(f"  [REACT] {emoji} → msg_id {message_id}")
+        return True   # IMP-S18-3
     except Exception as e:
         # [P0-5] Sanitized error
         print(f"  [REACT ERROR] msg_id {message_id}: {_sanitize_error(e)}")
+        return False   # IMP-S18-3
+
+_tg_react_failures: dict[int, int] = {}   # IMP-S18-3 — module-level per-msg_id failure tracker
+TG_REACT_MAX_FAILURES = 3   # IMP-S18-3
+
+def react_to_message_safe(msg_id: int, *args, **kwargs):    # IMP-S18-3
+    """Rate-limits react_to_message(): stops retrying a msg_id that has failed
+    TG_REACT_MAX_FAILURES times in a row, to avoid flooding the Telegram API
+    with calls for a single permanently-invalid msg_id."""
+    if _tg_react_failures.get(msg_id, 0) >= TG_REACT_MAX_FAILURES:
+        return   # silently skip permanently-failing msg_ids
+    ok = react_to_message(msg_id, *args, **kwargs)
+    if not ok:
+        _tg_react_failures[msg_id] = _tg_react_failures.get(msg_id, 0) + 1
+        print(f"  [REACT] msg_id={msg_id} failure count now "
+              f"{_tg_react_failures[msg_id]}/{TG_REACT_MAX_FAILURES}")
 
 RANK_MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
@@ -4083,24 +4185,24 @@ def check_active_signals(state: dict, bar_index_now: int,
                         sl_dist_from_open  = abs(sl - c_open)
                         if sl_dist_from_open < tp1_dist_from_open:
                             # SL is closer to open — more likely hit first
-                            react_to_message(msg_id, REACT_SL)
+                            react_to_message_safe(msg_id, REACT_SL)
                             resolve_signal("sl")
                             break
                         else:
-                            react_to_message(msg_id, REACT_TP1)
+                            react_to_message_safe(msg_id, REACT_TP1)
                             tp1_hit = True
                             sig["tp1_hit"] = True
                     elif c_high >= tp1:
-                        react_to_message(msg_id, REACT_TP1)
+                        react_to_message_safe(msg_id, REACT_TP1)
                         tp1_hit = True
                         sig["tp1_hit"] = True
                     elif c_low <= sl:
-                        react_to_message(msg_id, REACT_SL)
+                        react_to_message_safe(msg_id, REACT_SL)
                         resolve_signal("sl")
                         break
 
                 if tp1_hit and c_high >= tp2:
-                    react_to_message(msg_id, REACT_TP2)
+                    react_to_message_safe(msg_id, REACT_TP2)
                     resolve_signal("tp2")
                     break
 
@@ -4115,24 +4217,24 @@ def check_active_signals(state: dict, bar_index_now: int,
                         tp1_dist_from_open = abs(tp1 - c_open)
                         sl_dist_from_open  = abs(sl - c_open)
                         if sl_dist_from_open < tp1_dist_from_open:
-                            react_to_message(msg_id, REACT_SL)
+                            react_to_message_safe(msg_id, REACT_SL)
                             resolve_signal("sl")
                             break
                         else:
-                            react_to_message(msg_id, REACT_TP1)
+                            react_to_message_safe(msg_id, REACT_TP1)
                             tp1_hit = True
                             sig["tp1_hit"] = True
                     elif c_low <= tp1:
-                        react_to_message(msg_id, REACT_TP1)
+                        react_to_message_safe(msg_id, REACT_TP1)
                         tp1_hit = True
                         sig["tp1_hit"] = True
                     elif c_high >= sl:
-                        react_to_message(msg_id, REACT_SL)
+                        react_to_message_safe(msg_id, REACT_SL)
                         resolve_signal("sl")
                         break
 
                 if tp1_hit and c_low <= tp2:
-                    react_to_message(msg_id, REACT_TP2)
+                    react_to_message_safe(msg_id, REACT_TP2)
                     resolve_signal("tp2")
                     break
 
@@ -4331,6 +4433,14 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
     print(f"    🚀 SIGNAL: {coin} {direction.upper()} [{sig.signal_type}] "
           f"base={sig.score} final={sig.final_score}")
 
+    # IMP-S16-7 — use the current live mark price (proxy for current-bar open) as the
+    # Tranche A "Market" entry basis instead of the prior closed 15m candle's close,
+    # tightening the gap between signal generation and actual fill on gap-prone opens.
+    _live_entry_px_s16_7 = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
+                            if live_cache else None)
+    if _live_entry_px_s16_7 is not None and _live_entry_px_s16_7 > 0:
+        sig.entry = _live_entry_px_s16_7   # IMP-S16-7
+
     if ctx:
         sig.funding_rate  = live_funding if live_funding is not None else ctx.get("funding")
         sig.open_interest = ctx.get("open_interest")
@@ -4362,7 +4472,8 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
                 _close_px   = candles_15m[-1]["c"]
                 _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
                 # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
-            sig.spread_pct = _spread_pct
+            with _spread_history_lock:                                 # IMP-S18-8
+                sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
             if _spread_pct >= SPREAD_SUPPRESS_PCT:
                 print(f"    [SPREAD FILTER] {coin} {direction.upper()} hard suppressed — "
@@ -4392,7 +4503,8 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
                 _close_px   = candles_15m[-1]["c"]
                 _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
                 # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
-            sig.spread_pct = _spread_pct
+            with _spread_history_lock:                                 # IMP-S18-8
+                sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
 
     return [(symbol, direction, sig)]
@@ -4402,6 +4514,13 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
 # ═══════════════════════════════════════════════════════════════
 
 def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
+    def _group_of_dynamic_safe(symbol):    # IMP-S18-7
+        try:                                                          # IMP-S18-7
+            return group_of_dynamic(symbol)
+        except Exception as e:
+            print(f"  [CORR GROUP] group_of_dynamic({symbol}) failed: {e} — treating as singleton")
+            return symbol   # IMP-S18-7 — each symbol is its own group as safe fallback
+
     def _sort_key(t):
         sig = t[2]
         rs = sig.rs_data.get("rs_pct")
@@ -4425,8 +4544,8 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
         # clusters (see compute_pairwise_correlation_matrix() /
         # cluster_by_correlation() / group_of_dynamic()) instead of a static
         # hand-maintained CORR_GROUPS dict.
-        group = group_of_dynamic(symbol)
-        _group_size = sum(1 for s in _all_symbols if group_of_dynamic(s) == group)
+        group = _group_of_dynamic_safe(symbol)   # IMP-S18-7
+        _group_size = sum(1 for s in _all_symbols if _group_of_dynamic_safe(s) == group)   # IMP-S18-7
         _watchlist_size = max(len(_all_symbols), 1)
         _large_cluster = _group_size >= int(_watchlist_size * 0.5)   # FIX-D19
         _limit = MAX_FROM_LARGE_CLUSTER if _large_cluster else 1      # FIX-D19
@@ -4444,7 +4563,7 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
     # higher-priority side.
     by_group: dict = {}
     for sig_tuple in result:
-        g = group_of_dynamic(sig_tuple[0])
+        g = _group_of_dynamic_safe(sig_tuple[0])   # IMP-S18-7
         by_group.setdefault(g, []).append(sig_tuple)
 
     dropped_ids = set()
@@ -4490,6 +4609,13 @@ def main():
                 _spread_history[_sym] = list(_hist)
         print(f"[INIT] Spread history restored: {len(_saved_spread)} symbol(s)")
 
+    # IMP-S18-6 — restore dynamic correlation clusters from state on cold start,
+    # so the first scan after a restart isn't stuck with singleton-only groups.
+    if "_dynamic_corr_clusters" in state and not get_dynamic_corr_clusters():
+        _restored_clusters = [set(c) for c in state["_dynamic_corr_clusters"]]
+        set_dynamic_corr_clusters(_restored_clusters)
+        print(f"[INIT] Restored {len(_restored_clusters)} corr clusters from state (cold-start)")  # IMP-S18-6
+
     prune_state(state)
 
     reset_breadth_cache()
@@ -4512,9 +4638,9 @@ def main():
         save_state(state)
         sys.exit(0)
 
-    print("[TRACK] Checking active signals…")
-    check_active_signals(state, bar_index_now, scan_reference_ms)
-    save_state(state)
+    # IMP-S16-8 — check_active_signals() moved to scan END (see bottom of main())
+    # so TP/SL resolution uses the freshest candles from this completed scan,
+    # not the previous scan's. save_state() call moved alongside it.
 
     if should_send_summary(state):
         send_summary(state)
@@ -4544,6 +4670,18 @@ def main():
         rs_n = len(_rs_snapshot or {})
     print(f"  Breadth symbols: {breadth_n}  RS symbols: {rs_n}")
 
+    # IMP-S18-10 — graceful Phase 1 failure: if too few symbols resolved candles,
+    # breadth/RS snapshots are unreliable and Phase 2 signals would be mis-scored.
+    MIN_SYMBOLS_FOR_SCAN = 10   # IMP-S18-10
+    resolved_symbols = [s for s in WATCHLIST if candle_bundles.get(s)]
+    if len(resolved_symbols) < MIN_SYMBOLS_FOR_SCAN:
+        print(
+            f"  [PHASE 1 ABORT] Resolved only {len(resolved_symbols)}/{len(WATCHLIST)} symbols "
+            f"(threshold: {MIN_SYMBOLS_FOR_SCAN}) — aborting scan cycle to prevent bad breadth signals"
+        )
+        save_state(state)
+        return   # IMP-S18-10 — skip Phase 2 entirely for this cycle
+
     # [Logic-24] Update dynamic BTC correlation using collected 4H candles
     btc_4h_bundle = candle_bundles.get("BTCUSDT")
     if btc_4h_bundle:
@@ -4565,6 +4703,7 @@ def main():
         _corr_clusters = cluster_by_correlation(WATCHLIST, _corr_matrix)
         set_dynamic_corr_clusters(_corr_clusters)
         log_dynamic_corr_clusters(_corr_clusters)
+        state["_dynamic_corr_clusters"] = [list(c) for c in get_dynamic_corr_clusters()]   # IMP-S18-6 — persist to state
     except Exception as e:
         print(f"  [CORR MATRIX] dynamic clustering failed, falling back to singleton groups: {e}")
         set_dynamic_corr_clusters([{s} for s in WATCHLIST])
@@ -4654,6 +4793,9 @@ def main():
                   f"— Telegram send failed, cooldown NOT set (eligible to re-fire next scan)")
         signals_fired += 1
         time.sleep(0.5)
+
+    print("[TRACK] Checking active signals…")
+    check_active_signals(state, bar_index_now, scan_reference_ms)   # IMP-S16-8 — moved to scan end for fresh candles
 
     sync_spread_history_to_state(state)
     save_state(state)
