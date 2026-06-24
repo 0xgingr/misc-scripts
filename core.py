@@ -2507,7 +2507,7 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         return (cur_c - cur_l) / rng <= RANGE_PCT_BREAK
 
     # Soft ADX gate: pass if ADX >= 25, OR if ADX >= 20 and rising (momentum building)
-    _adx15_arr  = ind["adx15"]
+    _adx15_arr  = ind["adx15_arr"]
     _adx15_prev = safe(_adx15_arr[-(1 + 3)], 25.0)   # ADX 3 closed bars ago
     adx_rising  = adx15 > _adx15_prev
     adx_break_ok = adx15 >= ADX_BREAK_GATE or (adx15 >= 20.0 and adx_rising)
