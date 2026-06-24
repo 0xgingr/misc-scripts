@@ -2081,7 +2081,7 @@ def get_effective_min_score(btc_regime: dict | None, breadth_pct: float) -> int:
     # is the common loss environment and should raise the bar most. The old condition
     # never fired in observed data (breadth was 4%). Both branches now preserved.
     if bearish and breadth_pct < 0.10:
-        return MIN_SCORE + 2   # confirmed bear + near-capitulation breadth
+        return MIN_SCORE + 1   # confirmed bear + near-capitulation breadth
     if bearish and breadth_pct > 0.75:
         return MIN_SCORE + 1   # original condition preserved
     return MIN_SCORE
