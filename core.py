@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "15.5.5.2"    # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
+__version__ = "16.0.0"    # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
                             # control, replacing the static, hand-maintained CORR_GROUPS
@@ -168,10 +168,10 @@ FALSE_BREAKOUT_BONUS: int = 1
 ADX_BREAK_GATE  = 25.0
 ADX_SCORE_MIN   = 20.0
 
-RSI_BREAK_LONG_MIN  = 50.0;  RSI_BREAK_LONG_MAX  = 75.0
-RSI_BREAK_SHORT_MIN = 25.0;  RSI_BREAK_SHORT_MAX = 50.0
-RSI_PULL_LONG_MIN   = 38.0;  RSI_PULL_LONG_MAX   = 58.0  # [PATCH-7a] 65→58: RSI 59–65 is recovery momentum, not a dip
-RSI_PULL_SHORT_MIN  = 38.0;  RSI_PULL_SHORT_MAX  = 62.0
+RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 75.0  # Catches breakouts launching from neutral RSI territory
+RSI_BREAK_SHORT_MIN = 25.0;  RSI_BREAK_SHORT_MAX = 55.0  # Symmetric
+RSI_PULL_LONG_MIN   = 42.0;  RSI_PULL_LONG_MAX   = 55.0  # RSI < 42 = breakdown signature, not pullback; RSI > 55 = barely pulled back, poor R:R
+RSI_PULL_SHORT_MIN  = 45.0;  RSI_PULL_SHORT_MAX  = 58.0  # Symmetric
 RSI_1H_PULL_LONG_MAX  = 70.0
 RSI_1H_PULL_SHORT_MIN = 30.0
 
@@ -182,19 +182,33 @@ WICK_FILTER     = 0.45
 RANGE_PCT_BREAK = 0.20
 PULL_ZONE_MULT  = 0.25
 PULL_TOUCH_LOOKBACK   = 3  # [PATCH-7b] 5→3 bars (75 min→45 min): eliminate stale-touch entries
-PULL_RECOVER_ATR_MULT_TREND: float = 0.50  # [PATCH-7c] 0.25→0.50: require meaningful recovery, not a single tick
+PULL_RECOVER_ATR_MULT_TREND: float = 0.30  # Catches entries closer to actual EMA touch
 PULL_RECOVER_ATR_MULT_MIXED: float = 0.25  # [PATCH-7c] 0.10→0.25: same ratio scaling as trend
 TREND_HOLD_BARS = 2
+# BREAK-specific trend hold (separate from PULL)
+TREND_HOLD_BARS_BREAK: int = 1   # Only 1 bar of 4H EMA alignment required for BREAK
+TREND_HOLD_BARS_PULL:  int = 2   # Keep 2 bars for PULL (confirmed trend needed)
+
+# 4H momentum quality gate for PULL
+MIN_4H_SPREAD_ATR_MULT: float = 0.30  # 4H EMA spread must be >= 0.3x 4H ATR
+
+# 4H exhaustion suppressor for BREAK
+EXHAUSTION_SPREAD_LOOKBACK: int = 3   # Bars back to compare spread for BREAK exhaustion check
+
+# Early BREAK vol surge threshold
+EARLY_BREAK_VOL_SURGE: float = 1.8   # In-progress bar volume must be >= 1.8x MA
+# Early BREAK score adjustment (starts at base-2, same as confirmed BREAK)
+EARLY_BREAK_SCORE_ADJ: int = 0  # No adjustment needed - same base score as confirmed BREAK
 USE_EXHAUSTION_SHORT:       bool = True
 EXHAUSTION_SHORT_SCORE_ADJ: int  = -1
 USE_EXHAUSTION_LONG:        bool = True
 EXHAUSTION_LONG_SCORE_ADJ:  int  = -1
-EXHAUSTION_SPREAD_LOOKBACK: int  = 4
 # [New] Pullback alignment mode — 4H trend holding, 1H temporarily against it.
 # PULL-only (never BREAK). Distinct from "exhaustion" (which requires the 4H
 # trend to be breaking down). See build_pullback_alignment_mode.md for rationale.
 USE_PULLBACK_ALIGNMENT:     bool = True
-PULLBACK_SCORE_ADJ:         int  = -1   # conservative penalty until win-rate data proves it
+PULLBACK_SCORE_ADJ:         int  = 0    # Blanket penalty removed; quality controlled via RSI (E3)
+PULLBACK_PREMIUM_SCORE_ADJ: int = 1    # Bonus for Tier A Premium Pullback setups
 USE_ROLLING_VWAP  = True
 # NOTE: USE_ROLLING_VWAP=True uses daily_vwap() (session-anchored, UTC midnight reset).
 # The rolling_vwap() function is unused. ROLLING_VWAP_LEN was removed as dead config.
@@ -222,7 +236,8 @@ PULL_REQUIRES_4H_OVERRIDE: dict[str, bool] = {}
 # ── ACCURACY FILTERS ──────────────────────────────────────────
 FUNDING_SUPPRESS_EXTREME: float = 0.0010
 # [Fix-8] Tightened from 0.30 → 0.20: Regime-aware TP/SL (Feature-50) now handles S/R adaptation
-SR_CLEARANCE_ATR_MULT: float    = 0.20
+SR_CLEARANCE_ATR_MULT: float    = 0.20  # Used for BREAK and general S/R logic
+SR_CLEARANCE_ATR_MULT_PULL: float = 0.15  # Relaxed for PULL (was suppressing valid entries near structure)
 SUPPORT_PROXIMITY_ATR: float    = 0.75
 
 # ── BREAK / PULL QUALITY REFINEMENTS ─────────────────────────
@@ -2235,6 +2250,32 @@ def _compute_signal_indicators(symbol: str, candles_15m, candles_1h, candles_4h,
 
     return ind
 
+def is_likely_reversal_disguised_as_pullback(ind, direction: str) -> bool:
+    """
+    Returns True if 2+ reversal signs are present — signal should be suppressed.
+    Protects against RSI-collapse entries entering as pullbacks.
+    """
+    c15  = ind["c15"]
+    r15  = safe(ind["rsi15"][-1])
+    r1h  = safe(ind["rsi1h"][-1])
+    ef4h = safe(ind["ema_f4h"][-1])
+    es4h = safe(ind["ema_s4h"][-1])
+
+    signals = []
+
+    if direction == "long":
+        signals.append(r15 < 42)              # 15m RSI below healthy pullback floor
+        signals.append(r1h < 40)              # 1H RSI in bearish territory
+        signals.append(ef4h < es4h)           # 4H actually flipped bearish
+        signals.append(all(c15[-(i+1)] < c15[-(i+2)] for i in range(3)))  # 3 declining closes
+    else:
+        signals.append(r15 > 58)
+        signals.append(r1h > 60)
+        signals.append(ef4h > es4h)
+        signals.append(all(c15[-(i+1)] > c15[-(i+2)] for i in range(3)))
+
+    return sum(signals) >= 2  # Two or more reversal signs = suppress
+
 def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
                          funding_rate: float | None, symbol: str = "?") -> SignalResult:
     """Detect raw BREAK/PULL signals and compute base score.
@@ -2347,8 +2388,24 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
                 return False
         return True
 
+    def trend_held_for_break(ef_arr, es_arr, bull: bool) -> bool:
+        """1-bar 4H EMA hold check — used for BREAK signals only."""
+        for offset in range(1, TREND_HOLD_BARS_BREAK + 1):
+            idx = -(offset + 1)
+            if len(ef_arr) < offset + 2:
+                return False
+            ef_v = safe(ef_arr[idx])
+            es_v = safe(es_arr[idx])
+            if bull and ef_v <= es_v:
+                return False
+            if not bull and ef_v >= es_v:
+                return False
+        return True
+
     h4_trend_held_bull = trend_held(ind["ema_f4h"], ind["ema_s4h"], True)
     h4_trend_held_bear = trend_held(ind["ema_f4h"], ind["ema_s4h"], False)
+    h4_trend_held_bull_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], True)
+    h4_trend_held_bear_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], False)
 
     # Daily 200 EMA + ADX
     if ind["ema_d200"] is not None:
@@ -2369,11 +2426,20 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     # Alignment gates
     full_long_align  = h4_bull and h4_trend_held_bull and h1_bull
     full_short_align = h4_bear and h4_trend_held_bear and h1_bear
+    # BREAK-specific alignment (uses 1-bar trend hold)
+    full_long_align_break  = h4_bull and h4_trend_held_bull_break and h1_bull
+    full_short_align_break = h4_bear and h4_trend_held_bear_break and h1_bear
 
     _f4h_back = safe(ind["ema_f4h"][-(EXHAUSTION_SPREAD_LOOKBACK + 1)])
     _s4h_back = safe(ind["ema_s4h"][-(EXHAUSTION_SPREAD_LOOKBACK + 1)])
     h4_spread_now  = ef4h - es4h
     h4_spread_prev = _f4h_back - _s4h_back
+
+    # 4H momentum quality check for PULL — is the trend spread healthy?
+    atr4h_arr         = atr(ind["h4h"], ind["l4h"], ind["c4h"], ATR_LEN)
+    atr4h_val         = safe(atr4h_arr[-1], 0.0)
+    h4_spread_atr_ratio = abs(h4_spread_now) / atr4h_val if atr4h_val > 0 else 0.0
+    h4_trend_momentum_ok = h4_spread_atr_ratio >= MIN_4H_SPREAD_ATR_MULT
 
     # [Logic-25] Renamed for clarity: spread_abs_narrowing means absolute spread is shrinking
     if USE_EXHAUSTION_SHORT:
@@ -2440,7 +2506,11 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     def close_in_bot_range():
         return (cur_c - cur_l) / rng <= RANGE_PCT_BREAK
 
-    adx_break_ok   = adx15 >= ADX_BREAK_GATE
+    # Soft ADX gate: pass if ADX >= 25, OR if ADX >= 20 and rising (momentum building)
+    _adx15_arr  = ind["adx15"]
+    _adx15_prev = safe(_adx15_arr[-(1 + 3)], 25.0)   # ADX 3 closed bars ago
+    adx_rising  = adx15 > _adx15_prev
+    adx_break_ok = adx15 >= ADX_BREAK_GATE or (adx15 >= 20.0 and adx_rising)
     break_bull_bar = cur_c > cur_o and clean_bull_bar() and close_in_top_range()
     break_bear_bar = cur_c < cur_o and clean_bear_bar() and close_in_bot_range()
 
@@ -2479,23 +2549,55 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     ])
 
     # [Fix-11] Gate raised from MIN_SCORE-1 to MIN_SCORE (proportionally with new 6th component)
-    long_break  = (daily_adx_ok and (full_long_align or exhaustion_long_align) and break_bull_bar
+    long_break  = (daily_adx_ok and (full_long_align_break or exhaustion_long_align) and break_bull_bar
                    and adx_break_ok and rsi_break_long
                    and long_score  >= MIN_SCORE and market_ok)
     short_break = (daily_adx_ok
-                   and (full_short_align or exhaustion_short_align)
+                   and (full_short_align_break or exhaustion_short_align)
                    and break_bear_bar
                    and adx_break_ok and rsi_break_short
                    and short_score >= MIN_SCORE and market_ok)
 
+    # Tier A Premium Pullback detection (highest win probability, +1 bonus)
+    r4h = safe(ind["rsi4h"][-1])
+    pull_tier_a_long = (
+        h4_bull and h4_trend_held_bull_break      # 4H uptrend held (1-bar sufficient for Tier A)
+        and 50.0 <= r4h <= 70.0                   # 4H RSI in healthy momentum zone
+        and ef1h < es1h                           # 1H temporarily bearish = genuine pullback
+        and 44.0 <= safe(ind["rsi15"][-1]) <= 54.0  # 15m RSI in mid-range bounce zone
+        and cur_c > ef15                          # Recovering above EMA21
+        and len(v15) >= 4                         # Need enough volume history for both checks
+        and v15[-2] < v15[-3]                     # Pullback bar volume declining (healthy retracement)
+        and v15[-1] > v15[-2]                     # Recovery bar volume expands (momentum confirmation)
+    )
+    pull_tier_a_short = (
+        h4_bear and h4_trend_held_bear_break      # 4H downtrend held (1-bar sufficient for Tier A)
+        and 30.0 <= r4h <= 50.0                   # 4H RSI in healthy momentum zone (symmetric)
+        and ef1h > es1h                           # 1H temporarily bullish = genuine pullback
+        and 46.0 <= safe(ind["rsi15"][-1]) <= 56.0  # 15m RSI in mid-range bounce zone (symmetric)
+        and cur_c < ef15                          # Recovering below EMA21
+        and len(v15) >= 4                         # Need enough volume history for both checks
+        and v15[-2] < v15[-3]                     # Pullback bar volume declining (healthy retracement)
+        and v15[-1] > v15[-2]                     # Recovery bar volume expands (momentum confirmation)
+    )
+
     long_pull  = (daily_adx_ok_pull and pull_long_align and pull_touched_long
                   and pull_recover_long  and pull_bull_bar and vwap_long  and rsi_pull_long
+                  and h4_trend_momentum_ok   # NEW: 4H trend must have meaningful spread
                   and long_score  >= MIN_SCORE and market_ok)
     short_pull = (daily_adx_ok_pull
                   and pull_short_align
                   and pull_touched_short
                   and pull_recover_short and pull_bear_bar and vwap_short and rsi_pull_short
+                  and h4_trend_momentum_ok   # NEW: 4H trend must have meaningful spread
                   and short_score >= MIN_SCORE and market_ok)
+
+    # Anti-reversal filter for PULL — suppress if 2+ reversal signs present
+    if long_pull and is_likely_reversal_disguised_as_pullback(ind, "long"):
+        long_pull = False
+
+    if short_pull and is_likely_reversal_disguised_as_pullback(ind, "short"):
+        short_pull = False
 
     long_sig  = long_break  or long_pull
     short_sig = short_break or short_pull
@@ -2519,6 +2621,9 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         "adx_score_ok": adx_score_ok, "adx4h": adx4h, "adx4h_score_ok": adx4h_score_ok,
         "ef15": ef15, "es15": es15, "ef1h": ef1h, "es1h": es1h, "ef4h": ef4h, "es4h": es4h,
         "candles_15m_len": len(c15),
+        "atr4h_val": atr4h_val, "h4_spread_atr_ratio": h4_spread_atr_ratio,
+        "pull_tier_a_long": pull_tier_a_long, "pull_tier_a_short": pull_tier_a_short,
+        "funding_rate": funding_rate,
     }
 
     if long_sig:
@@ -2575,6 +2680,62 @@ def _setup_signal_entry(res: SignalResult, cur_c: float, atr_val: float):
     res.entry_low    = cur_c - zone_half_width
     res.entry_high   = cur_c + zone_half_width
     res.atr_val      = atr_val
+
+def is_likely_exhausted_break(ind: dict, atr_val: float, direction: str) -> bool:
+    """
+    Suppress BREAK if 2+ exhaustion signs are present simultaneously.
+    Catches blow-off tops (long) and capitulation spikes (short).
+    """
+    c15 = ind["c15"]
+    h15 = ind["h15"]
+    l15 = ind["l15"]
+
+    # 1. ATR expansion: current ATR >> recent average
+    recent_atrs = [v for v in ind["atr15"][-20:] if not math.isnan(v)]
+    avg_atr     = (sum(recent_atrs[:-3]) / len(recent_atrs[:-3])
+                   if len(recent_atrs) > 3 else atr_val)
+    atr_expanded = atr_val > avg_atr * 1.8
+
+    # 2. Multi-bar extension: last 3 bars all moved in the same direction
+    if direction == "long":
+        multi_bar_ext = all(c15[-(i+1)] > c15[-(i+2)] for i in range(3))
+    else:
+        multi_bar_ext = all(c15[-(i+1)] < c15[-(i+2)] for i in range(3))
+
+    # 3. RSI extreme: blow-off territory
+    r15 = safe(ind["rsi15"][-1])
+    rsi_extreme = (r15 > 78 and direction == "long") or (r15 < 22 and direction == "short")
+
+    exhaustion_count = sum([atr_expanded, multi_bar_ext, rsi_extreme])
+    return exhaustion_count >= 2
+
+def continuation_score(ind, ctx, direction: str) -> int:
+    """
+    Score 0–6 using features already computed in ctx.
+    Returns int. Score >= 4 = allow BREAK. Score <= 2 = suppress or penalise.
+    """
+    score = 0
+    obv15 = ind["obv15"]
+    OBV_LEN = 10
+
+    if direction == "long":
+        score += 1 if obv15[-1] > obv15[-(1 + OBV_LEN)] else 0          # OBV slope rising
+        score += 1 if ctx.get("vol_ratio", 0) > 1.5 else 0               # Volume ratio > 1.5x MA
+        r4h = safe(ind["rsi4h"][-1])
+        score += 1 if 45.0 <= r4h <= 65.0 else 0                         # 4H RSI not extreme
+        score += 1 if ctx.get("d200_above", False) else 0                 # Price above D200
+        score += 1 if ctx.get("funding_rate", 0) < 0 else 0              # Negative funding (longs paid)
+        score += 1 if ctx.get("btc_regime") == "bull" else 0             # BTC macro bullish
+    else:
+        score += 1 if obv15[-1] < obv15[-(1 + OBV_LEN)] else 0
+        score += 1 if ctx.get("vol_ratio", 0) > 1.5 else 0
+        r4h = safe(ind["rsi4h"][-1])
+        score += 1 if 35.0 <= r4h <= 55.0 else 0
+        score += 1 if not ctx.get("d200_above", True) else 0
+        score += 1 if ctx.get("funding_rate", 0) > 0 else 0
+        score += 1 if ctx.get("btc_regime") == "bear" else 0
+
+    return score
 
 def _apply_scoring_and_filters(res: SignalResult, state: dict,
                                 symbol: str, reference_ms: int | None,
@@ -2676,13 +2837,34 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     # Only applies when the signal didn't already qualify under full alignment.
     if (direction == "long" and USE_PULLBACK_ALIGNMENT
             and ctx["pullback_long_align"] and not ctx["full_long_align"]):
-        adjusted_score += PULLBACK_SCORE_ADJ
-        adjs.append(("Pullback mode (1H dip inside held 4H uptrend)", PULLBACK_SCORE_ADJ, "secondary"))
+        # Only penalize if RS is negative OR 4H spread is thin — not blanket
+        rs_neg        = rs_data.get("rs_pct") is not None and rs_data["rs_pct"] < -2.0
+        momentum_weak = ctx.get("h4_spread_atr_ratio", 1.0) < 0.20
+        if rs_neg or momentum_weak:
+            adjusted_score -= 1
+            adjs.append(("Pullback mode — weak RS or thin 4H spread", -1, "secondary"))
+        # else: no penalty for clean pullback setup with good RS and healthy 4H spread
 
     if (direction == "short" and USE_PULLBACK_ALIGNMENT
             and ctx["pullback_short_align"] and not ctx["full_short_align"]):
-        adjusted_score += PULLBACK_SCORE_ADJ
-        adjs.append(("Pullback mode (1H bounce inside held 4H downtrend)", PULLBACK_SCORE_ADJ, "secondary"))
+        # Only penalize if RS is negative OR 4H spread is thin — not blanket
+        rs_neg        = rs_data.get("rs_pct") is not None and rs_data["rs_pct"] > 2.0
+        momentum_weak = ctx.get("h4_spread_atr_ratio", 1.0) < 0.20
+        if rs_neg or momentum_weak:
+            adjusted_score -= 1
+            adjs.append(("Pullback mode — weak RS or thin 4H spread", -1, "secondary"))
+        # else: no penalty for clean pullback setup with good RS and healthy 4H spread
+
+    # Tier A Premium Pullback bonus — highest win probability setups
+    if direction == "long" and ctx.get("pull_tier_a_long", False):
+        adjusted_score += PULLBACK_PREMIUM_SCORE_ADJ
+        adjs.append(("Tier A Premium Pullback (4H RSI healthy, 1H dip, 15m mid-range recovery)",
+                     PULLBACK_PREMIUM_SCORE_ADJ, "secondary"))
+
+    if direction == "short" and ctx.get("pull_tier_a_short", False):
+        adjusted_score += PULLBACK_PREMIUM_SCORE_ADJ
+        adjs.append(("Tier A Premium Pullback (4H RSI healthy, 1H bounce, 15m mid-range recovery)",
+                     PULLBACK_PREMIUM_SCORE_ADJ, "secondary"))
 
     if direction == "short":
         if ctx["full_short_align"]:
@@ -2776,11 +2958,16 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             _vol_floor = (PULL_VOL_FLOOR_OVERBOUGHT
                             if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH
                             else PULL_VOL_FLOOR)
-            if vol_ratio <= _vol_floor:
+            # Relax floor during Asian session — 0.30 is adequate in thin liquidity
+            _utc_hour    = datetime.datetime.utcnow().hour
+            _asian_session = 0 <= _utc_hour < 8   # 00:00–08:00 UTC = Asian session low liquidity
+            _effective_vol_floor = _vol_floor * 0.75 if _asian_session else _vol_floor
+            if vol_ratio <= _effective_vol_floor:
                 # Very low volume — lack of buyer conviction.
                 adjusted_score -= 1
-                adjs.append((f"Vol floor (ratio {vol_ratio:.2f}x <= {_vol_floor:.2f}x"
-                             f"{' overbought' if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH else ''})", -1, "secondary"))
+                adjs.append((f"Vol floor (ratio {vol_ratio:.2f}x <= {_effective_vol_floor:.2f}x"
+                             f"{' overbought' if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH else ''}"
+                             f"{' (Asian session relaxed)' if _asian_session else ''})", -1, "secondary"))
             elif vol_ratio < VOL_SCORE_MULT:
                 # [PATCH-3] Mutually exclusive with floor check. Vol is between the
                 # floor and the BREAK threshold (0.40x–0.75x): classic declining-volume
@@ -2801,12 +2988,28 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             adjs.append((f"Weak candle body (ratio {body_ratio:.2f} < {PULL_BODY_MIN_RATIO})", -1, "secondary"))
 
     if res.signal_type == "BREAK":
+        # Continuation pre-filter — soft penalty for low continuation probability
+        cont_score = continuation_score(ind, ctx, direction)
+        if cont_score <= 2:
+            adjusted_score -= 1
+            adjs.append((f"Low continuation probability (score {cont_score}/6)", -1, "secondary"))
+
         if vol_ratio is not None and vol_ratio < BREAK_VOL_MULT:
             adjusted_score -= 1
             adjs.append((f"Break vol slightly low ({vol_ratio:.2f}x < {BREAK_VOL_MULT:.2f}x)", -1, "secondary"))
         if not vol_accel_ok:
             adjusted_score -= 1
             adjs.append(("Vol acceleration low", -1, "secondary"))
+
+        # BREAK exhaustion check: penalise if 4H spread is narrowing after an extended move
+        _h4_spread_now  = ctx["ef4h"] - ctx["es4h"]
+        _h4_spread_prev = (safe(ind["ema_f4h"][-(EXHAUSTION_SPREAD_LOOKBACK + 1)])
+                           - safe(ind["ema_s4h"][-(EXHAUSTION_SPREAD_LOOKBACK + 1)]))
+        _spread_narrowing = abs(_h4_spread_now) < abs(_h4_spread_prev) * 0.85   # >15% narrowing
+        _spread_extended  = abs(_h4_spread_now) / ctx.get("atr4h_val", 0) > 1.5 if ctx.get("atr4h_val", 0) > 0 else False
+        if _spread_narrowing and _spread_extended:
+            adjusted_score -= 1
+            adjs.append(("4H spread contracting after extension (possible blow-off)", -1, "exhaustion"))
 
         if oi_data.get("oi_trend") == "flat" and (vol_ratio is None or vol_ratio < BREAK_OI_FLAT_VOL_THRESHOLD):
             adjusted_score -= 1
@@ -3267,12 +3470,23 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         res.fire_short = False
         return res
 
+    # Exhausted-break suppressor
+    if res.signal_type == "BREAK" and res.fire_long:
+        if is_likely_exhausted_break(ind, ctx["atr_val"], "long"):
+            res.fire_long = False   # Suppress — likely blow-off top
+            print(f"  [EXHAUSTION FILTER] {symbol} BREAK LONG suppressed — likely blow-off top")
+
+    if res.signal_type == "BREAK" and res.fire_short:
+        if is_likely_exhausted_break(ind, ctx["atr_val"], "short"):
+            res.fire_short = False  # Suppress — likely capitulation spike
+            print(f"  [EXHAUSTION FILTER] {symbol} BREAK SHORT suppressed — likely capitulation spike")
+
     # S/R clearance filter — PULL only.
     # For BREAK signals, the entry IS at/past S/R by design; applying this filter
     # would suppress legitimate breakouts. Only PULL entries approaching S/R from
     # inside the range benefit from this clearance gate.
-    if SR_CLEARANCE_ATR_MULT > 0 and res.signal_type == "PULL" and (res.fire_long or res.fire_short):
-        min_clearance = atr_val * SR_CLEARANCE_ATR_MULT
+    if SR_CLEARANCE_ATR_MULT_PULL > 0 and res.signal_type == "PULL" and (res.fire_long or res.fire_short):
+        min_clearance = atr_val * SR_CLEARANCE_ATR_MULT_PULL
         if res.fire_long and res.resistances:
             nearest_res = res.resistances[0]
             if nearest_res - res.entry < min_clearance:
@@ -3293,6 +3507,26 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         del res._ctx
 
     return res
+
+def _check_early_break(candles_15m_live: list[dict], ind: dict, direction: str) -> bool:
+    """
+    Fire an early BREAK signal on the in-progress bar when:
+    1. In-progress bar volume is already >= 1.8x 15m volume MA
+    2. Price has already broken above prev candle high (LONG) or below prev candle low (SHORT)
+    No candle-close shape requirements — fires on live bar data.
+    Start in advisory/log-only mode before routing to Telegram.
+    """
+    if len(candles_15m_live) < 2:
+        return False
+    live_bar  = candles_15m_live[-1]   # in-progress bar
+    prev_bar  = candles_15m_live[-2]   # last closed bar
+    vm15      = safe(ind["vol_ma15"][-1])
+    if vm15 == 0:
+        return False
+    vol_surge     = live_bar["v"] / vm15 >= EARLY_BREAK_VOL_SURGE
+    price_breakout = (live_bar["c"] > prev_bar["h"] if direction == "long"
+                      else live_bar["c"] < prev_bar["l"])
+    return vol_surge and price_breakout
 
 def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
                     state: dict, record_market_inputs: bool = True,
@@ -3321,6 +3555,11 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
     # Phase 2: Detect raw signals
     res = _detect_raw_signals(ind, state, reference_ms, funding_rate, symbol)
     res.symbol = symbol
+
+    # Early BREAK advisory — requires live candle data fetched separately
+    # (candles_15m_live must be fetched with reference_ms = int(time.time()*1000))
+    # TODO: Implement live candle fetch and wire _check_early_break to advisory channel
+    # Run in log-only mode for 2+ weeks before routing to live alerts
 
     if not (res.fire_long or res.fire_short):
         return res
