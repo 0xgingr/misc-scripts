@@ -195,10 +195,10 @@ MIN_4H_SPREAD_ATR_MULT: float = 0.30  # 4H EMA spread must be >= 0.3x 4H ATR
 # 4H exhaustion suppressor for BREAK
 EXHAUSTION_SPREAD_LOOKBACK: int = 3   # Bars back to compare spread for BREAK exhaustion check
 
-# Early BREAK vol surge threshold
-EARLY_BREAK_VOL_SURGE: float = 1.8   # In-progress bar volume must be >= 1.8x MA
-# Early BREAK score adjustment (starts at base-2, same as confirmed BREAK)
-EARLY_BREAK_SCORE_ADJ: int = 0  # No adjustment needed - same base score as confirmed BREAK
+# FIX-D20: EARLY_BREAK_VOL_SURGE and EARLY_BREAK_SCORE_ADJ removed — dead constants.
+# Restore when _check_early_break() is re-implemented with live candle fetch.
+# EARLY_BREAK_VOL_SURGE: float = 1.8
+# EARLY_BREAK_SCORE_ADJ: int = 0
 USE_EXHAUSTION_SHORT:       bool = True
 EXHAUSTION_SHORT_SCORE_ADJ: int  = -1
 USE_EXHAUSTION_LONG:        bool = True
@@ -689,7 +689,12 @@ def compute_oi_trend(state: dict, symbol: str, current_price: float,
             "label": "OI Trend: Unknown (stale)", "breakdown_tag": "OI?",
             "condition": "Unknown",
         }
-    scale          = min(MAX_OI_SCALE, OI_EXPECTED_INTERVAL_S / elapsed_s)
+    if elapsed_s < OI_EXPECTED_INTERVAL_S:                        # FIX-D10
+        # Rapid resample: scale UP to normalize to 15-min rate (capped)
+        scale = min(MAX_OI_SCALE, OI_EXPECTED_INTERVAL_S / elapsed_s)
+    else:
+        # Longer-than-expected interval: do NOT deflate; treat as one 15-min period
+        scale = 1.0
     oi_change_pct  = raw_change_pct * scale
 
     oi_acceleration = None
@@ -865,10 +870,11 @@ def compute_btc_regime(candles_1h: list[dict], candles_4h: list[dict],
     ef1h = safe(ema(c1h, FAST_LEN)[-1])
     es1h = safe(ema(c1h, SLOW_LEN)[-1])
 
-    btc_4h_momentum = len(c4h) >= 6 and c4h[-2] > c4h[-5]
+    btc_4h_momentum_bull = len(c4h) >= 6 and c4h[-2] > c4h[-5]   # FIX-D11
+    btc_4h_momentum_bear = len(c4h) >= 6 and c4h[-2] < c4h[-5]   # FIX-D11
 
-    btc_bullish = (ef4h > es4h) and (ef1h > es1h) and btc_4h_momentum
-    btc_bearish_intraday = (ef4h < es4h) and (ef1h < es1h)
+    btc_bullish = (ef4h > es4h) and (ef1h > es1h) and btc_4h_momentum_bull
+    btc_bearish_intraday = (ef4h < es4h) and (ef1h < es1h) and btc_4h_momentum_bear  # FIX-D11
 
     # Daily confirmation: only treat as confirmed bearish if daily EMA21 < EMA50 as well
     btc_daily_bearish = False
@@ -1473,6 +1479,12 @@ def compute_win_rate_analytics(state: dict, symbol: str, direction: str,
     if n < WIN_RATE_MIN_SAMPLE_FOR_ADJ:
         return {"win_rate": wr, "sample_size": n, "score_adj": 0,
                 "label": f"Win Rate: {wr*100:.0f}% (n={n}, insufficient for adj)"}
+    # FIX-D16: Guard against recency bias — if recent_n (last 30d sample) is less than
+    # half the minimum threshold, the history is too recency-dominated to be reliable.
+    _recency_n = mode_data.get("recent_n", n) if mode_data else n
+    if _recency_n < WIN_RATE_MIN_SAMPLE_FOR_ADJ * 0.5:
+        return {"win_rate": wr, "sample_size": n, "score_adj": 0,
+                "label": f"Win Rate: {wr*100:.0f}% (n={n}, recent_n={_recency_n} too low — neutral)"}  # FIX-D16
     return {"win_rate": wr, "sample_size": n, "score_adj": score_adj,
             "label": f"Win Rate: {wr*100:.0f}%  Sample: {n}  (30d weighted)"}
 
@@ -1819,7 +1831,7 @@ def daily_vwap(candles_15m: list[dict], reference_ms: int | None = None) -> floa
     total_vol = sum(c["v"] for c in today_candles)
     if total_vol == 0:
         return safe(candles_15m[-1]["c"])
-    total_pv = sum(c["c"] * c["v"] for c in today_candles)
+    total_pv = sum(((c["h"] + c["l"] + c["c"]) / 3) * c["v"] for c in today_candles)  # FIX-D5
     return total_pv / total_vol
 
 def safe(v, fallback=0.0):
@@ -2351,7 +2363,12 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     ) if len(v15) > _vol_accel_bars + 1 else False
 
     # vol_score_ok_pull is recomputed correctly once signal_type is known (see below).
-    # Placeholder uses same threshold as vol_score_ok until then.
+    # FIX-D14: Compute PULL-appropriate vol flag now using PULL thresholds (0.10–1.30x).
+    # Used in base-score for PULL candidates (proxy: long_pull/short_pull flags applied below).
+    _PULL_VOL_RATIO_MIN_EARLY: float = 0.10
+    _PULL_VOL_RATIO_MAX_EARLY: float = 1.30
+    vol_score_ok_pull_early = (False if vm15 == 0
+                               else _PULL_VOL_RATIO_MIN_EARLY <= (cur_v / vm15) <= _PULL_VOL_RATIO_MAX_EARLY)  # FIX-D14
     vol_score_ok_pull = vol_score_ok
 
     # 1H
@@ -2602,6 +2619,27 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     long_sig  = long_break  or long_pull
     short_sig = short_break or short_pull
 
+    # FIX-D14: Recompute base scores using PULL-appropriate vol flag for PULL candidates.
+    # long_pull/short_pull are now known, so substitute vol_score_ok_pull_early for PULL paths.
+    if long_pull and not long_break:
+        long_score = sum([
+            bb_long,
+            h4_bull and h4_trend_held_bull,
+            adx_score_ok,
+            obv_slope_long,
+            vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
+            adx4h_score_ok,
+        ])
+    if short_pull and not short_break:
+        short_score = sum([
+            bb_short,
+            h4_bear and h4_trend_held_bear,
+            adx_score_ok,
+            obv_slope_short,
+            vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
+            adx4h_score_ok,
+        ])
+
     # Store all computed values for later use
     res._ind = ind
     res._ctx = {
@@ -2629,7 +2667,8 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if long_sig:
         res.fire_long   = True
         if long_break and long_pull and pull_touched_long:
-            res.signal_type = "PULL"
+            # FIX-D12: Prefer BREAK when base score is at ceiling (strongest momentum)
+            res.signal_type = "BREAK" if long_score >= 6 else "PULL"
         elif long_break:
             res.signal_type = "BREAK"
         else:
@@ -2639,7 +2678,8 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     elif short_sig:
         res.fire_short  = True
         if short_break and short_pull and pull_touched_short:
-            res.signal_type = "PULL"
+            # FIX-D12: Prefer BREAK when base score is at ceiling (strongest momentum)
+            res.signal_type = "BREAK" if short_score >= 6 else "PULL"
         elif short_break:
             res.signal_type = "BREAK"
         else:
@@ -2725,7 +2765,7 @@ def continuation_score(ind, ctx, direction: str) -> int:
         score += 1 if 45.0 <= r4h <= 65.0 else 0                         # 4H RSI not extreme
         score += 1 if ctx.get("d200_above", False) else 0                 # Price above D200
         score += 1 if ctx.get("funding_rate", 0) < 0 else 0              # Negative funding (longs paid)
-        score += 1 if ctx.get("btc_regime") == "bull" else 0             # BTC macro bullish
+        score += 1 if (ctx.get("btc_regime") or {}).get("bullish", False) else 0  # FIX-D2
     else:
         score += 1 if obv15[-1] < obv15[-(1 + OBV_LEN)] else 0
         score += 1 if ctx.get("vol_ratio", 0) > 1.5 else 0
@@ -2733,7 +2773,7 @@ def continuation_score(ind, ctx, direction: str) -> int:
         score += 1 if 35.0 <= r4h <= 55.0 else 0
         score += 1 if not ctx.get("d200_above", True) else 0
         score += 1 if ctx.get("funding_rate", 0) > 0 else 0
-        score += 1 if ctx.get("btc_regime") == "bear" else 0
+        score += 1 if (ctx.get("btc_regime") or {}).get("bearish", False) else 0  # FIX-D2
 
     return score
 
@@ -2934,6 +2974,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         adjs.append(("Macro Risk Window", macro_data["score_adj"], "secondary"))
 
     # ── Step 6b: Signal-type quality floors ───────────────────
+    _step3_rs_adj = rs_data.get("score_adj", 0)   # FIX-D3 — track Step 3 RS charge to avoid double-counting
     res.supports, res.resistances = find_sr_levels(candles_15m, atr_val=atr_val)
     vol_ratio = ctx["vol_ratio"]
     vol_accel_ok = ctx["vol_accel_ok"]
@@ -2959,7 +3000,8 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                             if breadth_pct > PULL_VOL_OVERBOUGHT_BREADTH
                             else PULL_VOL_FLOOR)
             # Relax floor during Asian session — 0.30 is adequate in thin liquidity
-            _utc_hour    = datetime.datetime.utcnow().hour
+            _ref_ts_s_d1 = (reference_ms / 1000) if reference_ms is not None else time.time()
+            _utc_hour    = datetime.fromtimestamp(_ref_ts_s_d1, tz=timezone.utc).hour  # FIX-D1
             _asian_session = 0 <= _utc_hour < 8   # 00:00–08:00 UTC = Asian session low liquidity
             _effective_vol_floor = _vol_floor * 0.75 if _asian_session else _vol_floor
             if vol_ratio <= _effective_vol_floor:
@@ -3020,15 +3062,17 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             if rs_pct < RS_BREAK_HARD_GATE_PCT:
                 print(f"  [RS GATE] {symbol} BREAK RS {rs_pct:+.1f}% < "
                       f"{RS_BREAK_HARD_GATE_PCT:.1f}% — applying penalty instead of hard suppress")
-                adjusted_score += RS_BREAK_HARD_GATE_PENALTY
+                _net_hard = min(RS_BREAK_HARD_GATE_PENALTY - _step3_rs_adj, 0)   # FIX-D3
+                adjusted_score += _net_hard
                 adjs.append((f"RS break hard gate (RS {rs_pct:+.1f}% < {RS_BREAK_HARD_GATE_PCT:.1f}%)",
-                             RS_BREAK_HARD_GATE_PENALTY, "secondary"))
+                             _net_hard, "secondary"))
             elif rs_pct < 0:
                 rs_percentile = rs_data.get("percentile")
                 if rs_percentile is not None and rs_percentile <= RS_BREAK_SOFT_PERCENTILE:
-                    adjusted_score -= 1
+                    _net_soft = min(-1 - _step3_rs_adj, 0)   # FIX-D3
+                    adjusted_score += _net_soft
                     adjs.append((f"RS negative on BREAK ({rs_pct:+.1f}%, "
-                                 f"{rs_percentile*100:.0f}th pct)", -1, "rs_negative"))
+                                 f"{rs_percentile*100:.0f}th pct)", _net_soft, "rs_negative"))
 
     elif res.signal_type == "PULL":
         # [PATCH-4] PULL RS gate. BREAK has hard + soft gates; PULL had none.
@@ -3039,13 +3083,15 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         rs_pct = rs_data.get("rs_pct")
         if rs_pct is not None:
             if rs_pct < RS_PULL_HARD_GATE_PCT:
-                adjusted_score -= 2
+                _net_pull_hard = min(-2 - _step3_rs_adj, 0)   # FIX-D3
+                adjusted_score += _net_pull_hard
                 adjs.append((f"RS strongly negative on PULL ({rs_pct:+.1f}% < "
-                             f"{RS_PULL_HARD_GATE_PCT:.1f}%)", -2, "rs_negative"))
+                             f"{RS_PULL_HARD_GATE_PCT:.1f}%)", _net_pull_hard, "rs_negative"))
             elif rs_pct < RS_PULL_SOFT_GATE_PCT:
-                adjusted_score -= 1
+                _net_pull_soft = min(-1 - _step3_rs_adj, 0)   # FIX-D3
+                adjusted_score += _net_pull_soft
                 adjs.append((f"RS negative on PULL ({rs_pct:+.1f}% < "
-                             f"{RS_PULL_SOFT_GATE_PCT:.1f}%)", -1, "rs_negative"))
+                             f"{RS_PULL_SOFT_GATE_PCT:.1f}%)", _net_pull_soft, "rs_negative"))
 
     if res.signal_type == "BREAK":
         if direction == "long" and res.resistances:
@@ -3151,22 +3197,15 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     r1h = ctx["r1h"]
 
     rsi_divergence = ctx["rsi_divergence"]
-    if USE_1H_RSI_DIVERGENCE and rsi_divergence["type"] is not None:
+    if USE_1H_RSI_DIVERGENCE and rsi_divergence["type"] is not None:   # FIX-D8
         div_type = rsi_divergence["type"]
-        if res.signal_type == "PULL":
+        if res.signal_type in ("PULL", "BREAK") or res.alignment_mode == "exhaustion":
             if direction == "short" and div_type == "bearish":
                 adjusted_score += DIVERGENCE_BONUS
-                adjs.append(("1H RSI bearish divergence (PULL short)", DIVERGENCE_BONUS, "secondary"))
+                adjs.append(("1H RSI bearish divergence", DIVERGENCE_BONUS, "secondary"))
             elif direction == "long" and div_type == "bullish":
                 adjusted_score += DIVERGENCE_BONUS
-                adjs.append(("1H RSI bullish divergence (PULL long)", DIVERGENCE_BONUS, "secondary"))
-        elif res.alignment_mode == "exhaustion":
-            if direction == "short" and div_type == "bearish":
-                adjusted_score += DIVERGENCE_BONUS
-                adjs.append(("1H RSI bearish divergence (exhaustion short)", DIVERGENCE_BONUS, "secondary"))
-            elif direction == "long" and div_type == "bullish":
-                adjusted_score += DIVERGENCE_BONUS
-                adjs.append(("1H RSI bullish divergence (exhaustion long)", DIVERGENCE_BONUS, "secondary"))
+                adjs.append(("1H RSI bullish divergence", DIVERGENCE_BONUS, "secondary"))
 
     if USE_FALSE_BREAKOUT_DETECTION and res.signal_type == "PULL":
         _ref_ms_for_pattern = reference_ms if reference_ms is not None else int(time.time() * 1000)
@@ -3176,12 +3215,10 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             adjusted_score += FALSE_BREAKOUT_BONUS
             adjs.append((fb_desc, FALSE_BREAKOUT_BONUS, "secondary"))
 
-    if res.signal_type == "BREAK":
-        rsi_15m_ok_long  = RSI_BREAK_LONG_MIN  <= r15 <= RSI_BREAK_LONG_MAX
-        rsi_15m_ok_short = RSI_BREAK_SHORT_MIN <= r15 <= RSI_BREAK_SHORT_MAX
-    else:
-        rsi_15m_ok_long  = RSI_PULL_LONG_MIN   <= r15 <= RSI_PULL_LONG_MAX
-        rsi_15m_ok_short = RSI_PULL_SHORT_MIN  <= r15 <= RSI_PULL_SHORT_MAX
+    # FIX-D17: rsi_15m_ok_long / rsi_15m_ok_short removed — redundant.
+    # The 15m RSI range is already a hard gate in _detect_raw_signals; any signal
+    # reaching this point has already passed it. Downstream code uses rsi_confluence_long/short
+    # (1H/4H only) so these variables were dead assignments.
 
     rsi_1h_ok_long   = r1h <= RSI_1H_PULL_LONG_MAX
     rsi_4h_ok_long   = r4h <= RSI_4H_PULL_LONG_MAX
@@ -3331,7 +3368,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             atr_tp1 = res.entry - atr_val * _tp1_m
             sr_dist = (res.entry - sr_tp1) / atr_val
             if sr_dist >= SR_CLEARANCE_ATR_MULT:
-                res.tp1 = max(sr_tp1, atr_tp1)
+                res.tp1 = min(sr_tp1, atr_tp1)   # FIX-D7 — for shorts, lower price = better TP
 
     _rsi_conf_awarded = (direction == "long" and rsi_confluence_long) or \
                         (direction == "short" and rsi_confluence_short)
@@ -3367,6 +3404,14 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         current_sum = 0
         kept_indices: set[int] = set()
 
+        # FIX-D13: Reserve cap budget so RS hard gate doesn't zero out regime/OI/exhaustion penalties
+        _RS_PENALTY_LABELS = {"rs_negative"}
+        _rs_total = sum(adj for _, lbl, adj in [
+            (i, lbl, adj) for i, (lbl, adj, cat) in enumerate(adjs)
+            if adj < 0 and cat in PENALTY_PRIORITY_CATEGORIES and lbl in _RS_PENALTY_LABELS
+        ])
+        _non_rs_cap = max(cap, cap - _rs_total)  # budget left for non-RS priorities  # FIX-D13
+
         # First pass: keep priority penalties — sorted smallest-first so large
         # single penalties don't starve other priorities within the same class.
         priority_entries = [
@@ -3375,7 +3420,8 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         ]
         priority_entries.sort(key=lambda x: abs(x[2]))  # smallest magnitude first
         for i, lbl, adj in priority_entries:
-            if current_sum + adj >= cap:
+            _effective_cap = cap if lbl in _RS_PENALTY_LABELS else _non_rs_cap  # FIX-D13
+            if current_sum + adj >= _effective_cap:
                 kept_indices.add(i)
                 current_sum += adj
 
@@ -3508,25 +3554,11 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
 
     return res
 
-def _check_early_break(candles_15m_live: list[dict], ind: dict, direction: str) -> bool:
-    """
-    Fire an early BREAK signal on the in-progress bar when:
-    1. In-progress bar volume is already >= 1.8x 15m volume MA
-    2. Price has already broken above prev candle high (LONG) or below prev candle low (SHORT)
-    No candle-close shape requirements — fires on live bar data.
-    Start in advisory/log-only mode before routing to Telegram.
-    """
-    if len(candles_15m_live) < 2:
-        return False
-    live_bar  = candles_15m_live[-1]   # in-progress bar
-    prev_bar  = candles_15m_live[-2]   # last closed bar
-    vm15      = safe(ind["vol_ma15"][-1])
-    if vm15 == 0:
-        return False
-    vol_surge     = live_bar["v"] / vm15 >= EARLY_BREAK_VOL_SURGE
-    price_breakout = (live_bar["c"] > prev_bar["h"] if direction == "long"
-                      else live_bar["c"] < prev_bar["l"])
-    return vol_surge and price_breakout
+# FIX-D20: _check_early_break() removed — dead code (was never called).
+# Re-implement when live in-progress candle fetch is available.
+# Wire output to advisory Telegram channel only, not live signal channel.
+# Run in paper-trade/log-only mode for ≥2 weeks before activating live.
+# Track in GitHub issue for future implementation.
 
 def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
                     state: dict, record_market_inputs: bool = True,
@@ -3556,10 +3588,8 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
     res = _detect_raw_signals(ind, state, reference_ms, funding_rate, symbol)
     res.symbol = symbol
 
-    # Early BREAK advisory — requires live candle data fetched separately
-    # (candles_15m_live must be fetched with reference_ms = int(time.time()*1000))
-    # TODO: Implement live candle fetch and wire _check_early_break to advisory channel
-    # Run in log-only mode for 2+ weeks before routing to live alerts
+    # Early BREAK advisory (FIX-D20): _check_early_break() removed — see comment above.
+    # Re-enable when live in-progress candle fetch is implemented.
 
     if not (res.fire_long or res.fire_short):
         return res
@@ -3632,7 +3662,10 @@ def check_cooldown(state, coin, direction, bar_index, signal_type: str = "",
         active = list(state.get("active_signals", []))
         _cd_key    = f"{symbol}_{direction}_{signal_type}" if signal_type in ("BREAK", "PULL") else f"{symbol}_{direction}"
         last_bar   = state.get("signal_cooldowns",  {}).get(_cd_key)
-        last_sl_ts = state.get("post_loss_cooldown", {}).get(f"{symbol}_{direction}")
+        # FIX-D4: look up type-specific post-loss cooldown; fall back to bare key for legacy entries
+        _pl_cd = state.get("post_loss_cooldown", {})
+        _type_specific_cd_key = f"{symbol}_{direction}_{signal_type}" if signal_type in ("BREAK", "PULL") else None
+        last_sl_ts = (_pl_cd.get(_type_specific_cd_key) if _type_specific_cd_key else None) or _pl_cd.get(f"{symbol}_{direction}")
         prev_outcome = state.get("last_signal_outcome", {}).get(f"{symbol}_{direction}", "unknown")
 
     # [Risk-31] Check max concurrent active signals
@@ -4021,11 +4054,13 @@ def check_active_signals(state: dict, bar_index_now: int,
                 })
             sig["resolved"] = True
             if outcome in ("tp1", "tp2", "sl"):
-                cooldown_key = f"{symbol}_{direction}"
+                _resolved_type = sig.get("signal_type", "")
+                _cd_suffix = f"_{_resolved_type}" if _resolved_type in ("BREAK", "PULL") else ""
+                cooldown_key = f"{symbol}_{direction}{_cd_suffix}"  # FIX-D4
                 with _state_lock:
                     state.setdefault("last_signal_outcome", {})[cooldown_key] = outcome
                     if outcome == "sl":
-                        state.setdefault("post_loss_cooldown", {})[cooldown_key] = int(time.time())
+                        state.setdefault("post_loss_cooldown", {})[cooldown_key] = int(time.time())  # FIX-D4
                 if outcome == "sl":
                     signal_type = sig.get("signal_type", "UNKNOWN")
                     record_failed_breakout(state, symbol, direction, signal_type, bar_index_now)
@@ -4319,8 +4354,14 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
         live_mark = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
                      if live_cache else None)
         if live_mark is not None and live_mark > 0:
-            _close_px = candles_15m[-1]["c"]
-            _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
+            _bid = ctx.get("best_bid") if ctx else None    # FIX-D18
+            _ask = ctx.get("best_ask") if ctx else None
+            if _bid and _ask and _bid > 0:
+                _spread_pct = (_ask - _bid) / _bid * 100.0   # FIX-D18 — true bid/ask spread
+            else:
+                _close_px   = candles_15m[-1]["c"]
+                _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
+                # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
             sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
             if _spread_pct >= SPREAD_SUPPRESS_PCT:
@@ -4343,8 +4384,14 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
         live_mark = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
                      if live_cache else None)
         if live_mark is not None and live_mark > 0:
-            _close_px = candles_15m[-1]["c"]
-            _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
+            _bid = ctx.get("best_bid") if ctx else None    # FIX-D18
+            _ask = ctx.get("best_ask") if ctx else None
+            if _bid and _ask and _bid > 0:
+                _spread_pct = (_ask - _bid) / _bid * 100.0   # FIX-D18 — true bid/ask spread
+            else:
+                _close_px   = candles_15m[-1]["c"]
+                _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
+                # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
             sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
 
@@ -4367,6 +4414,10 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
 
     seen_groups: set[tuple] = set()
     result: list[tuple]     = []
+    # FIX-D19: Track per-(group, direction) counts to allow top-2 from large clusters
+    _group_counts: dict = {}
+    MAX_FROM_LARGE_CLUSTER = 2
+    _all_symbols = [t[0] for t in signals]
     for sig_tuple in signals:
         symbol    = sig_tuple[0]
         direction = sig_tuple[1]
@@ -4375,8 +4426,15 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
         # cluster_by_correlation() / group_of_dynamic()) instead of a static
         # hand-maintained CORR_GROUPS dict.
         group = group_of_dynamic(symbol)
-        if (group, direction) not in seen_groups:
-            seen_groups.add((group, direction))
+        _group_size = sum(1 for s in _all_symbols if group_of_dynamic(s) == group)
+        _watchlist_size = max(len(_all_symbols), 1)
+        _large_cluster = _group_size >= int(_watchlist_size * 0.5)   # FIX-D19
+        _limit = MAX_FROM_LARGE_CLUSTER if _large_cluster else 1      # FIX-D19
+        _group_dir_key = (group, direction)
+        _group_counts.setdefault(_group_dir_key, 0)
+        if _group_counts[_group_dir_key] < _limit:                    # FIX-D19
+            _group_counts[_group_dir_key] += 1
+            seen_groups.add(_group_dir_key)
             result.append(sig_tuple)
 
     # [Bugfix] Opposite-direction conflicts within the same correlation
