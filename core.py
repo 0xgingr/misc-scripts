@@ -7,11 +7,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.1"    # [v16.1.1] format_signal: sr_block (S/R levels) and score_trail
-                            # (score adjustments) were computed but never inserted into the
-                            # Telegram message string — both are now emitted. S/R block
-                            # appears after SL; score adjustments appear at the end.
-                            # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
+__version__ = "16.1.4"    # [v16.1.4] format_signal: version moved to bottom before timestamp.
+                            # [v16.1.3] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
                             # control, replacing the static, hand-maintained CORR_GROUPS
@@ -4001,10 +3998,8 @@ def format_signal(symbol: str, sig: SignalResult, engine_tag: str = "V5", rank: 
         f"<b>TP2:</b>   <code>{fmt(sig.tp2)}</code>\n"
         f"<b>SL:</b>    <code>{fmt(sig.sl)}</code>\n"
         f"{sr_block}"
-        f"\n<b>Leverage:</b> {lev_range}  |  <b>Score:</b> {sig.final_score}\n"
-        f"{chk_funding} {funding_str}  |  {oi_line}\n"
-        f"<i>{ts}</i>"
-        f"{score_trail}"
+        f"\n<b>Leverage:</b> {lev_range}\n"
+        f"<i>v{__version__}  •  {ts}</i>"
     )
 
 # ═══════════════════════════════════════════════════════════════
