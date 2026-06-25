@@ -7,7 +7,12 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.4"    # [v16.1.4] format_signal: version moved to bottom before timestamp.
+__version__ = "16.1.5"    # [v16.1.5] Widen SL to absorb wick noise: SL_MULT_BREAK/PULL 0.85→1.2/1.1,
+                            # SL_HIGH_ATR_MULT 0.90→1.25, REGIME_HIGH_VOL_SL_MULT 0.95→1.10 (was
+                            # incorrectly tightening SL in high-vol). TP1 raised to match wider SL:
+                            # TP1_MULT_BREAK 1.0→1.2, TP1_MULT_PULL 1.0→1.1. MIN_RR_RATIO kept at
+                            # 1.0 — TP1 and SL now at parity so R:R floor is preserved.
+                            # [v16.1.4] format_signal: version moved to bottom before timestamp.
                             # [v16.1.3] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
@@ -365,14 +370,14 @@ OI_SCORE_CAP: int              = 2
 SESSION_DEAD_ZONE_START_UTC: int = 3
 SESSION_DEAD_ZONE_END_UTC:   int = 6
 SESSION_LOW_ATR_PERCENTILE:  float = 0.10
-TP1_MULT_BREAK: float = 1.0
+TP1_MULT_BREAK: float = 1.2   # [v16.1.5] raised from 1.0 — matches wider SL to preserve MIN_RR_RATIO=1.0
 TP2_MULT_BREAK: float = 2.5
-SL_MULT_BREAK:  float = 0.85
-TP1_MULT_PULL:  float = 1.0
+SL_MULT_BREAK:  float = 1.2   # [v16.1.5] widened from 0.85 — absorbs wick/liquidity-grab noise
+TP1_MULT_PULL:  float = 1.1   # [v16.1.5] raised from 1.0 — matches wider SL
 TP2_MULT_PULL:  float = 2.0
-SL_MULT_PULL:   float = 0.85
+SL_MULT_PULL:   float = 1.1   # [v16.1.5] widened from 0.85
 HIGH_ATR_THRESHOLD: float = 3.0
-SL_HIGH_ATR_MULT:   float = 0.90
+SL_HIGH_ATR_MULT:   float = 1.25  # [v16.1.5] widened from 0.90 — high-ATR should be the WIDEST SL path
 ATR_HIST_DEPTH:     int   = 48
 ATR_LOW_PERCENTILE:  float = 0.10
 ATR_HIGH_PERCENTILE: float = 0.90
@@ -390,7 +395,7 @@ FUNDING_WARN_HIGH    = 0.0005
 USE_REGIME_AWARE_TP_SL: bool = True
 REGIME_HIGH_VOL_TP1_MULT: float = 1.2   # widen TP1 in high-vol
 REGIME_HIGH_VOL_TP2_MULT: float = 1.15
-REGIME_HIGH_VOL_SL_MULT: float  = 0.95  # slightly tighten SL
+REGIME_HIGH_VOL_SL_MULT: float  = 1.10  # [v16.1.5] fixed from 0.95 — widen SL in high-vol (wicks are largest here)
 REGIME_LOW_VOL_TP1_MULT: float  = 0.85  # tighten TP1 in low-vol
 REGIME_LOW_VOL_TP2_MULT: float  = 0.90
 REGIME_LOW_VOL_SL_MULT: float   = 1.10  # slightly widen SL
