@@ -7,7 +7,11 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.0.0"    # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
+__version__ = "16.1.1"    # [v16.1.1] format_signal: sr_block (S/R levels) and score_trail
+                            # (score adjustments) were computed but never inserted into the
+                            # Telegram message string — both are now emitted. S/R block
+                            # appears after SL; score adjustments appear at the end.
+                            # [v15.5.5 SUMMARY] Ported the dynamic pairwise correlation
                             # clustering / union-find system from v15.8.1 (Fix-33) and wired
                             # it into deduplicate_correlated() as the live correlated-exposure
                             # control, replacing the static, hand-maintained CORR_GROUPS
@@ -3995,31 +3999,12 @@ def format_signal(symbol: str, sig: SignalResult, engine_tag: str = "V5", rank: 
         f"{pull_entry_block}"
         f"\n<b>TP1:</b>   <code>{fmt(sig.tp1)}</code>\n"
         f"<b>TP2:</b>   <code>{fmt(sig.tp2)}</code>\n"
-        f"<b>SL:</b>    <code>{fmt(sig.sl)}</code>\n\n"
-        f"<b>Leverage:</b> {lev_range}\n"
-        f"<b>Leverage Range:</b> {lev_band}\n"
-        f"<b>Score:</b> {sig.final_score}/{sig.score}+adj  |  {sig.breakdown}\n"
-        f"<b>Gates:</b> {sig.v10_gates}\n"
-        f"\n<b>Signal Context</b>\n"
-        f"{oi_line}\n"
-        f"{btc_line}\n"
-        f"{breadth_line}\n"
-        f"{rs_line}\n"
-        f"{wr_line}\n"
-        f"{macro_line}\n"
-        f"{d200_line}\n"
-        f"{vol_ratio_line}"
-        f"{spread_line}"
+        f"<b>SL:</b>    <code>{fmt(sig.sl)}</code>\n"
+        f"{sr_block}"
+        f"\n<b>Leverage:</b> {lev_range}  |  <b>Score:</b> {sig.final_score}\n"
+        f"{chk_funding} {funding_str}  |  {oi_line}\n"
+        f"<i>{ts}</i>"
         f"{score_trail}"
-        f"{sr_block}\n"
-        f"<b>Pre-Trade Checklist</b>\n"
-        f"✅ Trend identified (4H/1H/15m aligned)\n"
-        f"{'✅' if sig.supports or sig.resistances else '☐'} Key S/R marked\n"
-        f"✅ Clear entry signal ({sig.signal_type}, score {sig.final_score}/{sig.score}+adj)\n"
-        f"✅ Leverage appropriate ({lev_range})\n"
-        f"{chk_funding} {funding_str}\n"
-        f"📊 {format_oi(sig.open_interest)}\n\n"
-        f"<i>Scalp Swing v{__version__} [4H/15m] • Hyperliquid Perps • {ts}</i>"
     )
 
 # ═══════════════════════════════════════════════════════════════
