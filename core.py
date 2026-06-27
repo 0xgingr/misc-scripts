@@ -7,7 +7,10 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.6"      # [v16.1.6] PULL signal accuracy overhaul — 8 targeted fixes:
+__version__ = "16.1.7"    # [v16.1.7] Simplified Split Entry Plan display: removed Tranche A/B
+                            # labels, percentages, and EMA21/ATR annotation. Now shows only
+                            # "Market : <price>" and "Limit : <price>" for cleaner readability.
+                            # [v16.1.6] PULL signal accuracy overhaul — 8 targeted fixes:
                             # BUG-P1: Pullback alignment SL now uses wider multiplier (1.6× ATR15m).
                             # BUG-P2: PULL recovery thresholds raised: TREND 0.30→0.55, MIXED 0.25→0.45.
                             #          Added 2-bar consecutive-close confirmation above EMA21.
@@ -3971,13 +3974,10 @@ def format_signal(symbol: str, sig: SignalResult, engine_tag: str = "V5", rank: 
 
     pull_entry_block = ""
     if sig.signal_type == "PULL" and sig.limit_entry is not None:
-        pct_tgt = int(PULL_LIMIT_TRANCHE_PCT * 100)
-        pct_now = 100 - pct_tgt
         pull_entry_block = (
             f"\n<b>📌 Split Entry Plan (PULL)</b>\n"
-            f"  Tranche A ({pct_now}%):  Market @ <code>{fmt(sig.entry)}</code>\n"
-            f"  Tranche B ({pct_tgt}%):  Limit  @ <code>{fmt(sig.limit_entry)}</code>  "
-            f"(EMA21, {sig.limit_entry_dist:.2f}× ATR below)\n"
+            f"  Market :  <code>{fmt(sig.entry)}</code>\n"
+            f"  Limit  :  <code>{fmt(sig.limit_entry)}</code>\n"
         )
 
     spread_line = ""
