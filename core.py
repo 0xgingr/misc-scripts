@@ -7,7 +7,20 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.5"    # [v16.1.5] Widen SL to absorb wick noise: SL_MULT_BREAK/PULL 0.85→1.2/1.1,
+__version__ = "16.1.6"      # [v16.1.6] PULL signal accuracy overhaul — 8 targeted fixes:
+                            # BUG-P1: Pullback alignment SL now uses wider multiplier (1.6× ATR15m).
+                            # BUG-P2: PULL recovery thresholds raised: TREND 0.30→0.55, MIXED 0.25→0.45.
+                            #          Added 2-bar consecutive-close confirmation above EMA21.
+                            # BUG-P3: Tier A SHORT 15m RSI band corrected [46,56]→[44,54].
+                            # BUG-P4: VWAP bypass removed for pullback alignment — price must be on
+                            #          correct VWAP side (long: cur_c > rv*0.998, short: cur_c < rv*1.002).
+                            # BUG-P5: SR_CLEARANCE_ATR_MULT_PULL raised 0.15→0.30; post-override
+                            #          MIN_RR guard added (tp1 dist must be >= 0.8× ATR).
+                            # BUG-P6: 4H EMA flip alone now hard-suppresses reversal-disguised-as-pullback.
+                            # BUG-P7: PULL base score recompute uses h4_trend_held_bull_pull /
+                            #          h4_trend_held_bear_pull (was 2-bar h4_trend_held_bull/bear).
+                            # BUG-P8: RSI_PULL_LONG_MIN raised 40.0→44.0.
+                            # [v16.1.5] Widen SL to absorb wick noise: SL_MULT_BREAK/PULL 0.85→1.2/1.1,
                             # SL_HIGH_ATR_MULT 0.90→1.25, REGIME_HIGH_VOL_SL_MULT 0.95→1.10 (was
                             # incorrectly tightening SL in high-vol). TP1 raised to match wider SL:
                             # TP1_MULT_BREAK 1.0→1.2, TP1_MULT_PULL 1.0→1.1. MIN_RR_RATIO kept at
@@ -176,7 +189,8 @@ ADX_SCORE_MIN   = 20.0
 
 RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 70.0  # IMP-S15-7 — tightened from 75 to remove top-buying-risk tail; Catches breakouts launching from neutral RSI territory
 RSI_BREAK_SHORT_MIN = 30.0;  RSI_BREAK_SHORT_MAX = 55.0  # IMP-S15-7 — mirror tightening (100-70); Symmetric
-RSI_PULL_LONG_MIN   = 40.0;  RSI_PULL_LONG_MAX   = 58.0  # IMP-S17-3 — widened from [42,55]; RSI < 40 = breakdown signature, not pullback; RSI > 58 = barely pulled back, poor R:R
+RSI_PULL_LONG_MIN   = 44.0;  RSI_PULL_LONG_MAX   = 58.0  # IMP-S17-3 — widened from [42,55]; RSI > 58 = barely pulled back, poor R:R
+                                                            # [v16.1.6 BUG-P8] Raised floor 40→44: RSI 40-44 is active selling, not a healthy dip. Matches Tier A floor.
 RSI_PULL_SHORT_MIN  = 42.0;  RSI_PULL_SHORT_MAX  = 60.0  # IMP-S17-3 — mirror widening from [45,58]
 RSI_1H_PULL_LONG_MAX  = 70.0
 RSI_1H_PULL_SHORT_MIN = 30.0
@@ -188,8 +202,8 @@ WICK_FILTER     = 0.45
 RANGE_PCT_BREAK = 0.20
 PULL_ZONE_MULT  = 0.25
 PULL_TOUCH_LOOKBACK   = 5  # IMP-S16-5 — 3→5 bars (45 min→75 min): captures slow EMA-dip pullbacks (supersedes [PATCH-7b]'s 5→3 narrowing)
-PULL_RECOVER_ATR_MULT_TREND: float = 0.30  # Catches entries closer to actual EMA touch
-PULL_RECOVER_ATR_MULT_MIXED: float = 0.25  # [PATCH-7c] 0.10→0.25: same ratio scaling as trend
+PULL_RECOVER_ATR_MULT_TREND: float = 0.55  # [v16.1.6 BUG-P2] Raised 0.30→0.55: 0.30× ATR left entry inside the retracement.
+PULL_RECOVER_ATR_MULT_MIXED: float = 0.45  # [v16.1.6 BUG-P2] Raised 0.25→0.45: mixed regime needs stronger recovery confirmation.
 TREND_HOLD_BARS = 2
 # BREAK-specific trend hold (separate from PULL)
 TREND_HOLD_BARS_BREAK: int = 1   # Only 1 bar of 4H EMA alignment required for BREAK
@@ -243,7 +257,8 @@ PULL_REQUIRES_4H_OVERRIDE: dict[str, bool] = {}
 FUNDING_SUPPRESS_EXTREME: float = 0.0010
 # [Fix-8] Tightened from 0.30 → 0.20: Regime-aware TP/SL (Feature-50) now handles S/R adaptation
 SR_CLEARANCE_ATR_MULT: float    = 0.20  # Used for BREAK and general S/R logic
-SR_CLEARANCE_ATR_MULT_PULL: float = 0.15  # Relaxed for PULL (was suppressing valid entries near structure)
+SR_CLEARANCE_ATR_MULT_PULL: float = 0.30  # [v16.1.6 BUG-P5] Raised 0.15→0.30: 0.15 ATR clearance too loose,
+                                           # resistance that close to entry collapses TP1 and kills R:R.
 SUPPORT_PROXIMITY_ATR: float    = 0.75
 
 # ── BREAK / PULL QUALITY REFINEMENTS ─────────────────────────
@@ -376,6 +391,9 @@ SL_MULT_BREAK:  float = 1.2   # [v16.1.5] widened from 0.85 — absorbs wick/liq
 TP1_MULT_PULL:  float = 1.1   # [v16.1.5] raised from 1.0 — matches wider SL
 TP2_MULT_PULL:  float = 2.0
 SL_MULT_PULL:   float = 1.1   # [v16.1.5] widened from 0.85
+PULL_PULLBACK_ALIGN_SL_MULT: float = 1.6  # [v16.1.6 BUG-P1] Separate wider SL for pullback-alignment entries
+                                            # (1H counter-trend). 1H bearish can easily sweep 1.1×ATR(15m);
+                                            # 1.6× provides enough room for the 1H to complete its retracement.
 HIGH_ATR_THRESHOLD: float = 3.0
 SL_HIGH_ATR_MULT:   float = 1.25  # [v16.1.5] widened from 0.90 — high-ATR should be the WIDEST SL path
 ATR_HIST_DEPTH:     int   = 48
@@ -2311,8 +2329,12 @@ def _compute_signal_indicators(symbol: str, candles_15m, candles_1h, candles_4h,
 
 def is_likely_reversal_disguised_as_pullback(ind, direction: str) -> bool:
     """
-    Returns True if 2+ reversal signs are present — signal should be suppressed.
-    Protects against RSI-collapse entries entering as pullbacks.
+    Returns True if a genuine reversal is masquerading as a pullback — suppress.
+
+    [v16.1.6 BUG-P6] Hardened: 4H EMA flip now hard-suppresses by itself, regardless of
+    other signal count. A 4H trend flip means the trend the PULL is supposed to be entering
+    into no longer exists. Previously a flipped 4H needed a second confirming signal, which
+    allowed PULL longs into established 4H downtrends whenever 15m RSI happened to be 43-50.
     """
     c15  = ind["c15"]
     r15  = safe(ind["rsi15"][-1])
@@ -2320,20 +2342,26 @@ def is_likely_reversal_disguised_as_pullback(ind, direction: str) -> bool:
     ef4h = safe(ind["ema_f4h"][-1])
     es4h = safe(ind["ema_s4h"][-1])
 
-    signals = []
-
     if direction == "long":
-        signals.append(r15 < 42)              # 15m RSI below healthy pullback floor
-        signals.append(r1h < 40)              # 1H RSI in bearish territory
-        signals.append(ef4h < es4h)           # 4H actually flipped bearish
-        signals.append(all(c15[-(i+1)] < c15[-(i+2)] for i in range(3)))  # 3 declining closes
+        # Hard suppress: 4H trend has actually flipped bearish — no PULL long valid here
+        if ef4h < es4h:
+            return True
+        soft_signals = [
+            r15 < 44,                                                         # [v16.1.6] updated floor 42→44 (aligns with BUG-P8)
+            r1h < 40,                                                         # 1H RSI in bearish territory
+            all(c15[-(i+1)] < c15[-(i+2)] for i in range(3)),                # 3 declining closes
+        ]
     else:
-        signals.append(r15 > 58)
-        signals.append(r1h > 60)
-        signals.append(ef4h > es4h)
-        signals.append(all(c15[-(i+1)] > c15[-(i+2)] for i in range(3)))
+        # Hard suppress: 4H trend has actually flipped bullish — no PULL short valid here
+        if ef4h > es4h:
+            return True
+        soft_signals = [
+            r15 > 56,                                                         # [v16.1.6] updated ceiling 58→56 (symmetric with long floor)
+            r1h > 60,                                                         # 1H RSI in bullish territory
+            all(c15[-(i+1)] > c15[-(i+2)] for i in range(3)),                # 3 rising closes
+        ]
 
-    return sum(signals) >= 2  # Two or more reversal signs = suppress
+    return sum(soft_signals) >= 2  # Two or more soft reversal signs = suppress
 
 def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
                          funding_rate: float | None, symbol: str = "?") -> SignalResult:
@@ -2578,10 +2606,16 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if USE_PULLBACK_ALIGNMENT and pullback_short_align:
         pull_short_align = True
 
-    _is_pullback_long  = USE_PULLBACK_ALIGNMENT and pullback_long_align
-    _is_pullback_short = USE_PULLBACK_ALIGNMENT and pullback_short_align
-    vwap_long  = True if _is_pullback_long  else (cur_c > rv if USE_ROLLING_VWAP else True)
-    vwap_short = True if _is_pullback_short else (cur_c < rv if USE_ROLLING_VWAP else True)
+    # [v16.1.6 BUG-P4] Removed VWAP bypass for pullback alignment. Previously, pullback
+    # alignment entries (1H counter-trend) bypassed the VWAP filter entirely, removing the
+    # only session-level direction check. Now all PULL paths require price on the correct
+    # side of VWAP, with a small 0.2% tolerance band to avoid false blocks near VWAP itself.
+    if USE_ROLLING_VWAP:
+        vwap_long  = cur_c > rv * 0.998   # long: price at or above VWAP (0.2% tolerance)
+        vwap_short = cur_c < rv * 1.002   # short: price at or below VWAP (0.2% tolerance)
+    else:
+        vwap_long  = True
+        vwap_short = True
 
     rng = cur_h - cur_l + 1e-10
 
@@ -2612,8 +2646,16 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         for i in range(0, PULL_TOUCH_LOOKBACK + 1)
     )
     _pull_recover_mult  = get_pull_recover_mult(btc_regime)
-    pull_recover_long   = (cur_c > ef15 + atr_val * _pull_recover_mult) and cur_c > cur_o
-    pull_recover_short  = (cur_c < ef15 - atr_val * _pull_recover_mult) and cur_c < cur_o
+    # [v16.1.6 BUG-P2] Added 2-bar consecutive-close confirmation: both the current bar AND
+    # the previous bar must close above EMA21 (long) or below EMA21 (short) before recovery
+    # fires. A single-candle bounce off EMA is insufficient — price must hold for 2 bars to
+    # confirm the retracement is complete, not just a wick-induced false touch.
+    _prev_c_15m    = c15[-2] if len(c15) >= 2 else cur_c
+    _prev_ef15     = safe(ema_f15[-2]) if len(ema_f15) >= 2 else ef15
+    _two_bar_above = (cur_c > ef15 + atr_val * _pull_recover_mult) and (_prev_c_15m > _prev_ef15)
+    _two_bar_below = (cur_c < ef15 - atr_val * _pull_recover_mult) and (_prev_c_15m < _prev_ef15)
+    pull_recover_long   = _two_bar_above and cur_c > cur_o
+    pull_recover_short  = _two_bar_below and cur_c < cur_o
     pull_bull_bar      = cur_c > cur_o and clean_bull_bar()
     pull_bear_bar      = cur_c < cur_o and clean_bear_bar()
 
@@ -2662,7 +2704,9 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         h4_bear and h4_trend_held_bear_break      # 4H downtrend held (1-bar sufficient for Tier A)
         and 30.0 <= r4h <= 50.0                   # 4H RSI in healthy momentum zone (symmetric)
         and ef1h > es1h                           # 1H temporarily bullish = genuine pullback
-        and 46.0 <= safe(ind["rsi15"][-1]) <= 56.0  # 15m RSI in mid-range bounce zone (symmetric)
+        and 44.0 <= safe(ind["rsi15"][-1]) <= 54.0  # [v16.1.6 BUG-P3] Corrected from [46,56] to [44,54]:
+                                                     # mirrors long band exactly. [46,56] was neutral-to-bullish
+                                                     # RSI — wrong for a short momentum confirmation.
         and cur_c < ef15                          # Recovering below EMA21
         and len(v15) >= 4                         # Need enough volume history for both checks
         and v15[-2] < v15[-3]                     # Pullback bar volume declining (healthy retracement)
@@ -2695,7 +2739,9 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if long_pull and not long_break:
         long_score = sum([
             bb_long,
-            h4_bull and h4_trend_held_bull,
+            h4_bull and h4_trend_held_bull_pull,   # [v16.1.6 BUG-P7] was h4_trend_held_bull (2-bar);
+                                                    # use h4_trend_held_bull_pull (regime-aware, up to 3-bar)
+                                                    # so score component matches the gate that admitted this signal.
             adx_score_ok,
             obv_slope_long,
             vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
@@ -2704,7 +2750,8 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if short_pull and not short_break:
         short_score = sum([
             bb_short,
-            h4_bear and h4_trend_held_bear,
+            h4_bear and h4_trend_held_bear_pull,   # [v16.1.6 BUG-P7] was h4_trend_held_bear (2-bar);
+                                                    # use h4_trend_held_bear_pull (regime-aware, up to 3-bar).
             adx_score_ok,
             obv_slope_short,
             vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
@@ -3386,6 +3433,15 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     # Override SL for high ATR
     if atr_pct > HIGH_ATR_THRESHOLD:
         _sl_m = SL_HIGH_ATR_MULT
+    # [v16.1.6 BUG-P1] Wider SL for pullback alignment entries.
+    # When the 1H is counter-trend (pullback alignment mode), the normal 1.1× ATR(15m) SL is
+    # routinely swept by 1H momentum before the trade can recover. Use a dedicated wider
+    # multiplier for this alignment mode only, taking the max to respect any already-wider
+    # multiplier set by high-ATR or regime-aware logic above.
+    _is_pa_long  = ctx.get("pullback_long_align",  False)
+    _is_pa_short = ctx.get("pullback_short_align", False)
+    if res.signal_type == "PULL" and (_is_pa_long or _is_pa_short):
+        _sl_m = max(_sl_m, PULL_PULLBACK_ALIGN_SL_MULT)
 
     if res.fire_long:
         res.tp1 = cur_c + atr_val * _tp1_m
@@ -3428,18 +3484,30 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     res.tp1 = sr_tp1
 
     if res.signal_type == "PULL":
+        # [v16.1.6 BUG-P5] SR_CLEARANCE_ATR_MULT_PULL raised 0.15→0.30 (see config).
+        # Added MIN_RR guard: if the S/R override collapses TP1 so that
+        # (tp1 - entry) / atr < 0.8 for longs (or symmetric for shorts),
+        # discard the override and keep the ATR-based TP1. Near-entry resistance
+        # should not produce a near-zero R:R trade.
+        _PULL_MIN_TP1_ATR: float = 0.8  # minimum (tp1 - entry) as a fraction of ATR
         if res.fire_long and res.resistances:
             sr_tp1  = res.resistances[0]
             atr_tp1 = res.entry + atr_val * _tp1_m
             sr_dist = (sr_tp1 - res.entry) / atr_val
-            if sr_dist >= SR_CLEARANCE_ATR_MULT:
-                res.tp1 = min(sr_tp1, atr_tp1)
+            if sr_dist >= SR_CLEARANCE_ATR_MULT_PULL:
+                candidate_tp1 = min(sr_tp1, atr_tp1)
+                if (candidate_tp1 - res.entry) / atr_val >= _PULL_MIN_TP1_ATR:
+                    res.tp1 = candidate_tp1
+                # else: override discarded — R:R too tight, keep ATR-based TP1
         elif res.fire_short and res.supports:
             sr_tp1  = res.supports[0]
             atr_tp1 = res.entry - atr_val * _tp1_m
             sr_dist = (res.entry - sr_tp1) / atr_val
-            if sr_dist >= SR_CLEARANCE_ATR_MULT:
-                res.tp1 = min(sr_tp1, atr_tp1)   # FIX-D7 — for shorts, lower price = better TP
+            if sr_dist >= SR_CLEARANCE_ATR_MULT_PULL:
+                candidate_tp1 = min(sr_tp1, atr_tp1)   # FIX-D7 — for shorts, lower price = better TP
+                if (res.entry - candidate_tp1) / atr_val >= _PULL_MIN_TP1_ATR:
+                    res.tp1 = candidate_tp1
+                # else: override discarded — R:R too tight, keep ATR-based TP1
 
     _rsi_conf_awarded = (direction == "long" and rsi_confluence_long) or \
                         (direction == "short" and rsi_confluence_short)
