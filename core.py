@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.7"    # [v16.1.7] Simplified Split Entry Plan display: removed Tranche A/B
+__version__ = "16.1.8"    # [v16.1.7] Simplified Split Entry Plan display: removed Tranche A/B
                             # labels, percentages, and EMA21/ATR annotation. Now shows only
                             # "Market : <price>" and "Limit : <price>" for cleaner readability.
                             # [v16.1.6] PULL signal accuracy overhaul — 8 targeted fixes:
