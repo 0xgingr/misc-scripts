@@ -3512,6 +3512,19 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     res.tp1 = candidate_tp1
                 # else: override discarded — R:R too tight, keep ATR-based TP1
 
+    # [FIX] Guard: S/R-based TP1 overrides above must never cross or surpass TP2.
+    # Without this, an S/R level picked for TP1 can sit farther from entry than
+    # TP2 (e.g. resistance/support beyond the TP2 distance), causing TP2 to be
+    # nearer to entry than TP1 — an invalid, confusing TP ordering.
+    if res.fire_long:
+        if res.tp1 >= res.tp2:
+            # Clamp TP1 to just inside TP2, keeping it strictly nearer to entry.
+            res.tp1 = res.entry + (res.tp2 - res.entry) * 0.9
+    elif res.fire_short:
+        if res.tp1 <= res.tp2:
+            # Clamp TP1 to just inside TP2 (TP1 price must stay above TP2 for shorts).
+            res.tp1 = res.entry - (res.entry - res.tp2) * 0.9
+
     _rsi_conf_awarded = (direction == "long" and rsi_confluence_long) or \
                         (direction == "short" and rsi_confluence_short)
     if res.signal_type == "PULL" and not _rsi_conf_awarded:
