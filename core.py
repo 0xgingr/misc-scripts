@@ -7,88 +7,12 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-__version__ = "16.1.8"    # [v16.1.7] Simplified Split Entry Plan display: removed Tranche A/B
-                            # labels, percentages, and EMA21/ATR annotation. Now shows only
-                            # "Market : <price>" and "Limit : <price>" for cleaner readability.
-                            # [v16.1.6] PULL signal accuracy overhaul — 8 targeted fixes:
-                            # BUG-P1: Pullback alignment SL now uses wider multiplier (1.6× ATR15m).
-                            # BUG-P2: PULL recovery thresholds raised: TREND 0.30→0.55, MIXED 0.25→0.45.
-                            #          Added 2-bar consecutive-close confirmation above EMA21.
-                            # BUG-P3: Tier A SHORT 15m RSI band corrected [46,56]→[44,54].
-                            # BUG-P4: VWAP bypass removed for pullback alignment — price must be on
-                            #          correct VWAP side (long: cur_c > rv*0.998, short: cur_c < rv*1.002).
-                            # BUG-P5: SR_CLEARANCE_ATR_MULT_PULL raised 0.15→0.30; post-override
-                            #          MIN_RR guard added (tp1 dist must be >= 0.8× ATR).
-                            # BUG-P6: 4H EMA flip alone now hard-suppresses reversal-disguised-as-pullback.
-                            # BUG-P7: PULL base score recompute uses h4_trend_held_bull_pull /
-                            #          h4_trend_held_bear_pull (was 2-bar h4_trend_held_bull/bear).
-                            # BUG-P8: RSI_PULL_LONG_MIN raised 40.0→44.0.
-                            # [v16.1.5] Widen SL to absorb wick noise: SL_MULT_BREAK/PULL 0.85→1.2/1.1,
-                            # SL_HIGH_ATR_MULT 0.90→1.25, REGIME_HIGH_VOL_SL_MULT 0.95→1.10 (was
-                            # incorrectly tightening SL in high-vol). TP1 raised to match wider SL:
-                            # TP1_MULT_BREAK 1.0→1.2, TP1_MULT_PULL 1.0→1.1. MIN_RR_RATIO kept at
-                            # 1.0 — TP1 and SL now at parity so R:R floor is preserved.
-                            # [v16.1.4] format_signal: version moved to bottom before timestamp.
-                            # [v16.1.3] Ported the dynamic pairwise correlation
-                            # clustering / union-find system from v15.8.1 (Fix-33) and wired
-                            # it into deduplicate_correlated() as the live correlated-exposure
-                            # control, replacing the static, hand-maintained CORR_GROUPS
-                            # dict. See compute_pairwise_correlation_matrix(),
-                            # cluster_by_correlation(), group_of_dynamic() and the
-                            # [v15.5.5] block in main(). NOTE: in v15.8.1 itself this
-                            # machinery was diagnostic-only (never consulted by
-                            # deduplicate_correlated()) — see the audit notes delivered
-                            # alongside this file for why, and what changed here.
-                            # Everything below this point is unmodified v15.5.4.0 logic.
-                            # [v15.5.4.0 SUMMARY] This pass: Fix-40 (gap-covering candle
-                            # fetch for active-signal tracking), Fix-41 (short-side RS
-                            # exemption in BTC regime filter), Fix-42 (relaxed daily-ADX
-                            # gate for PULL signals), Fix-43 (vol_score_ok fail-closed on
-                            # vm15==0), Fix-44 (explicit category tags for the penalty
-                            # priority cap), Fix-45 (crowded+strong-RS combo penalty for
-                            # shorts in breadth adjustment), Fix-46 (daily ADX routed
-                            # through the indicator cache), Fix-47 (soft positive-score
-                            # cap + widened win-rate score buckets).
-                            # [Fix-15] Top-10 ROI fixes from full audit:
-                            # BUG-C1 atr_pct=0 in scoring, BUG-C2 penalty cap priority inversion,
-                            # BUG-H4 SR clearance now PULL-only, BUG-H1 short proximity RS gate inverted,
-                            # BUG-H3 funding double-penalty consolidated, BUG-H2 PULL vol score corrected,
-                            # TG-3 spread_history persisted to state, RISK-3 MIN_RR kept at 1.0 (reverted by request),
-                            # PERF-1 bollinger called once, Code dead constants/function removed.
-                            # [Fix-40] check_active_signals(): candle fetch window for an active
-                            # signal is now widened dynamically to cover any gap since
-                            # last_processed_candle_ts (downtime/scan-delay), instead of being
-                            # silently truncated to the last N_15M bars. Unreconstructable gaps
-                            # (> MAX_GAP_FETCH_15M_BARS) resolve as "expired_gap" rather than
-                            # "expired" so they don't pollute win-rate stats with a fake outcome.
-                            # [Fix-41] check_btc_regime_filter(): added the mirrored RS exemption
-                            # to the short/bullish-regime branch (was long-only), using the
-                            # existing RS_BEARISH_REGIME_EXEMPT_PCT constant for symmetry.
-                            # [Fix-42] Added DAILY_ADX_REQUIRED_FOR_PULL (default False).
-                            # _detect_raw_signals() now gates PULL signals on daily_adx_ok_pull
-                            # instead of daily_adx_ok; BREAK signals are unchanged.
-                            # [Fix-43] vol_score_ok / vol_score_ok_pull now fail closed
-                            # (False, not True) when the 15m volume moving average is 0.
-                            # [Fix-44] Penalty-stacking cap in _apply_scoring_and_filters() now
-                            # tags each score_adjustments entry with an explicit category
-                            # ("btc_regime"/"oi_confirmation"/"exhaustion"/"rs_negative"/"secondary")
-                            # instead of matching free-text label substrings.
-                            # [Fix-45] apply_breadth_adjustment(): added the mirrored "crowded +
-                            # strong RS" -2 combo penalty to the short branch (was long-only).
-                            # [Fix-46] _compute_signal_indicators(): daily ADX now routed through
-                            # get_cached_indicators(symbol, "1d", candles_d) instead of calling
-                            # adx_dmi() directly every scan. Self-test extended to cover "1d".
-                            # [Fix-47] Added MAX_POSITIVE_ADJUSTMENTS=6 soft cap on stacked bonus
-                            # adjustments in _apply_scoring_and_filters() (mirrors the existing
-                            # negative cap). Widened compute_win_rates()'s by_score bucket range
-                            # from range(4,8) to range(4, 6+MAX_POSITIVE_ADJUSTMENTS+1) so no
-                            # achievable final score is left out of by-score win-rate aggregation.
+__version__ = "16.1.8"
 
 _FF_TZ = ZoneInfo("America/New_York")
 OI_EXPECTED_INTERVAL_S: float = 15 * 60
 
 # ── CONFIG ───────────────────────────────────────────────────
-# [P0-6] Safe env var handling — no more KeyError crash at import
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
 TG_CHAT_ID   = os.getenv("TG_CHAT_ID")
 if not TG_BOT_TOKEN:
@@ -118,11 +42,6 @@ WATCHLIST = [
     "XLMUSDT", "UNIUSDT", "LTCUSDT", "APTUSDT", "PENDLEUSDT",
 ]
 
-# [v15.5.5] The static, hand-maintained CORR_GROUPS dict that used to live here
-# has been removed. Correlated-exposure grouping is now computed dynamically
-# every scan from measured pairwise return correlation — see
-# compute_pairwise_correlation_matrix() / cluster_by_correlation() /
-# group_of_dynamic() below, and the clustering step in main()'s Phase 1.
 
 # ── INDICATOR LENGTHS ────────────────────────────────────────
 FAST_LEN  = 21
@@ -138,34 +57,19 @@ OBV_LEN   = 10
 
 # ── RISK / SCORE ─────────────────────────────────────────────
 MIN_SCORE            = 4
-MAX_SIGNALS_PER_SCAN = 4  # IMP-S17-5 — increased by 1 (was 3)
+MAX_SIGNALS_PER_SCAN = 4
 MAX_SIGNAL_HISTORY   = 2000
-# [Fix-7] MIN_OI_USD kept at 500K per "Implementation All except MIN_OI_USD"
 MIN_OI_USD: float = 500_000.0
 
-# [Fix-9] Penalty stacking cap — prevents over-filtering from double-counted risks
 MAX_NEGATIVE_ADJUSTMENTS: int = 3
 
-# [Fix-47] Soft cap on stacked positive (bonus) adjustments, mirroring
-# MAX_NEGATIVE_ADJUSTMENTS. Without this, bonuses (divergence +2, RSI confluence
-# +1, D200 +1, S/R proximity +1, funding tailwind +1, OI acceleration +1,
-# false-breakout +1, etc.) could stack past 7, beyond what compute_win_rates()'s
-# by_score bucketing covered — losing granularity exactly where high-conviction
-# trades live. 6 was chosen to roughly match the positive-adjustment headroom
-# seen in practice without suppressing genuinely strong setups (most real
-# signals stack 2-4 bonuses; 6 still allows an unusually strong confluence of
-# signals through largely uncapped while still giving compute_win_rates() a
-# bounded score range to bucket against).
 MAX_POSITIVE_ADJUSTMENTS: int = 6
 
-# [Risk-31] Maximum concurrent active signals cap (audit #31, related to #32)
-# [Fix-1] Raised from 8 → 12: Risk is managed by leverage scaling, not signal count
 MAX_CONCURRENT_ACTIVE_SIGNALS: int = 12
 
 # ── HIGHER-TIMEFRAME DIVERGENCE CHECK ─────────────────────
 USE_1H_RSI_DIVERGENCE: bool = True
-DIVERGENCE_LOOKBACK: int = 20  # [Logic-21] was 10 — increased to 20 to capture divergences forming over 20+ bars
-# [Fix-10] Increased from 1 → 2: 1H RSI divergence is a rare, high-conviction signal
+DIVERGENCE_LOOKBACK: int = 20
 DIVERGENCE_BONUS: int = 2
 
 # ── FUNDING RATE AS CARRY METRIC ──────────────────────────
@@ -176,9 +80,8 @@ FUNDING_CARRY_BONUS: int = 1
 
 # ── DYNAMIC MAX_SIGNALS_PER_SCAN ───────────────────────────
 USE_DYNAMIC_MAX_SIGNALS: bool = True
-# [Fix-5] Increased caps by 1 each: in strong trends, 5 signals across 25 coins is restrictive
-MAX_SIGNALS_BULL_TREND: int = 6  # IMP-S17-5 — increased by 1 (was 5)
-MAX_SIGNALS_DEFAULT: int = 4     # IMP-S17-5 — increased by 1 (was 3)
+MAX_SIGNALS_BULL_TREND: int = 6
+MAX_SIGNALS_DEFAULT: int = 4
 BREADTH_BULL_THRESHOLD: float = 0.70
 
 # ── FALSE BREAKOUT PATTERN DETECTION ───────────────────────
@@ -190,38 +93,33 @@ FALSE_BREAKOUT_BONUS: int = 1
 ADX_BREAK_GATE  = 25.0
 ADX_SCORE_MIN   = 20.0
 
-RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 70.0  # IMP-S15-7 — tightened from 75 to remove top-buying-risk tail; Catches breakouts launching from neutral RSI territory
-RSI_BREAK_SHORT_MIN = 30.0;  RSI_BREAK_SHORT_MAX = 55.0  # IMP-S15-7 — mirror tightening (100-70); Symmetric
-RSI_PULL_LONG_MIN   = 44.0;  RSI_PULL_LONG_MAX   = 58.0  # IMP-S17-3 — widened from [42,55]; RSI > 58 = barely pulled back, poor R:R
-                                                            # [v16.1.6 BUG-P8] Raised floor 40→44: RSI 40-44 is active selling, not a healthy dip. Matches Tier A floor.
-RSI_PULL_SHORT_MIN  = 42.0;  RSI_PULL_SHORT_MAX  = 60.0  # IMP-S17-3 — mirror widening from [45,58]
+RSI_BREAK_LONG_MIN  = 45.0;  RSI_BREAK_LONG_MAX  = 70.0
+RSI_BREAK_SHORT_MIN = 30.0;  RSI_BREAK_SHORT_MAX = 55.0
+RSI_PULL_LONG_MIN   = 44.0;  RSI_PULL_LONG_MAX   = 58.0
+RSI_PULL_SHORT_MIN  = 42.0;  RSI_PULL_SHORT_MAX  = 60.0
 RSI_1H_PULL_LONG_MAX  = 70.0
 RSI_1H_PULL_SHORT_MIN = 30.0
 
-VOL_SCORE_MULT  = 1.0  # IMP-S15-9 — raised from 0.75x; BREAK now requires at least average volume as a hard gate (also used as PULL low-vol-bonus reference below)
+VOL_SCORE_MULT  = 1.0
 MAX_ATR_PCT     = 10.0
 MIN_ATR_PCT     = 0.2
 WICK_FILTER     = 0.45
 RANGE_PCT_BREAK = 0.20
 PULL_ZONE_MULT  = 0.25
-PULL_TOUCH_LOOKBACK   = 5  # IMP-S16-5 — 3→5 bars (45 min→75 min): captures slow EMA-dip pullbacks (supersedes [PATCH-7b]'s 5→3 narrowing)
-PULL_RECOVER_ATR_MULT_TREND: float = 0.55  # [v16.1.6 BUG-P2] Raised 0.30→0.55: 0.30× ATR left entry inside the retracement.
-PULL_RECOVER_ATR_MULT_MIXED: float = 0.45  # [v16.1.6 BUG-P2] Raised 0.25→0.45: mixed regime needs stronger recovery confirmation.
+PULL_TOUCH_LOOKBACK   = 5
+PULL_RECOVER_ATR_MULT_TREND: float = 0.55
+PULL_RECOVER_ATR_MULT_MIXED: float = 0.45
 TREND_HOLD_BARS = 2
 # BREAK-specific trend hold (separate from PULL)
 TREND_HOLD_BARS_BREAK: int = 1   # Only 1 bar of 4H EMA alignment required for BREAK
 TREND_HOLD_BARS_PULL:  int = 2   # Keep 2 bars for PULL (confirmed trend needed)
 
 # 4H momentum quality gate for PULL
-MIN_4H_SPREAD_ATR_MULT: float = 0.20  # IMP-S17-8 — lowered from 0.30; allows earlier entries into nascent trends. 4H EMA spread must be >= 0.2x 4H ATR
+MIN_4H_SPREAD_ATR_MULT: float = 0.20
 
 # 4H exhaustion suppressor for BREAK
 EXHAUSTION_SPREAD_LOOKBACK: int = 3   # Bars back to compare spread for BREAK exhaustion check
 
-# FIX-D20: EARLY_BREAK_VOL_SURGE and EARLY_BREAK_SCORE_ADJ removed — dead constants.
-# Restore when _check_early_break() is re-implemented with live candle fetch.
-# EARLY_BREAK_VOL_SURGE: float = 1.8
-# EARLY_BREAK_SCORE_ADJ: int = 0
 USE_EXHAUSTION_SHORT:       bool = True
 EXHAUSTION_SHORT_SCORE_ADJ: int  = -1
 USE_EXHAUSTION_LONG:        bool = True
@@ -241,11 +139,6 @@ D200_SOFT_ADJ     = 1
 
 USE_DAILY_ADX     = True
 MIN_DAILY_ADX     = 18.0
-# [Fix-42] PULL is a 4H/1H construct (a dip inside an already-held 4H trend);
-# requiring daily-timeframe trend strength on top of that is overly strict and
-# was the most likely cause of unexpected signal droughts during healthy but
-# low-daily-volatility consolidation phases. Default False = PULL signals are
-# not gated on daily ADX; BREAK signals keep the stricter daily_adx_ok gate.
 DAILY_ADX_REQUIRED_FOR_PULL: bool = False
 PULL_REQUIRES_4H  = True
 # Per-symbol or per-BTC-regime-label override for PULL_REQUIRES_4H.
@@ -258,9 +151,8 @@ PULL_REQUIRES_4H_OVERRIDE: dict[str, bool] = {}
 
 # ── ACCURACY FILTERS ──────────────────────────────────────────
 FUNDING_SUPPRESS_EXTREME: float = 0.0010
-# [Fix-8] Tightened from 0.30 → 0.20: Regime-aware TP/SL (Feature-50) now handles S/R adaptation
 SR_CLEARANCE_ATR_MULT: float    = 0.20  # Used for BREAK and general S/R logic
-SR_CLEARANCE_ATR_MULT_PULL: float = 0.30  # [v16.1.6 BUG-P5] Raised 0.15→0.30: 0.15 ATR clearance too loose,
+SR_CLEARANCE_ATR_MULT_PULL: float = 0.30
                                            # resistance that close to entry collapses TP1 and kills R:R.
 SUPPORT_PROXIMITY_ATR: float    = 0.75
 
@@ -280,7 +172,6 @@ BREAK_VOL_ACCEL_BARS: int = 2
 # ── RELATIVE STRENGTH ─────────────────────────────────────────
 RS_TOP_PERCENTILE: float    = 0.20
 RS_BOTTOM_PERCENTILE: float = 0.20
-# [Fix-6] Loosened from -4.0 → -6.0: -4% RS vs BTC is common for coins with sector-specific catalysts
 RS_BREAK_HARD_GATE_PCT: float = -6.0
 RS_BREAK_HARD_GATE_PENALTY: int = -3
 RS_BREAK_SOFT_PERCENTILE: float = 0.25
@@ -298,7 +189,6 @@ BREADTH_RS_NEGATIVE_THRESH: float  = 0.0
 PULL_VOL_FLOOR: float          = 0.40
 PULL_VOL_FLOOR_OVERBOUGHT: float  = 0.50
 PULL_VOL_OVERBOUGHT_BREADTH: float = 0.80
-# [Fix-4] Shortened from 1800 → 900: 15min is sufficient — cooldown already blocks same symbol/direction
 PULL_REENTRY_COOLDOWN_S: int   = 900
 
 # ── ACCURACY FILTERS ──────────────────────────────────────────
@@ -312,12 +202,10 @@ PULL_LIMIT_MAX_ATR_DIST: float = 1.50
 # ── SPREAD / LIQUIDITY AWARENESS ─────────────────────────
 SPREAD_WARN_PCT: float     = 0.20
 SPREAD_SUPPRESS_PCT: float = 0.40
-# [Risk-36] Baseline exempt set — dynamic exemption also applied at runtime
 SPREAD_EXEMPT: set[str] = {
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT",
     "XRPUSDT", "ADAUSDT", "DOGEUSDT",
 }
-# [Risk-36] Dynamic spread exemption: if avg spread over last N scans is low, exempt
 SPREAD_DYNAMIC_HISTORY_LEN: int = 10
 SPREAD_DYNAMIC_AVG_THRESHOLD: float = 0.15  # 0.10 -> 0.15
 
@@ -325,10 +213,10 @@ SPREAD_DYNAMIC_AVG_THRESHOLD: float = 0.15  # 0.10 -> 0.15
 WIN_RATE_MIN_SAMPLE: int    = 20
 WIN_RATE_HIGH_THRESH: float = 0.65
 WIN_RATE_LOW_THRESH: float  = 0.45
-WIN_RATE_MIN_SAMPLE_FOR_ADJ: int = 100  # IMP-S17-9 — raised from 80; require more samples before trusting WR adjustment
+WIN_RATE_MIN_SAMPLE_FOR_ADJ: int = 100
 WIN_RATE_LOOKBACK_DAYS:  int   = 30
 WIN_RATE_RECENT_DAYS:    int   = 7
-WIN_RATE_RECENT_WEIGHT:  float = 2.0  # [P0-2] Now actually used
+WIN_RATE_RECENT_WEIGHT:  float = 2.0
 WIN_RATE_STALE_DAYS: int = 14
 
 # ── OI SCALE CAP ──────────────────────────────────────────────
@@ -346,8 +234,6 @@ MACRO_WINDOW_AFTER_MINS:  int   = 30
 MACRO_HIGH_ATR_SUPPRESS_PCT: float = 3.0
 MACRO_CACHE_TTL_S: int          = 3600
 
-# [Logic-22] Symbol-relative macro ATR threshold multiplier
-# If symbol's ATR percentile > 70%, require higher ATR to suppress (symbol is naturally volatile)
 MACRO_ATR_PCTILE_HIGH: float = 0.70
 MACRO_ATR_PCTILE_HIGH_MULT: float = 1.5
 
@@ -362,11 +248,6 @@ REACT_TP1           = "🔥"
 REACT_TP2           = "🏆"
 REACT_SL            = "😭"
 SIGNAL_MAX_AGE_BARS = 48
-# [Fix-40] Cap on how many 15m candles we'll request to cover a downtime/scan-delay gap
-# when tracking an active signal. Below this, the fetch window is widened dynamically to
-# guarantee no candles between last_processed_candle_ts and now are skipped. Above this,
-# full historical reconstruction is not attempted and the signal is resolved as
-# "expired_gap" instead of being silently force-resolved as "expired".
 MAX_GAP_FETCH_15M_BARS = 2000
 
 # ── HYPERLIQUID ENDPOINT ──────────────────────────────────────
@@ -388,17 +269,17 @@ OI_SCORE_CAP: int              = 2
 SESSION_DEAD_ZONE_START_UTC: int = 3
 SESSION_DEAD_ZONE_END_UTC:   int = 6
 SESSION_LOW_ATR_PERCENTILE:  float = 0.10
-TP1_MULT_BREAK: float = 1.2   # [v16.1.5] raised from 1.0 — matches wider SL to preserve MIN_RR_RATIO=1.0
+TP1_MULT_BREAK: float = 1.2
 TP2_MULT_BREAK: float = 2.5
-SL_MULT_BREAK:  float = 1.2   # [v16.1.5] widened from 0.85 — absorbs wick/liquidity-grab noise
-TP1_MULT_PULL:  float = 1.1   # [v16.1.5] raised from 1.0 — matches wider SL
+SL_MULT_BREAK:  float = 1.2
+TP1_MULT_PULL:  float = 1.1
 TP2_MULT_PULL:  float = 2.0
-SL_MULT_PULL:   float = 1.1   # [v16.1.5] widened from 0.85
-PULL_PULLBACK_ALIGN_SL_MULT: float = 1.6  # [v16.1.6 BUG-P1] Separate wider SL for pullback-alignment entries
+SL_MULT_PULL:   float = 1.1
+PULL_PULLBACK_ALIGN_SL_MULT: float = 1.6
                                             # (1H counter-trend). 1H bearish can easily sweep 1.1×ATR(15m);
                                             # 1.6× provides enough room for the 1H to complete its retracement.
 HIGH_ATR_THRESHOLD: float = 3.0
-SL_HIGH_ATR_MULT:   float = 1.25  # [v16.1.5] widened from 0.90 — high-ATR should be the WIDEST SL path
+SL_HIGH_ATR_MULT:   float = 1.25
 ATR_HIST_DEPTH:     int   = 48
 ATR_LOW_PERCENTILE:  float = 0.10
 ATR_HIGH_PERCENTILE: float = 0.90
@@ -412,46 +293,33 @@ FUNDING_HISTORY_DEPTH: int = 4
 FUNDING_WARN_EXTREME = 0.0010
 FUNDING_WARN_HIGH    = 0.0005
 
-# [Feature-50] Regime-aware TP/SL multiplier adjustments
 USE_REGIME_AWARE_TP_SL: bool = True
 REGIME_HIGH_VOL_TP1_MULT: float = 1.2   # widen TP1 in high-vol
 REGIME_HIGH_VOL_TP2_MULT: float = 1.15
-REGIME_HIGH_VOL_SL_MULT: float  = 1.10  # [v16.1.5] fixed from 0.95 — widen SL in high-vol (wicks are largest here)
+REGIME_HIGH_VOL_SL_MULT: float  = 1.10
 REGIME_LOW_VOL_TP1_MULT: float  = 0.85  # tighten TP1 in low-vol
 REGIME_LOW_VOL_TP2_MULT: float  = 0.90
 REGIME_LOW_VOL_SL_MULT: float   = 1.10  # slightly widen SL
 REGIME_BEAR_TP1_MULT: float = 0.9       # take profits earlier in bear regime
 REGIME_BULL_TP2_MULT: float = 1.1       # extend TP2 in bull regime
 
-# [Logic-24] Dynamic BTC correlation threshold
 LOW_BTC_CORR_THRESHOLD: float = 0.65  # |correlation| below this = "decorrelated"
 LOW_BTC_CORR_LOOKBACK_BARS: int = 42  # 7 days of 4H candles
 RS_BEARISH_REGIME_EXEMPT_PCT: float = 3.0
 
-# [v15.5.5] Dynamic pairwise correlation clustering — ported from v15.8.1's
-# Fix-33 (compute_pairwise_correlation_matrix / cluster_by_correlation),
-# generalizing the single-symbol-vs-BTC approach above to all-pairs-within-
-# watchlist. Renamed from v15.8.1's LAYER1_CLUSTER_CORR_THRESHOLD since it's
-# no longer specific to the "layer1" group — it now drives clustering across
-# the whole watchlist. Same default value (0.75) carried over unchanged.
-DYNAMIC_CORR_CLUSTER_THRESHOLD: float = 0.85  # IMP-S17-4 — raised from 0.75; tighter clusters, more decorrelated signals get through. |correlation| >= this unions two symbols into the same cluster
+DYNAMIC_CORR_CLUSTER_THRESHOLD: float = 0.85
 CORR_MATRIX_MIN_SAMPLE: int = 20              # minimum overlapping-return sample size before a pair is scored at all
 
-# [Risk-34] Leverage sizing (concurrent-position deduction removed — see v15.8.1)
 LEVERAGE_BASE_RISK_PCT: float = 10.0
 LEVERAGE_RANGE_LOW_RISK_PCT: float = 5.0
 LEVERAGE_RANGE_HIGH_RISK_PCT: float = 15.0
 LEVERAGE_MAX: float = 15.0
 
-# [Logic-16] S/R lookback window
 SR_LOOKBACK_BARS: int = 200  # was 100 — extended for major S/R levels
 
-# [Logic-13] Cooldown constants — comment fixed
-# [Fix-2] Shortened from 3 → 2: 2 bars (30min) still prevents immediate duplicate
 SIGNAL_COOLDOWN_BARS:           int = 2   # 2 × 15m = 30 min
 SIGNAL_COOLDOWN_BARS_HIGHSCORE: int = 2   # 2 × 15m = 30 min for high-score signals
 SIGNAL_HIGHSCORE_THRESHOLD:     int = 7
-# [Fix-3] Shortened from 2 → 1: A winning trade proved the regime — re-enter sooner for continuations
 SIGNAL_COOLDOWN_POST_WIN_BARS:  int = 1   # 1 bar = 15 min post-win
 
 STATE_VERSION = 4  # Bumped for audit fixes
@@ -518,7 +386,6 @@ def hl_post(payload: dict):
             sleep_s = min(20.0, base_sleep_s * (2 ** attempt)) + random.uniform(0.0, 0.25)
             time.sleep(sleep_s)
 
-    # [P0-1] Exhausted all retries on 429 — raise instead of returning None
     raise RuntimeError("hl_post exhausted all retries (likely persistent 429)")
 
 def current_bar_open_ms(reference_ms: int, interval: str) -> int:
@@ -549,7 +416,6 @@ def get_candles(symbol: str, interval: str, n: int,
         },
     }
     raw = hl_post(payload)
-    # [P0-1] Defensive: if hl_post somehow returns None, treat as empty
     if raw is None:
         return []
     candles = []
@@ -568,14 +434,14 @@ def _detect_candle_gaps(candles: list[dict], interval_ms: int,
                         max_gap_mult: float = 2.0, symbol: str = "") -> list[dict]:
     """Log and skip symbols with candle timestamp gaps. Returns candles unchanged,
     or [] if a gap > max_gap_mult * interval_ms is found (caller should skip the
-    symbol for this scan since indicator values would reference the wrong bars)."""  # IMP-S18-5
+    symbol for this scan since indicator values would reference the wrong bars)."""
     for i in range(1, len(candles)):
         gap_ms = candles[i]["t"] - candles[i - 1]["t"]
         if gap_ms > interval_ms * max_gap_mult:
             gap_min = gap_ms / 60_000
             print(f"  [CANDLE GAP] {symbol} 15m candle gap detected: {gap_min:.1f} min "
                   f"at index {i} (ts={candles[i]['t']}). Skipping symbol.")
-            return []   # IMP-S18-5 — return empty to trigger symbol-skip in caller
+            return []
     return candles
 
 def fetch_all_candles(symbol: str, reference_ms: int | None = None) -> tuple[list, list, list, list] | None:
@@ -583,9 +449,9 @@ def fetch_all_candles(symbol: str, reference_ms: int | None = None) -> tuple[lis
     if len(candles_15m) < 50:
         return None
     candles_15m = _detect_candle_gaps(candles_15m, interval_ms=INTERVAL_MS["15m"],
-                                       symbol=symbol)   # IMP-S18-5
+                                       symbol=symbol)
     if not candles_15m:
-        return None   # IMP-S18-5 — skip symbol on detected gap
+        return None
     results = {}
     with ThreadPoolExecutor(max_workers=max(1, HL_TF_WORKERS)) as ex:
         futures = {
@@ -707,7 +573,7 @@ def update_oi_history(state: dict, symbol: str, oi_usd: float | None) -> None:
 
 def compute_oi_trend(state: dict, symbol: str, current_price: float,
                      price_direction: str, trade_direction: str) -> dict:
-    OI_FRESHNESS_CUTOFF_S = 30 * 60   # IMP-S18-4 — 30 minutes
+    OI_FRESHNESS_CUTOFF_S = 30 * 60
     with _state_lock:
         oi_hist = list(state.get("oi_history", {}).get(symbol, []))
     if not oi_hist:
@@ -718,7 +584,7 @@ def compute_oi_trend(state: dict, symbol: str, current_price: float,
             "condition": "Unknown",
         }
     _last_ts_s18_4 = oi_hist[-1].get("ts", 0)
-    if (time.time() - _last_ts_s18_4) > OI_FRESHNESS_CUTOFF_S:             # IMP-S18-4
+    if (time.time() - _last_ts_s18_4) > OI_FRESHNESS_CUTOFF_S:
         print(f"  [OI FRESHNESS] {symbol} OI data is stale "
               f"({(time.time() - _last_ts_s18_4) / 60:.1f} min) — returning unknown")
         return {
@@ -752,7 +618,7 @@ def compute_oi_trend(state: dict, symbol: str, current_price: float,
             "label": "OI Trend: Unknown (stale)", "breakdown_tag": "OI?",
             "condition": "Unknown",
         }
-    if elapsed_s < OI_EXPECTED_INTERVAL_S:                        # FIX-D10
+    if elapsed_s < OI_EXPECTED_INTERVAL_S:
         # Rapid resample: scale UP to normalize to 15-min rate (capped)
         scale = min(MAX_OI_SCALE, OI_EXPECTED_INTERVAL_S / elapsed_s)
     else:
@@ -785,10 +651,6 @@ def compute_oi_trend(state: dict, symbol: str, current_price: float,
     bullish_div     = price_direction == "up"   and oi_falling
     bearish_div     = price_direction == "down" and oi_falling
 
-    # [Logic-10] Fixed OI trend asymmetry for shorts
-    # Previously: bullish_div (price up + OI down = shorts covering) for shorts
-    # was lumped into neutral alongside bearish_div (long-covering).
-    # Now: shorts covering is explicitly penalized for short signals.
     if trade_direction == "long":
         if bullish_confirm:
             score_adj, condition, breakdown_tag = 1,  "Bullish Confirmation",                     "OI↑"
@@ -808,7 +670,6 @@ def compute_oi_trend(state: dict, symbol: str, current_price: float,
         elif bullish_confirm:
             score_adj, condition, breakdown_tag = -1, "Counter vs Short (OI rising on up move)",   "OI Divergence"
         elif bullish_div:
-            # [Logic-10] Price up + OI falling = shorts covering = bullish pressure against short
             score_adj, condition, breakdown_tag = -1, "Shorts covering (OI falling on up move)",   "OI↓"
         elif bearish_div:
             # Price down + OI falling = long-covering = neutral for shorts
@@ -877,7 +738,6 @@ def _cluster_levels(pivots: list[float], atr_val: float, tolerance: float = 0.3)
         if zones and abs(p - zones[-1]) < atr_val * tolerance:
             # Add to existing cluster
             zone_members[-1].append(p)
-            # [Logic-17] Use median instead of mean
             members = zone_members[-1]
             zones[-1] = sorted(members)[len(members) // 2]
         else:
@@ -893,7 +753,6 @@ def find_sr_levels(candles_15m: list[dict], n_levels: int = 2,
     lb = SR_PIVOT_LEFT_BARS
     rb = SR_PIVOT_RIGHT_BARS
     avail  = len(candles_15m) - 1
-    # [Logic-16] Extended from 100 to SR_LOOKBACK_BARS (200) for major S/R levels
     window = candles_15m[max(0, avail - SR_LOOKBACK_BARS): avail]
     for i in range(lb, len(window) - rb):
         h = window[i]["h"]
@@ -933,11 +792,11 @@ def compute_btc_regime(candles_1h: list[dict], candles_4h: list[dict],
     ef1h = safe(ema(c1h, FAST_LEN)[-1])
     es1h = safe(ema(c1h, SLOW_LEN)[-1])
 
-    btc_4h_momentum_bull = len(c4h) >= 6 and c4h[-2] > c4h[-5]   # FIX-D11
-    btc_4h_momentum_bear = len(c4h) >= 6 and c4h[-2] < c4h[-5]   # FIX-D11
+    btc_4h_momentum_bull = len(c4h) >= 6 and c4h[-2] > c4h[-5]
+    btc_4h_momentum_bear = len(c4h) >= 6 and c4h[-2] < c4h[-5]
 
     btc_bullish = (ef4h > es4h) and (ef1h > es1h) and btc_4h_momentum_bull
-    btc_bearish_intraday = (ef4h < es4h) and (ef1h < es1h) and btc_4h_momentum_bear  # FIX-D11
+    btc_bearish_intraday = (ef4h < es4h) and (ef1h < es1h) and btc_4h_momentum_bear
 
     # Daily confirmation: only treat as confirmed bearish if daily EMA21 < EMA50 as well
     btc_daily_bearish = False
@@ -977,8 +836,6 @@ def get_btc_regime() -> dict | None:
     with _btc_regime_lock:
         return _btc_regime_cache
 
-# [Logic-24] Dynamic BTC correlation set — computed from rolling correlation
-# Falls back to hardcoded baseline if computation fails
 LOW_BTC_CORR_BASELINE: set[str] = {"TAOUSDT", "TRXUSDT", "PENDLEUSDT", "ONDOUSDT", "HYPEUSDT"}
 _dynamic_low_btc_corr: set[str] = set()
 _dynamic_corr_lock = threading.Lock()
@@ -1037,18 +894,6 @@ def get_low_btc_corr_set() -> set[str]:
             return _dynamic_low_btc_corr.copy()
     return LOW_BTC_CORR_BASELINE.copy()
 
-# ═══════════════════════════════════════════════════════════════
-# [v15.5.5] DYNAMIC PAIRWISE CORRELATION CLUSTERING
-# Ported from v15.8.1 (Fix-33). Generalizes update_dynamic_btc_correlation()
-# above (vs-BTC only) to all-pairs-within-watchlist, then unions symbols into
-# clusters via union-find wherever measured correlation clears
-# DYNAMIC_CORR_CLUSTER_THRESHOLD. Unlike v15.8.1 — where this same machinery
-# was diagnostic-only and never consulted by deduplicate_correlated() — here
-# it IS the correlated-exposure control: deduplicate_correlated() below calls
-# group_of_dynamic() instead of looking symbols up in a static CORR_GROUPS
-# dict. Uses the same 4H candle history already fetched per symbol in Phase 1
-# of main() — no new data fetching required.
-# ═══════════════════════════════════════════════════════════════
 
 _dynamic_corr_clusters: list[frozenset[str]] = []
 _dynamic_corr_clusters_lock = threading.Lock()
@@ -1182,7 +1027,6 @@ def check_btc_regime_filter(direction: str, symbol: str,
         return 0, "BTC Regime: Unknown"
 
     label = regime["label"]
-    # [Logic-24] Use dynamic correlation set
     low_corr_set = get_low_btc_corr_set()
 
     if direction == "long" and regime["bearish"]:
@@ -1202,9 +1046,6 @@ def check_btc_regime_filter(direction: str, symbol: str,
     if direction == "short" and regime["bullish"]:
         if symbol in low_corr_set:
             return 0, f"{label} — counter-trend (exempt, decorrelated)"
-        # [Fix-41] Mirror of the long-branch RS exemption above: a short is
-        # "outperforming the regime" when it's *weaker* than BTC, i.e. rs_vs_btc
-        # negative and at least as negative as -RS_BEARISH_REGIME_EXEMPT_PCT.
         with _rs_lock:
             rs_snap = dict(_rs_snapshot if _rs_snapshot is not None else _rs_scores)
         btc_ret  = rs_snap.get("BTCUSDT")
@@ -1300,11 +1141,6 @@ def apply_breadth_adjustment(direction: str, rs_pct: float | None = None,
             adj    = -2
             label += " (-2)"
         elif pct > BREADTH_WEAK_SHORT_THRESHOLD:
-            # [Fix-45] Mirror of the long-branch "crowded + weak RS" combo penalty:
-            # a short is in a poor environment when breadth is broadly bullish AND
-            # the coin's own RS is strongly positive (outperforming, i.e. a bad
-            # short candidate). Uses -BREADTH_RS_NEGATIVE_THRESH as the sign-flipped
-            # mirror threshold (symmetric while the constant is 0.0).
             rs_weak_for_short = rs_pct is not None and rs_pct >= -BREADTH_RS_NEGATIVE_THRESH
             if rs_weak_for_short:
                 adj    = -2
@@ -1348,8 +1184,6 @@ def compute_relative_strength(symbol: str) -> dict:
         return {"rs_pct": None, "percentile": None, "score_adj": 0, "label": "Relative Strength: N/A"}
 
     rs     = coin_return - btc_return
-    # [Logic-20] Exclude BTC from the distribution — BTC's RS is always 0 by definition
-    # and including it distorts the percentile calculation.
     other_scores = {k: v for k, v in scores.items() if k != "BTCUSDT"}
     all_rs = sorted([v - btc_return for v in other_scores.values()])
     n      = len(all_rs)
@@ -1425,15 +1259,8 @@ def compute_win_rates(state: dict) -> dict:
                     and e.get("timestamp", 0) >= lookback_cut
                     and e.get("sent", True)]
 
-    # [Risk-staleness] Prefer only recent (non-stale) history where there's
-    # enough of it; fall back to the full lookback window (existing
-    # behavior) when staleness filtering would leave too few entries for a
-    # given bucket. This fallback is applied per sub-aggregation below,
-    # mirroring the existing WIN_RATE_MIN_SAMPLE "not enough data" handling.
     fresh_hist = [e for e in raw_hist if e.get("timestamp", 0) >= stale_cutoff]
 
-    # [P0-2] Use WIN_RATE_RECENT_WEIGHT constant properly
-    # Recent entries are duplicated `int(WIN_RATE_RECENT_WEIGHT)` times
     weight_int = max(1, int(WIN_RATE_RECENT_WEIGHT))
 
     def _weighted(entries):
@@ -1477,9 +1304,6 @@ def compute_win_rates(state: dict) -> dict:
         if n >= WIN_RATE_MIN_SAMPLE:
             wrs["by_type"][st] = {"wr": wr, "n": n}
 
-    # [Fix-47] Widened from range(4, 8) to cover the new realistic max score
-    # (base 6 + MAX_POSITIVE_ADJUSTMENTS) so no achievable final score is left
-    # out of the win-rate-by-score aggregation.
     for sc in range(4, 6 + MAX_POSITIVE_ADJUSTMENTS + 1):
         subset = best_subset(lambda e, sc=sc: e.get("score") == sc)
         wr, n  = wr_for(subset)
@@ -1542,12 +1366,10 @@ def compute_win_rate_analytics(state: dict, symbol: str, direction: str,
     if n < WIN_RATE_MIN_SAMPLE_FOR_ADJ:
         return {"win_rate": wr, "sample_size": n, "score_adj": 0,
                 "label": f"Win Rate: {wr*100:.0f}% (n={n}, insufficient for adj)"}
-    # FIX-D16: Guard against recency bias — if recent_n (last 30d sample) is less than
-    # half the minimum threshold, the history is too recency-dominated to be reliable.
     _recency_n = mode_data.get("recent_n", n) if mode_data else n
     if _recency_n < WIN_RATE_MIN_SAMPLE_FOR_ADJ * 0.5:
         return {"win_rate": wr, "sample_size": n, "score_adj": 0,
-                "label": f"Win Rate: {wr*100:.0f}% (n={n}, recent_n={_recency_n} too low — neutral)"}  # FIX-D16
+                "label": f"Win Rate: {wr*100:.0f}% (n={n}, recent_n={_recency_n} too low — neutral)"}
     return {"win_rate": wr, "sample_size": n, "score_adj": score_adj,
             "label": f"Win Rate: {wr*100:.0f}%  Sample: {n}  (30d weighted)"}
 
@@ -1651,7 +1473,6 @@ def apply_macro_filter(state: dict, atr_pct: float,
         return {"in_window": False, "event_name": None, "mins_to_event": None,
                 "score_adj": 0, "label": "Macro Risk: None", "hard_suppress": False}
 
-    # [Logic-22] Symbol-relative ATR threshold
     effective_threshold = MACRO_HIGH_ATR_SUPPRESS_PCT
     if atr_pctile is not None and atr_pctile > MACRO_ATR_PCTILE_HIGH:
         effective_threshold *= MACRO_ATR_PCTILE_HIGH_MULT
@@ -1728,7 +1549,6 @@ def bollinger(closes, period: int, mult: float):
     if n < period:
         return basis_arr, upper_arr, lower_arr
 
-    # [Perf-27] Rolling sum and sum-of-squares for O(n) computation
     rolling_sum = sum(closes[:period])
     rolling_sq_sum = sum(x * x for x in closes[:period])
 
@@ -1894,7 +1714,7 @@ def daily_vwap(candles_15m: list[dict], reference_ms: int | None = None) -> floa
     total_vol = sum(c["v"] for c in today_candles)
     if total_vol == 0:
         return safe(candles_15m[-1]["c"])
-    total_pv = sum(((c["h"] + c["l"] + c["c"]) / 3) * c["v"] for c in today_candles)  # FIX-D5
+    total_pv = sum(((c["h"] + c["l"] + c["c"]) / 3) * c["v"] for c in today_candles)
     return total_pv / total_vol
 
 def safe(v, fallback=0.0):
@@ -1911,9 +1731,6 @@ def safe(v, fallback=0.0):
     except (TypeError, ValueError):
         return fallback
 
-# ═══════════════════════════════════════════════════════════════
-# INDICATOR CACHE  — [Perf-26]
-# ═══════════════════════════════════════════════════════════════
 
 _indicator_cache: dict[str, dict] = {}
 _indicator_cache_lock = threading.Lock()
@@ -1953,8 +1770,6 @@ def get_cached_indicators(symbol: str, timeframe: str, candles: list[dict]) -> d
 
     cache_key = f"{symbol}_{timeframe}"
     
-    # [Fix-12] Hardened cache signature to include first/last candle prices.
-    # Prevents stale cache hits if the same symbol is fetched with overlapping windows.
     first = candles[0]
     last = candles[-1]
     cache_sig = (
@@ -1991,9 +1806,6 @@ def _selftest_indicator_cache_isolation():
     ib = get_cached_indicators("SELFB", "15m", b)
     assert ia["c"][-1] != ib["c"][-1], "Indicator cache is leaking across symbols!"
 
-    # [Fix-46] Mirror the above for the "1d" timeframe now that daily ADX is
-    # routed through get_cached_indicators() too — confirm daily indicators
-    # don't leak across symbols either.
     da = [{"t": i, "o": 200+i, "h": 201+i, "l": 199+i, "c": 200+i, "v": 1.0, "qv": 200.0} for i in range(220)]
     db = [{"t": i, "o": 2+i*0.02, "h": 2.02+i*0.02, "l": 1.98+i*0.02, "c": 2+i*0.02, "v": 1.0, "qv": 2.0} for i in range(220)]
     iad = get_cached_indicators("SELFA_D", "1d", da)
@@ -2051,9 +1863,9 @@ def prune_state(state: dict) -> None:
             e for e in state.get("resolved_signals", [])
             if now - e.get("resolved_at", 0) < 259200
         ]
-        MAX_RESOLVED_SIGNALS = 500   # IMP-S18-9 — cap resolved signal list to bound RAM use
+        MAX_RESOLVED_SIGNALS = 500
         if len(state.get("resolved_signals", [])) > MAX_RESOLVED_SIGNALS:
-            state["resolved_signals"] = state["resolved_signals"][-MAX_RESOLVED_SIGNALS:]   # IMP-S18-9
+            state["resolved_signals"] = state["resolved_signals"][-MAX_RESOLVED_SIGNALS:]
             print(f"  [STATE PRUNE] resolved_signals capped to {MAX_RESOLVED_SIGNALS} entries")
 
         for sym in list(state.get("funding_history", {}).keys()):
@@ -2115,9 +1927,6 @@ class SignalResult:
         self.d200_label:       str  = ""
         self.vol_ratio:        float | None = None
         self.alignment_mode:   str  = "full"
-        # [Fix-44] 3rd element is a stable category key ("btc_regime",
-        # "oi_confirmation", "exhaustion", "rs_negative", or "secondary"/None)
-        # used by the penalty-stacking cap instead of fragile label substring matching.
         self.score_adjustments: list[tuple[str, int, str | None]] = []
         self.limit_entry:       float | None = None
         self.limit_entry_dist:  float | None = None
@@ -2130,10 +1939,9 @@ def record_market_inputs_from_candles(symbol: str,
     c15 = [c["c"] for c in candles_15m]
     c4h = [c["c"] for c in candles_4h]
     ema_s4h = ema(c4h, SLOW_LEN)
-    _h4h_mid = (candles_4h[-1]["h"] + candles_4h[-1]["l"]) / 2   # IMP-S16-10 — midpoint reduces wick noise in trend-direction flag
-    price_above_ema50_4h = _h4h_mid > safe(ema_s4h[-1])   # IMP-S16-10
+    _h4h_mid = (candles_4h[-1]["h"] + candles_4h[-1]["l"]) / 2
+    price_above_ema50_4h = _h4h_mid > safe(ema_s4h[-1])
     record_breadth_result(symbol, price_above_ema50_4h)
-    # [Logic-19] Return None for insufficient history instead of 0.0
     if len(c4h) >= 42:
         ret_7d = (c4h[-1] - c4h[-42]) / c4h[-42] * 100.0 if c4h[-42] != 0 else 0.0
     elif len(c15) >= 672:
@@ -2226,9 +2034,6 @@ def record_failed_breakout(state: dict, symbol: str, direction: str,
             fb for fb in symbol_breakouts if fb.get("bar_index", 0) > cutoff_bar
         ]
 
-# ═══════════════════════════════════════════════════════════════
-# [Feature-50] REGIME-AWARE TP/SL MULTIPLIERS
-# ═══════════════════════════════════════════════════════════════
 
 def get_regime_aware_multipliers(btc_regime: dict | None,
                                   atr_pctile: float | None,
@@ -2318,9 +2123,6 @@ def _compute_signal_indicators(symbol: str, candles_15m, candles_1h, candles_4h,
     # Daily indicators
     if candles_d and len(candles_d) >= TREND_LEN:
         c_d = [c["c"] for c in candles_d]
-        # [Fix-46] Route daily ADX through the indicator cache like every other
-        # timeframe (15m/1h/4h), instead of recomputing adx_dmi from scratch
-        # (200+ candles) on every single scan for every symbol.
         i_d = get_cached_indicators(symbol, "1d", candles_d)
         ind["ema_d200"] = ema(c_d, TREND_LEN)
         ind["adx_daily"] = safe(i_d["adx"][2][-1], 25.0)
@@ -2350,7 +2152,7 @@ def is_likely_reversal_disguised_as_pullback(ind, direction: str) -> bool:
         if ef4h < es4h:
             return True
         soft_signals = [
-            r15 < 44,                                                         # [v16.1.6] updated floor 42→44 (aligns with BUG-P8)
+            r15 < 44,
             r1h < 40,                                                         # 1H RSI in bearish territory
             all(c15[-(i+1)] < c15[-(i+2)] for i in range(3)),                # 3 declining closes
         ]
@@ -2359,7 +2161,7 @@ def is_likely_reversal_disguised_as_pullback(ind, direction: str) -> bool:
         if ef4h > es4h:
             return True
         soft_signals = [
-            r15 > 56,                                                         # [v16.1.6] updated ceiling 58→56 (symmetric with long floor)
+            r15 > 56,
             r1h > 60,                                                         # 1H RSI in bullish territory
             all(c15[-(i+1)] > c15[-(i+2)] for i in range(3)),                # 3 rising closes
         ]
@@ -2426,12 +2228,9 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     obv_slope_short = obv15[-1] < obv15[-(1 + OBV_LEN)]
 
     adx_score_ok = adx15 >= ADX_SCORE_MIN
-    # [Fix-43] Fail closed: a zero/garbage 15m volume baseline (stale data, cache
-    # warm-up, illiquid pair) should never grant an automatic pass on this
-    # noise-rejection filter.
     vol_score_ok = False if vm15 == 0 else (cur_v >= vm15 * VOL_SCORE_MULT)
     vol_ratio    = (cur_v / vm15) if vm15 > 0 else None
-    vol_ok_break_hard = (cur_v >= vm15 * VOL_SCORE_MULT) if vm15 > 0 else False   # IMP-S15-9 — hard gate, BREAK requires >= 1.0x avg volume
+    vol_ok_break_hard = (cur_v >= vm15 * VOL_SCORE_MULT) if vm15 > 0 else False
 
     _ref_ts_vol = (reference_ms / 1000) if reference_ms is not None else time.time()
     _is_weekend = datetime.fromtimestamp(_ref_ts_vol, tz=timezone.utc).weekday() >= 5
@@ -2441,13 +2240,10 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         for i in range(_vol_accel_bars)
     ) if len(v15) > _vol_accel_bars + 1 else False
 
-    # vol_score_ok_pull is recomputed correctly once signal_type is known (see below).
-    # FIX-D14: Compute PULL-appropriate vol flag now using PULL thresholds (0.10–1.30x).
-    # Used in base-score for PULL candidates (proxy: long_pull/short_pull flags applied below).
     _PULL_VOL_RATIO_MIN_EARLY: float = 0.10
     _PULL_VOL_RATIO_MAX_EARLY: float = 1.30
     vol_score_ok_pull_early = (False if vm15 == 0
-                               else _PULL_VOL_RATIO_MIN_EARLY <= (cur_v / vm15) <= _PULL_VOL_RATIO_MAX_EARLY)  # FIX-D14
+                               else _PULL_VOL_RATIO_MIN_EARLY <= (cur_v / vm15) <= _PULL_VOL_RATIO_MAX_EARLY)
     vol_score_ok_pull = vol_score_ok
 
     # 1H
@@ -2468,7 +2264,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     h4_bull = ef4h > es4h
     h4_bear = ef4h < es4h
 
-    # [Fix-11] 4H ADX as base score component
     adx4h_score_ok = adx4h >= ADX_SCORE_MIN  # 20.0
 
     def trend_held(ef_arr, es_arr, bull: bool) -> bool:
@@ -2503,14 +2298,12 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     h4_trend_held_bull_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], True)
     h4_trend_held_bear_break = trend_held_for_break(ind["ema_f4h"], ind["ema_s4h"], False)
 
-    # IMP-S15-8 — require a stricter 3-bar 4H trend hold for PULL specifically when the
-    # BTC regime is "mixed" (ambiguous higher timeframe + minimal confirmation is risky).
     _btc_label_s15_8 = (btc_regime or {}).get("label", "")
     _mixed_regime_s15_8 = "mixed" in _btc_label_s15_8.lower()
-    _h4_hold_required_pull = 3 if _mixed_regime_s15_8 else TREND_HOLD_BARS   # IMP-S15-8
+    _h4_hold_required_pull = 3 if _mixed_regime_s15_8 else TREND_HOLD_BARS
 
     def trend_held_for_pull(ef_arr, es_arr, bull: bool) -> bool:
-        """Regime-aware 4H EMA hold check for PULL — stricter hold in mixed regime."""  # IMP-S15-8
+        """Regime-aware 4H EMA hold check for PULL — stricter hold in mixed regime."""
         for offset in range(1, _h4_hold_required_pull + 1):
             idx = -(offset + 1)
             if len(ef_arr) < offset + 2:
@@ -2523,8 +2316,8 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
                 return False
         return True
 
-    h4_trend_held_bull_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], True)    # IMP-S15-8
-    h4_trend_held_bear_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], False)   # IMP-S15-8
+    h4_trend_held_bull_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], True)
+    h4_trend_held_bear_pull = trend_held_for_pull(ind["ema_f4h"], ind["ema_s4h"], False)
 
     # Daily 200 EMA + ADX
     if ind["ema_d200"] is not None:
@@ -2536,10 +2329,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     d200_above = cur_c > d200
     d200_below = cur_c < d200
     daily_adx_ok = adx_daily >= MIN_DAILY_ADX if USE_DAILY_ADX else True
-    # [Fix-42] PULL signals use a separate, relaxed daily-ADX gate (default: not
-    # required at all) — BREAK signals keep the original, stricter daily_adx_ok.
-    # `daily_adx_ok` itself is unchanged so v10_gates/breakdown display strings
-    # still reflect the real daily ADX state regardless of this flag.
     daily_adx_ok_pull = daily_adx_ok if DAILY_ADX_REQUIRED_FOR_PULL else True
 
     # Alignment gates
@@ -2560,7 +2349,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     h4_spread_atr_ratio = abs(h4_spread_now) / atr4h_val if atr4h_val > 0 else 0.0
     h4_trend_momentum_ok = h4_spread_atr_ratio >= MIN_4H_SPREAD_ATR_MULT
 
-    # [Logic-25] Renamed for clarity: spread_abs_narrowing means absolute spread is shrinking
     if USE_EXHAUSTION_SHORT:
         spread_abs_narrowing_bull = (abs(h4_spread_now) < abs(h4_spread_prev)) and (h4_spread_now > 0)
         exhaustion_short_align = (
@@ -2587,8 +2375,8 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     # unlike exhaustion), but 1H has temporarily moved against it. This is the
     # "dip inside a held swing trend" case — PULL-only, never feeds BREAK.
     if USE_PULLBACK_ALIGNMENT:
-        pullback_long_align  = h4_bull and h4_trend_held_bull_pull and h1_bear    # IMP-S15-8
-        pullback_short_align = h4_bear and h4_trend_held_bear_pull and h1_bull    # IMP-S15-8
+        pullback_long_align  = h4_bull and h4_trend_held_bull_pull and h1_bear
+        pullback_short_align = h4_bear and h4_trend_held_bear_pull and h1_bull
     else:
         pullback_long_align  = False
         pullback_short_align = False
@@ -2609,10 +2397,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if USE_PULLBACK_ALIGNMENT and pullback_short_align:
         pull_short_align = True
 
-    # [v16.1.6 BUG-P4] Removed VWAP bypass for pullback alignment. Previously, pullback
-    # alignment entries (1H counter-trend) bypassed the VWAP filter entirely, removing the
-    # only session-level direction check. Now all PULL paths require price on the correct
-    # side of VWAP, with a small 0.2% tolerance band to avoid false blocks near VWAP itself.
     if USE_ROLLING_VWAP:
         vwap_long  = cur_c > rv * 0.998   # long: price at or above VWAP (0.2% tolerance)
         vwap_short = cur_c < rv * 1.002   # short: price at or below VWAP (0.2% tolerance)
@@ -2649,10 +2433,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         for i in range(0, PULL_TOUCH_LOOKBACK + 1)
     )
     _pull_recover_mult  = get_pull_recover_mult(btc_regime)
-    # [v16.1.6 BUG-P2] Added 2-bar consecutive-close confirmation: both the current bar AND
-    # the previous bar must close above EMA21 (long) or below EMA21 (short) before recovery
-    # fires. A single-candle bounce off EMA is insufficient — price must hold for 2 bars to
-    # confirm the retracement is complete, not just a wick-induced false touch.
     _prev_c_15m    = c15[-2] if len(c15) >= 2 else cur_c
     _prev_ef15     = safe(ema_f15[-2]) if len(ema_f15) >= 2 else ef15
     _two_bar_above = (cur_c > ef15 + atr_val * _pull_recover_mult) and (_prev_c_15m > _prev_ef15)
@@ -2662,8 +2442,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     pull_bull_bar      = cur_c > cur_o and clean_bull_bar()
     pull_bear_bar      = cur_c < cur_o and clean_bear_bar()
 
-    # [Fix-11] Base score now has 6 components (was 5): added 4H ADX confirmation
-    # Max base score goes from 5 → 6, gate goes from MIN_SCORE-1 → MIN_SCORE (3→4)
     long_score = sum([
         bb_long,
         h4_bull and h4_trend_held_bull,
@@ -2681,14 +2459,13 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         adx4h_score_ok,  # NEW: 4H ADX confirmation
     ])
 
-    # [Fix-11] Gate raised from MIN_SCORE-1 to MIN_SCORE (proportionally with new 6th component)
     long_break  = (daily_adx_ok and (full_long_align_break or exhaustion_long_align) and break_bull_bar
-                   and adx_break_ok and rsi_break_long and vol_ok_break_hard  # IMP-S15-9
+                   and adx_break_ok and rsi_break_long and vol_ok_break_hard
                    and long_score  >= MIN_SCORE and market_ok)
     short_break = (daily_adx_ok
                    and (full_short_align_break or exhaustion_short_align)
                    and break_bear_bar
-                   and adx_break_ok and rsi_break_short and vol_ok_break_hard  # IMP-S15-9
+                   and adx_break_ok and rsi_break_short and vol_ok_break_hard
                    and short_score >= MIN_SCORE and market_ok)
 
     # Tier A Premium Pullback detection (highest win probability, +1 bonus)
@@ -2707,7 +2484,7 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         h4_bear and h4_trend_held_bear_break      # 4H downtrend held (1-bar sufficient for Tier A)
         and 30.0 <= r4h <= 50.0                   # 4H RSI in healthy momentum zone (symmetric)
         and ef1h > es1h                           # 1H temporarily bullish = genuine pullback
-        and 44.0 <= safe(ind["rsi15"][-1]) <= 54.0  # [v16.1.6 BUG-P3] Corrected from [46,56] to [44,54]:
+        and 44.0 <= safe(ind["rsi15"][-1]) <= 54.0
                                                      # mirrors long band exactly. [46,56] was neutral-to-bullish
                                                      # RSI — wrong for a short momentum confirmation.
         and cur_c < ef15                          # Recovering below EMA21
@@ -2737,27 +2514,25 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     long_sig  = long_break  or long_pull
     short_sig = short_break or short_pull
 
-    # FIX-D14: Recompute base scores using PULL-appropriate vol flag for PULL candidates.
-    # long_pull/short_pull are now known, so substitute vol_score_ok_pull_early for PULL paths.
     if long_pull and not long_break:
         long_score = sum([
             bb_long,
-            h4_bull and h4_trend_held_bull_pull,   # [v16.1.6 BUG-P7] was h4_trend_held_bull (2-bar);
+            h4_bull and h4_trend_held_bull_pull,
                                                     # use h4_trend_held_bull_pull (regime-aware, up to 3-bar)
                                                     # so score component matches the gate that admitted this signal.
             adx_score_ok,
             obv_slope_long,
-            vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
+            vol_score_ok_pull_early,
             adx4h_score_ok,
         ])
     if short_pull and not short_break:
         short_score = sum([
             bb_short,
-            h4_bear and h4_trend_held_bear_pull,   # [v16.1.6 BUG-P7] was h4_trend_held_bear (2-bar);
+            h4_bear and h4_trend_held_bear_pull,
                                                     # use h4_trend_held_bear_pull (regime-aware, up to 3-bar).
             adx_score_ok,
             obv_slope_short,
-            vol_score_ok_pull_early,   # FIX-D14 — use PULL vol flag for PULL candidates
+            vol_score_ok_pull_early,
             adx4h_score_ok,
         ])
 
@@ -2788,7 +2563,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     if long_sig:
         res.fire_long   = True
         if long_break and long_pull and pull_touched_long:
-            # FIX-D12: Prefer BREAK when base score is at ceiling (strongest momentum)
             res.signal_type = "BREAK" if long_score >= 6 else "PULL"
         elif long_break:
             res.signal_type = "BREAK"
@@ -2799,7 +2573,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
     elif short_sig:
         res.fire_short  = True
         if short_break and short_pull and pull_touched_short:
-            # FIX-D12: Prefer BREAK when base score is at ceiling (strongest momentum)
             res.signal_type = "BREAK" if short_score >= 6 else "PULL"
         elif short_break:
             res.signal_type = "BREAK"
@@ -2808,15 +2581,6 @@ def _detect_raw_signals(ind: dict, state: dict, reference_ms: int | None,
         res.score       = short_score
         _setup_signal_entry(res, cur_c, atr_val)
 
-    # Recompute vol_score_ok_pull now that signal_type is known
-    # [Fix-43] Same fail-closed pattern as vol_score_ok: a zero baseline must fail, not pass.
-    # [PATCH-2] Fix dead branch. For PULL signals, healthy volume is LOW
-    # (declining into the EMA is the classic retracement signature). Accept
-    # any vol_ratio in [0.10, 1.30] as "healthy" for PULL display purposes.
-    # Values > 1.30 on a pullback candle suggest distribution or reversal.
-    # The base score still uses vol_score_ok (BREAK threshold, >= 0.75x) —
-    # the PULL low-vol correction in _apply_scoring_and_filters (PATCH-3)
-    # restores the missed base-score point for the 0.10–0.75x band.
     PULL_VOL_RATIO_MIN: float = 0.10
     PULL_VOL_RATIO_MAX: float = 1.30
     if res.fire_long or res.fire_short:
@@ -2886,7 +2650,7 @@ def continuation_score(ind, ctx, direction: str) -> int:
         score += 1 if 45.0 <= r4h <= 65.0 else 0                         # 4H RSI not extreme
         score += 1 if ctx.get("d200_above", False) else 0                 # Price above D200
         score += 1 if ctx.get("funding_rate", 0) < 0 else 0              # Negative funding (longs paid)
-        score += 1 if (ctx.get("btc_regime") or {}).get("bullish", False) else 0  # FIX-D2
+        score += 1 if (ctx.get("btc_regime") or {}).get("bullish", False) else 0
     else:
         score += 1 if obv15[-1] < obv15[-(1 + OBV_LEN)] else 0
         score += 1 if ctx.get("vol_ratio", 0) > 1.5 else 0
@@ -2894,7 +2658,7 @@ def continuation_score(ind, ctx, direction: str) -> int:
         score += 1 if 35.0 <= r4h <= 55.0 else 0
         score += 1 if not ctx.get("d200_above", True) else 0
         score += 1 if ctx.get("funding_rate", 0) > 0 else 0
-        score += 1 if (ctx.get("btc_regime") or {}).get("bearish", False) else 0  # FIX-D2
+        score += 1 if (ctx.get("btc_regime") or {}).get("bearish", False) else 0
 
     return score
 
@@ -3095,7 +2859,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         adjs.append(("Macro Risk Window", macro_data["score_adj"], "secondary"))
 
     # ── Step 6b: Signal-type quality floors ───────────────────
-    _step3_rs_adj = rs_data.get("score_adj", 0)   # FIX-D3 — track Step 3 RS charge to avoid double-counting
+    _step3_rs_adj = rs_data.get("score_adj", 0)
     res.supports, res.resistances = find_sr_levels(candles_15m, atr_val=atr_val)
     vol_ratio = ctx["vol_ratio"]
     vol_accel_ok = ctx["vol_accel_ok"]
@@ -3122,7 +2886,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                             else PULL_VOL_FLOOR)
             # Relax floor during Asian session — 0.30 is adequate in thin liquidity
             _ref_ts_s_d1 = (reference_ms / 1000) if reference_ms is not None else time.time()
-            _utc_hour    = datetime.fromtimestamp(_ref_ts_s_d1, tz=timezone.utc).hour  # FIX-D1
+            _utc_hour    = datetime.fromtimestamp(_ref_ts_s_d1, tz=timezone.utc).hour
             _asian_session = 0 <= _utc_hour < 8   # 00:00–08:00 UTC = Asian session low liquidity
             _effective_vol_floor = _vol_floor * 0.75 if _asian_session else _vol_floor
             if vol_ratio <= _effective_vol_floor:
@@ -3183,14 +2947,14 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             if rs_pct < RS_BREAK_HARD_GATE_PCT:
                 print(f"  [RS GATE] {symbol} BREAK RS {rs_pct:+.1f}% < "
                       f"{RS_BREAK_HARD_GATE_PCT:.1f}% — applying penalty instead of hard suppress")
-                _net_hard = min(RS_BREAK_HARD_GATE_PENALTY - _step3_rs_adj, 0)   # FIX-D3
+                _net_hard = min(RS_BREAK_HARD_GATE_PENALTY - _step3_rs_adj, 0)
                 adjusted_score += _net_hard
                 adjs.append((f"RS break hard gate (RS {rs_pct:+.1f}% < {RS_BREAK_HARD_GATE_PCT:.1f}%)",
                              _net_hard, "secondary"))
             elif rs_pct < 0:
                 rs_percentile = rs_data.get("percentile")
                 if rs_percentile is not None and rs_percentile <= RS_BREAK_SOFT_PERCENTILE:
-                    _net_soft = min(-1 - _step3_rs_adj, 0)   # FIX-D3
+                    _net_soft = min(-1 - _step3_rs_adj, 0)
                     adjusted_score += _net_soft
                     adjs.append((f"RS negative on BREAK ({rs_pct:+.1f}%, "
                                  f"{rs_percentile*100:.0f}th pct)", _net_soft, "rs_negative"))
@@ -3199,17 +2963,17 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         # [PATCH-4] PULL RS gate. BREAK has hard + soft gates; PULL had none.
         # A coin underperforming BTC on a PULL entry suggests structural weakness,
         # not healthy retracement. Softer thresholds than BREAK to preserve frequency.
-        RS_PULL_SOFT_GATE_PCT: float = -2.0   # IMP-S17-10 — loosened from -1.0%; mild negative RS is normal in healthy rotation. Softer than BREAK's 0% bottom-pct check
+        RS_PULL_SOFT_GATE_PCT: float = -2.0
         RS_PULL_HARD_GATE_PCT: float = -4.0   # softer than BREAK's -6.0%
         rs_pct = rs_data.get("rs_pct")
         if rs_pct is not None:
             if rs_pct < RS_PULL_HARD_GATE_PCT:
-                _net_pull_hard = min(-2 - _step3_rs_adj, 0)   # FIX-D3
+                _net_pull_hard = min(-2 - _step3_rs_adj, 0)
                 adjusted_score += _net_pull_hard
                 adjs.append((f"RS strongly negative on PULL ({rs_pct:+.1f}% < "
                              f"{RS_PULL_HARD_GATE_PCT:.1f}%)", _net_pull_hard, "rs_negative"))
             elif rs_pct < RS_PULL_SOFT_GATE_PCT:
-                _net_pull_soft = min(-1 - _step3_rs_adj, 0)   # FIX-D3
+                _net_pull_soft = min(-1 - _step3_rs_adj, 0)
                 adjusted_score += _net_pull_soft
                 adjs.append((f"RS negative on PULL ({rs_pct:+.1f}% < "
                              f"{RS_PULL_SOFT_GATE_PCT:.1f}%)", _net_pull_soft, "rs_negative"))
@@ -3291,7 +3055,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     else:
         _atr_pct_thresh = atr_val
     _low_atr        = atr_val <= _atr_pct_thresh
-    session_penalty = _in_dead and _low_atr and res.signal_type != "BREAK"   # IMP-S17-7 — BREAK exempt from dead-zone penalty
+    session_penalty = _in_dead and _low_atr and res.signal_type != "BREAK"
     if session_penalty:
         adjusted_score -= 1
         adjs.append((f"Low-liquidity session ({_now_utc.hour:02d}:xx UTC, thin ATR)", -1, "secondary"))
@@ -3318,7 +3082,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
     r1h = ctx["r1h"]
 
     rsi_divergence = ctx["rsi_divergence"]
-    if USE_1H_RSI_DIVERGENCE and rsi_divergence["type"] is not None:   # FIX-D8
+    if USE_1H_RSI_DIVERGENCE and rsi_divergence["type"] is not None:
         div_type = rsi_divergence["type"]
         if res.signal_type in ("PULL", "BREAK") or res.alignment_mode == "exhaustion":
             if direction == "short" and div_type == "bearish":
@@ -3336,10 +3100,6 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             adjusted_score += FALSE_BREAKOUT_BONUS
             adjs.append((fb_desc, FALSE_BREAKOUT_BONUS, "secondary"))
 
-    # FIX-D17: rsi_15m_ok_long / rsi_15m_ok_short removed — redundant.
-    # The 15m RSI range is already a hard gate in _detect_raw_signals; any signal
-    # reaching this point has already passed it. Downstream code uses rsi_confluence_long/short
-    # (1H/4H only) so these variables were dead assignments.
 
     rsi_1h_ok_long   = r1h <= RSI_1H_PULL_LONG_MAX
     rsi_4h_ok_long   = r4h <= RSI_4H_PULL_LONG_MAX
@@ -3428,19 +3188,12 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     adjusted_score -= 1
                     adjs.append((f"Funding headwind on {res.signal_type} ({rate*100:+.4f}%/8h)", -1, "secondary"))
 
-    # ── Compute TP/SL with regime-aware multipliers ──────────
-    # [Feature-50] Use regime-aware multipliers
     _tp1_m, _tp2_m, _sl_m = get_regime_aware_multipliers(
         btc_regime, _atr_pctile, res.signal_type
     )
     # Override SL for high ATR
     if atr_pct > HIGH_ATR_THRESHOLD:
         _sl_m = SL_HIGH_ATR_MULT
-    # [v16.1.6 BUG-P1] Wider SL for pullback alignment entries.
-    # When the 1H is counter-trend (pullback alignment mode), the normal 1.1× ATR(15m) SL is
-    # routinely swept by 1H momentum before the trade can recover. Use a dedicated wider
-    # multiplier for this alignment mode only, taking the max to respect any already-wider
-    # multiplier set by high-ATR or regime-aware logic above.
     _is_pa_long  = ctx.get("pullback_long_align",  False)
     _is_pa_short = ctx.get("pullback_short_align", False)
     if res.signal_type == "PULL" and (_is_pa_long or _is_pa_short):
@@ -3467,8 +3220,6 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                 res.limit_entry      = _limit_px
                 res.limit_entry_dist = _limit_dist
 
-    # [Logic-18] S/R adaptive TP1 override — check clearance BEFORE overriding
-    # to avoid creating impossible R:R that gets killed by R:R filter
     if res.signal_type == "BREAK":
         if res.fire_long and res.resistances:
             sr_tp1  = res.resistances[0]
@@ -3487,11 +3238,6 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                     res.tp1 = sr_tp1
 
     if res.signal_type == "PULL":
-        # [v16.1.6 BUG-P5] SR_CLEARANCE_ATR_MULT_PULL raised 0.15→0.30 (see config).
-        # Added MIN_RR guard: if the S/R override collapses TP1 so that
-        # (tp1 - entry) / atr < 0.8 for longs (or symmetric for shorts),
-        # discard the override and keep the ATR-based TP1. Near-entry resistance
-        # should not produce a near-zero R:R trade.
         _PULL_MIN_TP1_ATR: float = 0.8  # minimum (tp1 - entry) as a fraction of ATR
         if res.fire_long and res.resistances:
             sr_tp1  = res.resistances[0]
@@ -3507,12 +3253,12 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             atr_tp1 = res.entry - atr_val * _tp1_m
             sr_dist = (res.entry - sr_tp1) / atr_val
             if sr_dist >= SR_CLEARANCE_ATR_MULT_PULL:
-                candidate_tp1 = min(sr_tp1, atr_tp1)   # FIX-D7 — for shorts, lower price = better TP
+                candidate_tp1 = min(sr_tp1, atr_tp1)
                 if (res.entry - candidate_tp1) / atr_val >= _PULL_MIN_TP1_ATR:
                     res.tp1 = candidate_tp1
                 # else: override discarded — R:R too tight, keep ATR-based TP1
 
-    # [FIX] Guard: S/R-based TP1 overrides above must never cross or surpass TP2.
+    # Guard: S/R-based TP1 overrides above must never cross or surpass TP2.
     # Without this, an S/R level picked for TP1 can sit farther from entry than
     # TP2 (e.g. resistance/support beyond the TP2 distance), causing TP2 to be
     # nearer to entry than TP1 — an invalid, confusing TP ordering.
@@ -3535,19 +3281,8 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
             adjusted_score -= 1
             adjs.append((f"1H RSI extended ({r1h:.0f} < {RSI_1H_PULL_SHORT_MIN:.0f})", -1, "secondary"))
 
-    # ══════════════════════════════════════════════════════════════
-    # [Fix-9] PENALTY STACKING CAP
-    # ══════════════════════════════════════════════════════════════
-    # Prevent over-filtering from multiple penalties that partially measure
-    # the same risk (e.g., OI counter-trend + BTC regime counter-trend).
-    # Priority penalties (BTC Regime, OI, Exhaustion, RS negative) are kept
-    # first; secondary penalties are trimmed to stay within the cap.
     total_neg = sum(adj for _, adj, *_ in adjs if adj < 0)
     if total_neg < -MAX_NEGATIVE_ADJUSTMENTS:
-        # [Fix-44] Explicit category tags instead of substring matching against
-        # the free-text label — substrings like "OI" used to incidentally match
-        # unrelated penalties (e.g. "OI flat + low vol on BREAK") that aren't the
-        # intended Step-1 OI confirmation/acceleration penalties.
         PENALTY_PRIORITY_CATEGORIES = {
             "btc_regime",       # Keep — most important macro filter
             "oi_confirmation",  # Keep — capital flow confirmation
@@ -3559,13 +3294,12 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         current_sum = 0
         kept_indices: set[int] = set()
 
-        # FIX-D13: Reserve cap budget so RS hard gate doesn't zero out regime/OI/exhaustion penalties
         _RS_PENALTY_LABELS = {"rs_negative"}
         _rs_total = sum(adj for _, lbl, adj in [
             (i, lbl, adj) for i, (lbl, adj, cat) in enumerate(adjs)
             if adj < 0 and cat in PENALTY_PRIORITY_CATEGORIES and lbl in _RS_PENALTY_LABELS
         ])
-        _non_rs_cap = max(cap, cap - _rs_total)  # budget left for non-RS priorities  # FIX-D13
+        _non_rs_cap = max(cap, cap - _rs_total)
 
         # First pass: keep priority penalties — sorted smallest-first so large
         # single penalties don't starve other priorities within the same class.
@@ -3575,7 +3309,7 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
         ]
         priority_entries.sort(key=lambda x: abs(x[2]))  # smallest magnitude first
         for i, lbl, adj in priority_entries:
-            _effective_cap = cap if lbl in _RS_PENALTY_LABELS else _non_rs_cap  # FIX-D13
+            _effective_cap = cap if lbl in _RS_PENALTY_LABELS else _non_rs_cap
             if current_sum + adj >= _effective_cap:
                 kept_indices.add(i)
                 current_sum += adj
@@ -3599,11 +3333,6 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
                   f"trimmed {trimmed_count} secondary penalty(ies) to stay within "
                   f"-{MAX_NEGATIVE_ADJUSTMENTS} cap. Final neg total: {current_sum}")
 
-    # ══════════════════════════════════════════════════════════════
-    # [Fix-47] BONUS (POSITIVE ADJUSTMENT) STACKING CAP
-    # ══════════════════════════════════════════════════════════════
-    # Symmetric soft cap on the bonus portion only (relative to res.score, not
-    # absolute), so signals with a high base score aren't unfairly capped.
     total_pos = sum(adj for _, adj, *_ in adjs if adj > 0)
     if total_pos > MAX_POSITIVE_ADJUSTMENTS:
         excess = total_pos - MAX_POSITIVE_ADJUSTMENTS
@@ -3618,14 +3347,12 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
 
     # Build breakdown string
     vol_score_ok_pull = ctx.get("vol_score_ok_pull", True)
-    # [Logic-11] Use unified vol_score_ok_pull for display consistency
     bb_s  = "BB✓"  if (ctx["bb_long"]  if res.fire_long else ctx["bb_short"])  else "BB✗"
     d_s   = "4H✓"  if (ctx["h4_bull"] and ctx["h4_trend_held_bull"] if res.fire_long
                        else ctx["h4_bear"] and ctx["h4_trend_held_bear"]) else "4H✗"
     adx_s = "ADX✓" if ctx["adx_score_ok"]  else "ADX✗"
     obv_s = "OBV✓" if (ctx["obv_slope_long"] if res.fire_long else ctx["obv_slope_short"]) else "OBV✗"
     vol_s = "VOL✓" if vol_score_ok_pull else "VOL✗"
-    # [Logic-12] Only show VA for BREAK signals
     if res.signal_type == "BREAK":
         accel_s = "VA✓" if vol_accel_ok else "VA✗"
         res.breakdown = f"{bb_s} {d_s} {adx_s} {obv_s} {vol_s} {oi_data['breakdown_tag']} {accel_s}"
@@ -3709,11 +3436,6 @@ def _apply_scoring_and_filters(res: SignalResult, state: dict,
 
     return res
 
-# FIX-D20: _check_early_break() removed — dead code (was never called).
-# Re-implement when live in-progress candle fetch is available.
-# Wire output to advisory Telegram channel only, not live signal channel.
-# Run in paper-trade/log-only mode for ≥2 weeks before activating live.
-# Track in GitHub issue for future implementation.
 
 def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
                     state: dict, record_market_inputs: bool = True,
@@ -3732,8 +3454,6 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
     if not candles_15m or len(candles_15m) < 50:
         return res
 
-    # Phase 1: Compute indicators
-    # [Fix-12] Pass the actual symbol down to prevent cache cross-contamination
     ind = _compute_signal_indicators(symbol, candles_15m, candles_1h, candles_4h, candles_d)
 
     if record_market_inputs:
@@ -3743,8 +3463,6 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
     res = _detect_raw_signals(ind, state, reference_ms, funding_rate, symbol)
     res.symbol = symbol
 
-    # Early BREAK advisory (FIX-D20): _check_early_break() removed — see comment above.
-    # Re-enable when live in-progress candle fetch is implemented.
 
     if not (res.fire_long or res.fire_short):
         return res
@@ -3759,7 +3477,7 @@ def compute_signals(symbol, candles_15m, candles_1h, candles_4h, candles_d,
 # COOLDOWN STATE
 # ═══════════════════════════════════════════════════════════════
 
-def _migrate_state(old: dict, target_version) -> dict:    # IMP-S18-2
+def _migrate_state(old: dict, target_version) -> dict:
     """Preserve key history fields across state schema version bumps, instead of
     silently dropping all historical state when `_version` changes."""
     new = {
@@ -3774,7 +3492,7 @@ def _migrate_state(old: dict, target_version) -> dict:    # IMP-S18-2
                   "oi_history", "spread_history"):
         if field in old:
             new[field] = old[field]
-    return new   # IMP-S18-2
+    return new
 
 def load_state() -> dict:
     _fresh = {
@@ -3791,8 +3509,8 @@ def load_state() -> dict:
                 s = json.loads(Path(path).read_text())
                 if s.get("_version", 1) != STATE_VERSION:
                     print(f"[STATE] Schema version mismatch in {path} — migrating state "
-                          f"(preserving signal/resolved/cooldown/oi/spread history)")  # IMP-S18-2
-                    s = _migrate_state(s, STATE_VERSION)   # IMP-S18-2
+                          f"(preserving signal/resolved/cooldown/oi/spread history)")
+                    s = _migrate_state(s, STATE_VERSION)
                 s.setdefault("oi_history", {})
                 s.setdefault("signal_history", [])
                 s.setdefault("macro_calendar_cache", {})
@@ -3835,13 +3553,11 @@ def check_cooldown(state, coin, direction, bar_index, signal_type: str = "",
         active = list(state.get("active_signals", []))
         _cd_key    = f"{symbol}_{direction}_{signal_type}" if signal_type in ("BREAK", "PULL") else f"{symbol}_{direction}"
         last_bar   = state.get("signal_cooldowns",  {}).get(_cd_key)
-        # FIX-D4: look up type-specific post-loss cooldown; fall back to bare key for legacy entries
         _pl_cd = state.get("post_loss_cooldown", {})
         _type_specific_cd_key = f"{symbol}_{direction}_{signal_type}" if signal_type in ("BREAK", "PULL") else None
         last_sl_ts = (_pl_cd.get(_type_specific_cd_key) if _type_specific_cd_key else None) or _pl_cd.get(f"{symbol}_{direction}")
         prev_outcome = state.get("last_signal_outcome", {}).get(f"{symbol}_{direction}", "unknown")
 
-    # [Risk-31] Check max concurrent active signals
     active_count = sum(1 for s in active if not s.get("resolved", False))
     if active_count >= MAX_CONCURRENT_ACTIVE_SIGNALS:
         print(f"  [MAX CONCURRENT] {hl_coin(symbol)} {direction.upper()} blocked — "
@@ -3862,7 +3578,7 @@ def check_cooldown(state, coin, direction, bar_index, signal_type: str = "",
         else:
             _regime_label_s16_9 = (get_btc_regime() or {}).get("label", "")
             _bear_regime_s16_9 = "bear" in _regime_label_s16_9.lower()
-            required_bars = SIGNAL_COOLDOWN_BARS if _bear_regime_s16_9 else 1   # IMP-S16-9 — 1 bar (15min) in neutral/bull, 2 bars in bear
+            required_bars = SIGNAL_COOLDOWN_BARS if _bear_regime_s16_9 else 1
 
         if bars_elapsed < required_bars:
             remaining_bars = required_bars - bars_elapsed
@@ -3925,7 +3641,6 @@ def send_telegram(text: str) -> int | None:
             return r.json()["result"]["message_id"]
         except Exception as e:
             if attempt == 2:
-                # [P0-5] Sanitized error — no token leak
                 print(f"[TG ERROR] {_sanitize_error(e)}")
             time.sleep(2)
     return None
@@ -3941,16 +3656,15 @@ def react_to_message(message_id: int, emoji: str) -> bool:
         }, timeout=10)
         r.raise_for_status()
         print(f"  [REACT] {emoji} → msg_id {message_id}")
-        return True   # IMP-S18-3
+        return True
     except Exception as e:
-        # [P0-5] Sanitized error
         print(f"  [REACT ERROR] msg_id {message_id}: {_sanitize_error(e)}")
-        return False   # IMP-S18-3
+        return False
 
-_tg_react_failures: dict[int, int] = {}   # IMP-S18-3 — module-level per-msg_id failure tracker
-TG_REACT_MAX_FAILURES = 3   # IMP-S18-3
+_tg_react_failures: dict[int, int] = {}
+TG_REACT_MAX_FAILURES = 3
 
-def react_to_message_safe(msg_id: int, *args, **kwargs):    # IMP-S18-3
+def react_to_message_safe(msg_id: int, *args, **kwargs):
     """Rate-limits react_to_message(): stops retrying a msg_id that has failed
     TG_REACT_MAX_FAILURES times in a row, to avoid flooding the Telegram API
     with calls for a single permanently-invalid msg_id."""
@@ -4003,13 +3717,6 @@ def format_signal(symbol: str, sig: SignalResult, engine_tag: str = "V5", rank: 
         sl_atr_mult = SL_HIGH_ATR_MULT if atr_pct > HIGH_ATR_THRESHOLD else (
             SL_MULT_BREAK if signal_type == "BREAK" else SL_MULT_PULL
         )
-        # [Fix-39] Dropped the stray /100.0 here. account_risk_pct (e.g. 2.0,
-        # meaning "2%") and atr_pct (e.g. 1.5, meaning "1.5%") are both already
-        # in the same "percent-number" convention used elsewhere in this file
-        # (see HIGH_ATR_THRESHOLD comparisons above). Dividing sl_pct down into
-        # a 0-1 fraction while leaving account_risk_pct un-scaled made the ratio
-        # ~100x too large, so leverage saturated at LEVERAGE_MAX for virtually
-        # any nonzero ATR% instead of producing a real 1x-10x gradient.
         sl_pct = atr_pct * sl_atr_mult
         if sl_pct <= 0:
             return 1.0
@@ -4157,10 +3864,6 @@ def check_active_signals(state: dict, bar_index_now: int,
         signal_bar_time_ms = sig.get("signal_bar_time")
         last_processed_ts  = sig.get("last_processed_candle_ts", signal_bar_time_ms or 0)
 
-        # [Fix-40] Compute the fetch window dynamically from the elapsed time since
-        # last_processed_ts so a gap (downtime/scan delay) longer than N_15M bars
-        # doesn't silently drop candles. With no gap this reduces to the old N_15M
-        # default (see Verification checklist).
         fetch_start_ms = last_processed_ts if last_processed_ts else signal_bar_time_ms
         iv_ms = INTERVAL_MS.get("15m", 15 * 60 * 1000)
         gap_bars = max(0, (ref_ms - (fetch_start_ms or ref_ms)) // iv_ms) + 5  # +5 buffer
@@ -4224,11 +3927,11 @@ def check_active_signals(state: dict, bar_index_now: int,
             if outcome in ("tp1", "tp2", "sl"):
                 _resolved_type = sig.get("signal_type", "")
                 _cd_suffix = f"_{_resolved_type}" if _resolved_type in ("BREAK", "PULL") else ""
-                cooldown_key = f"{symbol}_{direction}{_cd_suffix}"  # FIX-D4
+                cooldown_key = f"{symbol}_{direction}{_cd_suffix}"
                 with _state_lock:
                     state.setdefault("last_signal_outcome", {})[cooldown_key] = outcome
                     if outcome == "sl":
-                        state.setdefault("post_loss_cooldown", {})[cooldown_key] = int(time.time())  # FIX-D4
+                        state.setdefault("post_loss_cooldown", {})[cooldown_key] = int(time.time())
                 if outcome == "sl":
                     signal_type = sig.get("signal_type", "UNKNOWN")
                     record_failed_breakout(state, symbol, direction, signal_type, bar_index_now)
@@ -4243,10 +3946,6 @@ def check_active_signals(state: dict, bar_index_now: int,
             if direction == "long":
                 if not tp1_hit:
                     if c_high >= tp1 and c_low <= sl:
-                        # [Logic-15] Improved disambiguation:
-                        # Use proximity to determine which was hit first.
-                        # Price starts at open and moves through the candle.
-                        # The level closer to open is more likely hit first.
                         tp1_dist_from_open = abs(tp1 - c_open)
                         sl_dist_from_open  = abs(sl - c_open)
                         if sl_dist_from_open < tp1_dist_from_open:
@@ -4279,7 +3978,6 @@ def check_active_signals(state: dict, bar_index_now: int,
             else:  # short
                 if not tp1_hit:
                     if c_low <= tp1 and c_high >= sl:
-                        # [Logic-15] Same proximity-based disambiguation for shorts
                         tp1_dist_from_open = abs(tp1 - c_open)
                         sl_dist_from_open  = abs(sl - c_open)
                         if sl_dist_from_open < tp1_dist_from_open:
@@ -4317,9 +4015,6 @@ def check_active_signals(state: dict, bar_index_now: int,
     with _state_lock:
         state["active_signals"] = still_active
 
-# ═══════════════════════════════════════════════════════════════
-# DYNAMIC SPREAD EXEMPTION — [Risk-36]
-# ═══════════════════════════════════════════════════════════════
 
 _spread_history: dict[str, list[float]] = {}
 _spread_history_lock = threading.Lock()
@@ -4499,13 +4194,10 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
     print(f"    🚀 SIGNAL: {coin} {direction.upper()} [{sig.signal_type}] "
           f"base={sig.score} final={sig.final_score}")
 
-    # IMP-S16-7 — use the current live mark price (proxy for current-bar open) as the
-    # Tranche A "Market" entry basis instead of the prior closed 15m candle's close,
-    # tightening the gap between signal generation and actual fill on gap-prone opens.
     _live_entry_px_s16_7 = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
                             if live_cache else None)
     if _live_entry_px_s16_7 is not None and _live_entry_px_s16_7 > 0:
-        sig.entry = _live_entry_px_s16_7   # IMP-S16-7
+        sig.entry = _live_entry_px_s16_7
 
     if ctx:
         sig.funding_rate  = live_funding if live_funding is not None else ctx.get("funding")
@@ -4525,20 +4217,19 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
     _breadth_pct_scan = compute_market_breadth()["breadth_50_pct"]
     _eff_min_scan = get_effective_min_score(get_btc_regime(), _breadth_pct_scan)
 
-    # [Risk-36] Dynamic spread exemption
     if not is_spread_exempt_dynamic(symbol):
         live_mark = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
                      if live_cache else None)
         if live_mark is not None and live_mark > 0:
-            _bid = ctx.get("best_bid") if ctx else None    # FIX-D18
+            _bid = ctx.get("best_bid") if ctx else None
             _ask = ctx.get("best_ask") if ctx else None
             if _bid and _ask and _bid > 0:
-                _spread_pct = (_ask - _bid) / _bid * 100.0   # FIX-D18 — true bid/ask spread
+                _spread_pct = (_ask - _bid) / _bid * 100.0
             else:
                 _close_px   = candles_15m[-1]["c"]
                 _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
                 # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
-            with _spread_history_lock:                                 # IMP-S18-8
+            with _spread_history_lock:
                 sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
             if _spread_pct >= SPREAD_SUPPRESS_PCT:
@@ -4561,15 +4252,15 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
         live_mark = (live_cache.get(hl_coin(symbol), {}).get("mark_px")
                      if live_cache else None)
         if live_mark is not None and live_mark > 0:
-            _bid = ctx.get("best_bid") if ctx else None    # FIX-D18
+            _bid = ctx.get("best_bid") if ctx else None
             _ask = ctx.get("best_ask") if ctx else None
             if _bid and _ask and _bid > 0:
-                _spread_pct = (_ask - _bid) / _bid * 100.0   # FIX-D18 — true bid/ask spread
+                _spread_pct = (_ask - _bid) / _bid * 100.0
             else:
                 _close_px   = candles_15m[-1]["c"]
                 _spread_pct = abs(live_mark - _close_px) / _close_px * 100.0
                 # NOTE: proxy spread — may include inter-phase price drift, not true bid-ask
-            with _spread_history_lock:                                 # IMP-S18-8
+            with _spread_history_lock:
                 sig.spread_pct = _spread_pct
             update_spread_history(symbol, _spread_pct)
 
@@ -4580,12 +4271,12 @@ def scan_symbol(symbol: str, state: dict, bar_index_now: int,
 # ═══════════════════════════════════════════════════════════════
 
 def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
-    def _group_of_dynamic_safe(symbol):    # IMP-S18-7
-        try:                                                          # IMP-S18-7
+    def _group_of_dynamic_safe(symbol):
+        try:
             return group_of_dynamic(symbol)
         except Exception as e:
             print(f"  [CORR GROUP] group_of_dynamic({symbol}) failed: {e} — treating as singleton")
-            return symbol   # IMP-S18-7 — each symbol is its own group as safe fallback
+            return symbol
 
     def _sort_key(t):
         sig = t[2]
@@ -4599,25 +4290,20 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
 
     seen_groups: set[tuple] = set()
     result: list[tuple]     = []
-    # FIX-D19: Track per-(group, direction) counts to allow top-2 from large clusters
     _group_counts: dict = {}
     MAX_FROM_LARGE_CLUSTER = 2
     _all_symbols = [t[0] for t in signals]
     for sig_tuple in signals:
         symbol    = sig_tuple[0]
         direction = sig_tuple[1]
-        # [v15.5.5] Group key now comes from this scan's dynamic correlation
-        # clusters (see compute_pairwise_correlation_matrix() /
-        # cluster_by_correlation() / group_of_dynamic()) instead of a static
-        # hand-maintained CORR_GROUPS dict.
-        group = _group_of_dynamic_safe(symbol)   # IMP-S18-7
-        _group_size = sum(1 for s in _all_symbols if _group_of_dynamic_safe(s) == group)   # IMP-S18-7
+        group = _group_of_dynamic_safe(symbol)
+        _group_size = sum(1 for s in _all_symbols if _group_of_dynamic_safe(s) == group)
         _watchlist_size = max(len(_all_symbols), 1)
-        _large_cluster = _group_size >= int(_watchlist_size * 0.5)   # FIX-D19
-        _limit = MAX_FROM_LARGE_CLUSTER if _large_cluster else 1      # FIX-D19
+        _large_cluster = _group_size >= int(_watchlist_size * 0.5)
+        _limit = MAX_FROM_LARGE_CLUSTER if _large_cluster else 1
         _group_dir_key = (group, direction)
         _group_counts.setdefault(_group_dir_key, 0)
-        if _group_counts[_group_dir_key] < _limit:                    # FIX-D19
+        if _group_counts[_group_dir_key] < _limit:
             _group_counts[_group_dir_key] += 1
             seen_groups.add(_group_dir_key)
             result.append(sig_tuple)
@@ -4629,7 +4315,7 @@ def deduplicate_correlated(signals: list[tuple]) -> list[tuple]:
     # higher-priority side.
     by_group: dict = {}
     for sig_tuple in result:
-        g = _group_of_dynamic_safe(sig_tuple[0])   # IMP-S18-7
+        g = _group_of_dynamic_safe(sig_tuple[0])
         by_group.setdefault(g, []).append(sig_tuple)
 
     dropped_ids = set()
@@ -4667,7 +4353,6 @@ def main():
     bar_index_now     = scan_reference_ms // (15 * 60 * 1000)
     state             = load_state()
 
-    # [Fix-TG-3] Restore spread history from persisted state
     _saved_spread = state.get("spread_history", {})
     if _saved_spread:
         with _spread_history_lock:
@@ -4675,12 +4360,10 @@ def main():
                 _spread_history[_sym] = list(_hist)
         print(f"[INIT] Spread history restored: {len(_saved_spread)} symbol(s)")
 
-    # IMP-S18-6 — restore dynamic correlation clusters from state on cold start,
-    # so the first scan after a restart isn't stuck with singleton-only groups.
     if "_dynamic_corr_clusters" in state and not get_dynamic_corr_clusters():
         _restored_clusters = [set(c) for c in state["_dynamic_corr_clusters"]]
         set_dynamic_corr_clusters(_restored_clusters)
-        print(f"[INIT] Restored {len(_restored_clusters)} corr clusters from state (cold-start)")  # IMP-S18-6
+        print(f"[INIT] Restored {len(_restored_clusters)} corr clusters from state (cold-start)")
 
     prune_state(state)
 
@@ -4689,7 +4372,6 @@ def main():
     reset_win_rates_cache()
     clear_indicator_cache()
 
-    # [Fix-12] Run self-test to ensure cache isolation
     try:
         _selftest_indicator_cache_isolation()
         print("[INIT] Indicator cache isolation self-test passed.")
@@ -4704,9 +4386,6 @@ def main():
         save_state(state)
         sys.exit(0)
 
-    # IMP-S16-8 — check_active_signals() moved to scan END (see bottom of main())
-    # so TP/SL resolution uses the freshest candles from this completed scan,
-    # not the previous scan's. save_state() call moved alongside it.
 
     if should_send_summary(state):
         send_summary(state)
@@ -4736,9 +4415,7 @@ def main():
         rs_n = len(_rs_snapshot or {})
     print(f"  Breadth symbols: {breadth_n}  RS symbols: {rs_n}")
 
-    # IMP-S18-10 — graceful Phase 1 failure: if too few symbols resolved candles,
-    # breadth/RS snapshots are unreliable and Phase 2 signals would be mis-scored.
-    MIN_SYMBOLS_FOR_SCAN = 10   # IMP-S18-10
+    MIN_SYMBOLS_FOR_SCAN = 10
     resolved_symbols = [s for s in WATCHLIST if candle_bundles.get(s)]
     if len(resolved_symbols) < MIN_SYMBOLS_FOR_SCAN:
         print(
@@ -4746,9 +4423,8 @@ def main():
             f"(threshold: {MIN_SYMBOLS_FOR_SCAN}) — aborting scan cycle to prevent bad breadth signals"
         )
         save_state(state)
-        return   # IMP-S18-10 — skip Phase 2 entirely for this cycle
+        return
 
-    # [Logic-24] Update dynamic BTC correlation using collected 4H candles
     btc_4h_bundle = candle_bundles.get("BTCUSDT")
     if btc_4h_bundle:
         btc_4h_candles = btc_4h_bundle[2]  # 4H candles
@@ -4757,19 +4433,12 @@ def main():
                 continue
             update_dynamic_btc_correlation(sym, bundle[2], btc_4h_candles)
 
-    # [v15.5.5] Build this scan's dynamic pairwise correlation clusters across
-    # the watchlist (ported from v15.8.1 Fix-33), reusing the same Phase-1 4H
-    # candle bundles — no new data fetching. This replaces the static
-    # CORR_GROUPS dict as the grouping deduplicate_correlated() uses for
-    # correlated-exposure control. On failure (or on a cold-start scan before
-    # any candles are available), fall back to treating every watchlist
-    # symbol as its own singleton group rather than crashing the scan.
     try:
         _corr_matrix = compute_pairwise_correlation_matrix(WATCHLIST, candle_bundles)
         _corr_clusters = cluster_by_correlation(WATCHLIST, _corr_matrix)
         set_dynamic_corr_clusters(_corr_clusters)
         log_dynamic_corr_clusters(_corr_clusters)
-        state["_dynamic_corr_clusters"] = [list(c) for c in get_dynamic_corr_clusters()]   # IMP-S18-6 — persist to state
+        state["_dynamic_corr_clusters"] = [list(c) for c in get_dynamic_corr_clusters()]
     except Exception as e:
         print(f"  [CORR MATRIX] dynamic clustering failed, falling back to singleton groups: {e}")
         set_dynamic_corr_clusters([{s} for s in WATCHLIST])
@@ -4861,7 +4530,7 @@ def main():
         time.sleep(0.5)
 
     print("[TRACK] Checking active signals…")
-    check_active_signals(state, bar_index_now, scan_reference_ms)   # IMP-S16-8 — moved to scan end for fresh candles
+    check_active_signals(state, bar_index_now, scan_reference_ms)
 
     sync_spread_history_to_state(state)
     save_state(state)
