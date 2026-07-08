@@ -3780,6 +3780,7 @@ def format_signal(symbol: str, sig: SignalResult, engine_tag: str = ENGINE_NAME,
     counter_tag  = "⚠️ " if "counter-trend" in (sig.btc_regime_label or "") else ""
 
     return (
+        f"<b>⚡ {engine_tag}</b>\n"
         f"{rank_tag}{counter_tag}{emoji} <b>{direction} [{sig.signal_type}]</b>  {stars(sig.final_score)}\n"
         f"<b>Pair:</b>  {symbol}\n\n"
         f"<b>Entry:</b> <code>{fmt(sig.entry)}</code>\n"
