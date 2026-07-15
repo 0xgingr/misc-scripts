@@ -28,7 +28,7 @@ jobs:
           TG_CHAT_ID:   ${{ secrets.TG_CHAT_ID }}
           STATE_FILE: state.json
           CANDLE_CACHE_FILE: candle_cache.json
-        run: python signal_engine.py
+        run: python core.py
         
       - name: Persist cooldown state
         if: always()
