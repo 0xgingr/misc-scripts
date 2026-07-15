@@ -1,4 +1,4 @@
-name: Scalp Swing Scanner
+name: Scheduled Task
 
 on:
   workflow_dispatch:
