@@ -2,10 +2,10 @@
   "schema_version": 1,
   "tier1": {
     "baseline": {
-      "avg_rr": null,
-      "n": 0,
+      "avg_rr": 0.5,
+      "n": 2,
       "profit_factor": null,
-      "win_rate": null
+      "win_rate": 0.5
     },
     "circuit_breaker": {
       "active": false,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 701,
-        "seen": 703
+        "killed": 759,
+        "seen": 763
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 703
+        "seen": 763
       }
     },
     "forensic_categories": {
@@ -62,8 +62,10 @@
         "recent_trend": []
       },
       "correct_read_poor_rr": {
-        "count": 0,
-        "recent_trend": []
+        "count": 1,
+        "recent_trend": [
+          1
+        ]
       },
       "filter_over_permissiveness": {
         "count": 0,
@@ -122,10 +124,56 @@
       "volatility_expansion": {}
     },
     "segments": {
-      "asset": {},
-      "engine": {},
-      "regime": {},
-      "timeframe": {}
+      "asset": {
+        "BCHUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "DOTUSDT": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 2.0,
+          "wins": 1
+        }
+      },
+      "engine": {
+        "mean_reversion": {
+          "losses": 1,
+          "n": 2,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.0,
+          "wins": 1
+        }
+      },
+      "regime": {
+        "low_volatility": {
+          "losses": 1,
+          "n": 2,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.0,
+          "wins": 1
+        }
+      },
+      "timeframe": {
+        "intraday": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 2.0,
+          "wins": 1
+        },
+        "swing": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        }
+      }
     },
     "session_anchor_bucket": {
       "anchored": {
@@ -136,11 +184,11 @@
         "wins": 0
       },
       "non_anchored": {
-        "losses": 0,
-        "n": 0,
+        "losses": 1,
+        "n": 2,
         "sum_hold_min": 0.0,
-        "sum_r": 0.0,
-        "wins": 0
+        "sum_r": 1.0,
+        "wins": 1
       }
     },
     "session_open_weight": 0.05,
@@ -162,17 +210,17 @@
     "sl_buffer_percentile": {},
     "totals": {
       "expired": 0,
-      "losses": 0,
-      "signals": 0,
+      "losses": 1,
+      "signals": 2,
       "sum_hold_min": 0.0,
-      "sum_r": 0.0,
-      "wins": 0
+      "sum_r": 1.0,
+      "wins": 1
     }
   },
   "tier2": {
     "active_signals": [
       {
-        "buffer_to_risk_ratio": 0.31818181818180935,
+        "buffer_to_risk_ratio": 0.19211822660098293,
         "combo": "intraday",
         "confidence": 0.45,
         "confluences": [
@@ -181,15 +229,15 @@
           "low_adx_range",
           "tier:A+"
         ],
-        "created_at": "2026-07-15T20:02:02.027593+00:00",
-        "direction": "bullish",
+        "created_at": "2026-07-15T20:16:31.993596+00:00",
+        "direction": "bearish",
         "engine": "mean_reversion",
-        "entry": 0.83996,
+        "entry": 0.34996,
         "entry_filled": false,
         "entry_kind": "market",
         "filled_idx": null,
         "filter_margin_thin": false,
-        "id": "DOTUSDT-mean_reversion-1784145722027",
+        "id": "ONDOUSDT-mean_reversion-1784146591993",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
@@ -211,14 +259,14 @@
           "ranging"
         ],
         "rr1": 2.0,
-        "rr2": 2.3471809440559324,
+        "rr2": 3.0,
         "session_anchored": false,
         "sfp_purity": null,
-        "sl": 0.8371000000000001,
-        "symbol": "DOTUSDT",
-        "tg_message_id": 3420,
-        "tp1": 0.84568,
-        "tp2": 0.8466729375,
+        "sl": 0.35199,
+        "symbol": "ONDOUSDT",
+        "tg_message_id": 3426,
+        "tp1": 0.34589999999999993,
+        "tp2": 0.3438699999999999,
         "watermark_idx": -1
       },
       {
@@ -231,7 +279,7 @@
           "low_adx_range",
           "tier:A"
         ],
-        "created_at": "2026-07-15T20:02:02.023524+00:00",
+        "created_at": "2026-07-15T20:16:32.003242+00:00",
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 227.59,
@@ -239,7 +287,7 @@
         "entry_kind": "market",
         "filled_idx": null,
         "filter_margin_thin": true,
-        "id": "BCHUSDT-mean_reversion-1784145722023",
+        "id": "BCHUSDT-mean_reversion-1784146592003",
         "liquidity_pool_hit": false,
         "ltf_tf": "1h",
         "mtf_aligned": true,
@@ -266,12 +314,123 @@
         "sfp_purity": null,
         "sl": 224.97,
         "symbol": "BCHUSDT",
-        "tg_message_id": 3421,
+        "tg_message_id": 3427,
         "tp1": 231.52,
         "tp2": 233.616,
         "watermark_idx": -1
       }
     ],
-    "trade_log": []
+    "trade_log": [
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.31818181818180935,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-15T20:02:02.027593+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 0.83996,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
+        "id": "DOTUSDT-mean_reversion-1784145722027",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": 2.0,
+        "regime_at_entry": {
+          "breadth": 0.12,
+          "label": "low_volatility",
+          "liquidity_draw": -0.7816593886462883,
+          "macro_bias": -1.0,
+          "noise_index": 0.9793019610352218,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.75,
+          "trend_strength": 24.180685709820448,
+          "volatility_pctile": 21.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-15T20:15:27.816797+00:00",
+        "result": "win",
+        "rr1": 2.0,
+        "rr2": 2.3471809440559324,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.8371000000000001,
+        "symbol": "DOTUSDT",
+        "tg_message_id": 3420,
+        "tp1": 0.84568,
+        "tp2": 0.8466729375,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.24809160305343686,
+        "combo": "swing",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-15T20:02:02.023524+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 227.59,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": true,
+        "forensic_category": "correct_read_poor_rr",
+        "id": "BCHUSDT-mean_reversion-1784145722023",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "1h",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": -1.0,
+        "regime_at_entry": {
+          "breadth": 0.12,
+          "label": "low_volatility",
+          "liquidity_draw": -0.7816593886462883,
+          "macro_bias": -1.0,
+          "noise_index": 0.9793019610352218,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.75,
+          "trend_strength": 24.180685709820448,
+          "volatility_pctile": 21.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-15T20:15:29.325079+00:00",
+        "result": "loss",
+        "rr1": 1.5,
+        "rr2": 2.3,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 224.97,
+        "symbol": "BCHUSDT",
+        "tg_message_id": 3421,
+        "tp1": 231.52,
+        "tp2": 233.616,
+        "watermark_idx": 0
+      }
+    ]
   }
 }
