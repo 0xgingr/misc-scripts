@@ -2,10 +2,10 @@
   "schema_version": 1,
   "tier1": {
     "baseline": {
-      "avg_rr": -0.1,
-      "n": 10,
-      "profit_factor": 1.0,
-      "win_rate": 0.3
+      "avg_rr": 0.0,
+      "n": 12,
+      "profit_factor": 1.1428571428571428,
+      "win_rate": 0.3333333333333333
     },
     "circuit_breaker": {
       "active": false,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 1294,
-        "seen": 1306
+        "killed": 1354,
+        "seen": 1367
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 1306
+        "seen": 1367
       }
     },
     "forensic_categories": {
@@ -62,8 +62,9 @@
         "recent_trend": []
       },
       "correct_read_poor_rr": {
-        "count": 7,
+        "count": 8,
         "recent_trend": [
+          1,
           1,
           1,
           1,
@@ -132,10 +133,10 @@
     "segments": {
       "asset": {
         "BCHUSDT": {
-          "losses": 7,
-          "n": 7,
+          "losses": 8,
+          "n": 8,
           "sum_hold_min": 0.0,
-          "sum_r": -7.0,
+          "sum_r": -8.0,
           "wins": 0
         },
         "DOTUSDT": {
@@ -154,43 +155,43 @@
         },
         "PENGUUSDT": {
           "losses": 0,
-          "n": 1,
+          "n": 2,
           "sum_hold_min": 0.0,
-          "sum_r": 2.0,
-          "wins": 1
+          "sum_r": 4.0,
+          "wins": 2
         }
       },
       "engine": {
         "mean_reversion": {
-          "losses": 7,
-          "n": 10,
+          "losses": 8,
+          "n": 12,
           "sum_hold_min": 0.0,
-          "sum_r": -1.0,
-          "wins": 3
+          "sum_r": 0.0,
+          "wins": 4
         }
       },
       "regime": {
         "low_volatility": {
-          "losses": 7,
-          "n": 10,
+          "losses": 8,
+          "n": 12,
           "sum_hold_min": 0.0,
-          "sum_r": -1.0,
-          "wins": 3
+          "sum_r": 0.0,
+          "wins": 4
         }
       },
       "timeframe": {
         "intraday": {
           "losses": 0,
-          "n": 3,
+          "n": 4,
           "sum_hold_min": 0.0,
-          "sum_r": 6.0,
-          "wins": 3
+          "sum_r": 8.0,
+          "wins": 4
         },
         "swing": {
-          "losses": 7,
-          "n": 7,
+          "losses": 8,
+          "n": 8,
           "sum_hold_min": 0.0,
-          "sum_r": -7.0,
+          "sum_r": -8.0,
           "wins": 0
         }
       }
@@ -204,11 +205,11 @@
         "wins": 0
       },
       "non_anchored": {
-        "losses": 7,
-        "n": 10,
+        "losses": 8,
+        "n": 12,
         "sum_hold_min": 0.0,
-        "sum_r": -1.0,
-        "wins": 3
+        "sum_r": 0.0,
+        "wins": 4
       }
     },
     "session_open_weight": 0.05,
@@ -230,67 +231,17 @@
     "sl_buffer_percentile": {},
     "totals": {
       "expired": 0,
-      "losses": 7,
-      "signals": 10,
+      "losses": 8,
+      "signals": 12,
       "sum_hold_min": 0.0,
-      "sum_r": -1.0,
-      "wins": 3
+      "sum_r": 0.0,
+      "wins": 4
     }
   },
   "tier2": {
     "active_signals": [
       {
-        "buffer_to_risk_ratio": 0.23529411764706332,
-        "combo": "intraday",
-        "confidence": 0.45,
-        "confluences": [
-          "premium_discount_extreme",
-          "rsi_extreme",
-          "low_adx_range",
-          "tier:A+"
-        ],
-        "created_at": "2026-07-15T22:46:27.741843+00:00",
-        "direction": "bearish",
-        "engine": "mean_reversion",
-        "entry": 0.006272,
-        "entry_filled": false,
-        "entry_kind": "market",
-        "filled_idx": null,
-        "filter_margin_thin": false,
-        "id": "PENGUUSDT-mean_reversion-1784155587741",
-        "liquidity_pool_hit": false,
-        "ltf_tf": "15m",
-        "mtf_aligned": true,
-        "pending_bars": 0,
-        "regime_at_entry": {
-          "breadth": 0.12,
-          "label": "low_volatility",
-          "liquidity_draw": -0.7816593886462883,
-          "macro_bias": -1.0,
-          "noise_index": 0.9793019610352218,
-          "session_open_proximity": 0.0,
-          "session_weight": 0.4,
-          "trend_strength": 24.180685709820448,
-          "volatility_pctile": 21.0
-        },
-        "regime_best_fit": [
-          "consolidation",
-          "low_volatility",
-          "ranging"
-        ],
-        "rr1": 2.0,
-        "rr2": 3.0,
-        "session_anchored": false,
-        "sfp_purity": null,
-        "sl": 0.006306,
-        "symbol": "PENGUUSDT",
-        "tg_message_id": 3455,
-        "tp1": 0.0062039999999999994,
-        "tp2": 0.006169999999999999,
-        "watermark_idx": -1
-      },
-      {
-        "buffer_to_risk_ratio": 0.4609929078014236,
+        "buffer_to_risk_ratio": 0.414012738853498,
         "combo": "swing",
         "confidence": 0.45,
         "confluences": [
@@ -299,21 +250,21 @@
           "low_adx_range",
           "tier:A"
         ],
-        "created_at": "2026-07-15T22:46:27.748660+00:00",
+        "created_at": "2026-07-15T23:01:59.462404+00:00",
         "direction": "bullish",
         "engine": "mean_reversion",
-        "entry": 226.38,
+        "entry": 226.54,
         "entry_filled": false,
         "entry_kind": "market",
         "filled_idx": null,
         "filter_margin_thin": true,
-        "id": "BCHUSDT-mean_reversion-1784155587748",
+        "id": "BCHUSDT-mean_reversion-1784156519462",
         "liquidity_pool_hit": false,
         "ltf_tf": "1h",
         "mtf_aligned": true,
         "pending_bars": 0,
         "regime_at_entry": {
-          "breadth": 0.12,
+          "breadth": 0.16,
           "label": "low_volatility",
           "liquidity_draw": -0.7816593886462883,
           "macro_bias": -1.0,
@@ -329,14 +280,14 @@
           "ranging"
         ],
         "rr1": 1.5,
-        "rr2": 2.300000000000002,
+        "rr2": 2.299999999999991,
         "session_anchored": false,
         "sfp_purity": null,
-        "sl": 224.97,
+        "sl": 224.97000000000003,
         "symbol": "BCHUSDT",
-        "tg_message_id": 3456,
-        "tp1": 228.495,
-        "tp2": 229.623,
+        "tg_message_id": 3462,
+        "tp1": 228.89499999999992,
+        "tp2": 230.1509999999999,
         "watermark_idx": -1
       }
     ],
@@ -887,6 +838,116 @@
         "sl": 224.97,
         "symbol": "BCHUSDT",
         "tg_message_id": 3448,
+        "tp1": 228.495,
+        "tp2": 229.623,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.23529411764706332,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-15T22:46:27.741843+00:00",
+        "direction": "bearish",
+        "engine": "mean_reversion",
+        "entry": 0.006272,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 13,
+        "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
+        "id": "PENGUUSDT-mean_reversion-1784155587741",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": 2.0,
+        "regime_at_entry": {
+          "breadth": 0.12,
+          "label": "low_volatility",
+          "liquidity_draw": -0.7816593886462883,
+          "macro_bias": -1.0,
+          "noise_index": 0.9793019610352218,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.4,
+          "trend_strength": 24.180685709820448,
+          "volatility_pctile": 21.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-15T23:00:55.149661+00:00",
+        "result": "win",
+        "rr1": 2.0,
+        "rr2": 3.0,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.006306,
+        "symbol": "PENGUUSDT",
+        "tg_message_id": 3455,
+        "tp1": 0.0062039999999999994,
+        "tp2": 0.006169999999999999,
+        "watermark_idx": 13
+      },
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.4609929078014236,
+        "combo": "swing",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-15T22:46:27.748660+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 226.38,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": true,
+        "forensic_category": "correct_read_poor_rr",
+        "id": "BCHUSDT-mean_reversion-1784155587748",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "1h",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": -1.0,
+        "regime_at_entry": {
+          "breadth": 0.12,
+          "label": "low_volatility",
+          "liquidity_draw": -0.7816593886462883,
+          "macro_bias": -1.0,
+          "noise_index": 0.9793019610352218,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.4,
+          "trend_strength": 24.180685709820448,
+          "volatility_pctile": 21.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-15T23:00:56.312252+00:00",
+        "result": "loss",
+        "rr1": 1.5,
+        "rr2": 2.300000000000002,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 224.97,
+        "symbol": "BCHUSDT",
+        "tg_message_id": 3456,
         "tp1": 228.495,
         "tp2": 229.623,
         "watermark_idx": 0
