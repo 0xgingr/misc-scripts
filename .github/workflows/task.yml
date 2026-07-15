@@ -1,33 +1,34 @@
 name: Scalp Swing Scanner
+
 on:
   workflow_dispatch:
-concurrency:
-  group: scalp-swing-scanner
-  cancel-in-progress: false
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
     permissions:
       contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
+
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.11"
           cache: pip
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+
       - name: Run signal scanner
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID:   ${{ secrets.TG_CHAT_ID }}
-          STATE_FILE: state.json
-          CANDLE_CACHE_FILE: candle_cache.json
         run: python core.py
         
       - name: Persist cooldown state
