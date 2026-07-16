@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 1626,
-        "seen": 1642
+        "killed": 1679,
+        "seen": 1695
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 1642
+        "seen": 1695
       }
     },
     "forensic_categories": {
