@@ -2,10 +2,10 @@
   "schema_version": 1,
   "tier1": {
     "baseline": {
-      "avg_rr": null,
-      "n": 0,
-      "profit_factor": null,
-      "win_rate": null
+      "avg_rr": -1.0,
+      "n": 6,
+      "profit_factor": 0.0,
+      "win_rate": 0.0
     },
     "circuit_breaker": {
       "active": false,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 328,
-        "seen": 343
+        "killed": 393,
+        "seen": 417
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 343
+        "seen": 417
       }
     },
     "forensic_categories": {
@@ -62,16 +62,24 @@
         "recent_trend": []
       },
       "correct_read_poor_rr": {
-        "count": 0,
-        "recent_trend": []
+        "count": 2,
+        "recent_trend": [
+          1,
+          1
+        ]
       },
       "filter_over_permissiveness": {
         "count": 0,
         "recent_trend": []
       },
       "genuine_variance": {
-        "count": 0,
-        "recent_trend": []
+        "count": 4,
+        "recent_trend": [
+          1,
+          1,
+          1,
+          1
+        ]
       },
       "mtf_conflict_ignored": {
         "count": 0,
@@ -123,10 +131,77 @@
       "volatility_expansion": {}
     },
     "segments": {
-      "asset": {},
-      "engine": {},
-      "regime": {},
-      "timeframe": {}
+      "asset": {
+        "AAVEUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "AVAXUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "BTCUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "LTCUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "PENGUUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        },
+        "SUIUSDT": {
+          "losses": 1,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": -1.0,
+          "wins": 0
+        }
+      },
+      "engine": {
+        "mean_reversion": {
+          "losses": 6,
+          "n": 6,
+          "sum_hold_min": 0.0,
+          "sum_r": -6.0,
+          "wins": 0
+        }
+      },
+      "regime": {
+        "low_volatility": {
+          "losses": 6,
+          "n": 6,
+          "sum_hold_min": 0.0,
+          "sum_r": -6.0,
+          "wins": 0
+        }
+      },
+      "timeframe": {
+        "intraday": {
+          "losses": 6,
+          "n": 6,
+          "sum_hold_min": 0.0,
+          "sum_r": -6.0,
+          "wins": 0
+        }
+      }
     },
     "session_anchor_bucket": {
       "anchored": {
@@ -137,10 +212,10 @@
         "wins": 0
       },
       "non_anchored": {
-        "losses": 0,
-        "n": 0,
+        "losses": 6,
+        "n": 6,
         "sum_hold_min": 0.0,
-        "sum_r": 0.0,
+        "sum_r": -6.0,
         "wins": 0
       }
     },
@@ -163,16 +238,319 @@
     "sl_buffer_percentile": {},
     "totals": {
       "expired": 0,
-      "losses": 0,
-      "signals": 0,
+      "losses": 6,
+      "signals": 6,
       "sum_hold_min": 0.0,
-      "sum_r": 0.0,
+      "sum_r": -6.0,
       "wins": 0
     }
   },
   "tier2": {
     "active_signals": [
       {
+        "buffer_to_risk_ratio": 0.6206896551724428,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-16T08:16:45.645333+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 2.0311,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": false,
+        "id": "NEARUSDT-mean_reversion-1784189805645",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 2.0,
+        "rr2": 2.221034482758667,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 2.0253,
+        "symbol": "NEARUSDT",
+        "tg_message_id": 3557,
+        "tp1": 2.0426999999999995,
+        "tp2": 2.0439819999999997,
+        "watermark_ts": null
+      },
+      {
+        "buffer_to_risk_ratio": 1.0,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-16T08:16:45.649382+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 0.005999,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": false,
+        "id": "PENGUUSDT-mean_reversion-1784189805649",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 2.0,
+        "rr2": 3.0,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.005991,
+        "symbol": "PENGUUSDT",
+        "tg_message_id": 3558,
+        "tp1": 0.006015,
+        "tp2": 0.006023000000000001,
+        "watermark_ts": null
+      },
+      {
+        "buffer_to_risk_ratio": 0.8493150684931976,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-16T08:16:45.656186+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 0.072675,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": false,
+        "id": "DOGEUSDT-mean_reversion-1784189805656",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 2.0,
+        "rr2": 3.0,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.072602,
+        "symbol": "DOGEUSDT",
+        "tg_message_id": 3559,
+        "tp1": 0.07282100000000001,
+        "tp2": 0.07289400000000001,
+        "watermark_ts": null
+      },
+      {
+        "buffer_to_risk_ratio": 0.6106194690265543,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-16T08:16:45.662177+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 6.5547,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": false,
+        "id": "AVAXUSDT-mean_reversion-1784189805662",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 2.0,
+        "rr2": 3.0,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 6.543399999999999,
+        "symbol": "AVAXUSDT",
+        "tg_message_id": 3560,
+        "tp1": 6.577300000000003,
+        "tp2": 6.588600000000004,
+        "watermark_ts": null
+      },
+      {
+        "buffer_to_risk_ratio": 0.287037037037034,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-16T08:16:45.671984+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 44.693,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": false,
+        "id": "LTCUSDT-mean_reversion-1784189805671",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 1.6742283950618262,
+        "rr2": 2.5113425925927393,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 44.585,
+        "symbol": "LTCUSDT",
+        "tg_message_id": 3561,
+        "tp1": 44.87381666666667,
+        "tp2": 44.964225000000006,
+        "watermark_ts": null
+      },
+      {
+        "buffer_to_risk_ratio": 0.1828992072480218,
+        "combo": "swing",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-16T08:16:45.665407+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 94.697,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": true,
+        "id": "AAVEUSDT-mean_reversion-1784189805665",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "1h",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.2,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.15555555555555556,
+          "session_weight": 0.75,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 1.5,
+        "rr2": 2.299999999999996,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 92.931,
+        "symbol": "AAVEUSDT",
+        "tg_message_id": 3562,
+        "tp1": 97.346,
+        "tp2": 98.75880000000001,
+        "watermark_ts": null
+      }
+    ],
+    "trade_log": [
+      {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.52,
         "combo": "intraday",
         "confidence": 0.45,
@@ -186,15 +564,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 64214.0,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
         "id": "BTCUSDT-mean_reversion-1784187990174",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -211,6 +591,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:29.254595+00:00",
+        "result": "loss",
         "rr1": 2.0,
         "rr2": 3.0,
         "session_anchored": false,
@@ -220,9 +602,10 @@
         "tg_message_id": 3529,
         "tp1": 64364.0,
         "tp2": 64439.0,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       },
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.864197530864291,
         "combo": "intraday",
         "confidence": 0.45,
@@ -236,15 +619,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 6.6286,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
         "id": "AVAXUSDT-mean_reversion-1784187990195",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -261,6 +646,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:30.792962+00:00",
+        "result": "loss",
         "rr1": 2.0,
         "rr2": 2.2753086419754203,
         "session_anchored": false,
@@ -270,9 +657,10 @@
         "tg_message_id": 3530,
         "tp1": 6.644799999999999,
         "tp2": 6.64703,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       },
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.45955882352940236,
         "combo": "intraday",
         "confidence": 0.45,
@@ -286,15 +674,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 94.453,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
         "id": "AAVEUSDT-mean_reversion-1784187990197",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -311,6 +701,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:32.281425+00:00",
+        "result": "loss",
         "rr1": 2.0,
         "rr2": 3.0,
         "session_anchored": false,
@@ -320,9 +712,10 @@
         "tg_message_id": 3531,
         "tp1": 94.99700000000001,
         "tp2": 95.26900000000002,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       },
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.47058823529411464,
         "combo": "intraday",
         "confidence": 0.45,
@@ -336,15 +729,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 0.006053,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
         "id": "PENGUUSDT-mean_reversion-1784187990180",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -361,6 +756,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:36.944032+00:00",
+        "result": "loss",
         "rr1": 1.7044117647058101,
         "rr2": 2.5566176470587405,
         "session_anchored": false,
@@ -370,9 +767,10 @@
         "tg_message_id": 3532,
         "tp1": 0.006081975,
         "tp2": 0.0060964625,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       },
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.535714285714331,
         "combo": "intraday",
         "confidence": 0.45,
@@ -386,15 +784,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 44.787,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": false,
+        "forensic_category": "correct_read_poor_rr",
         "id": "LTCUSDT-mean_reversion-1784187990203",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -411,6 +811,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:38.488792+00:00",
+        "result": "loss",
         "rr1": 1.6342261904763387,
         "rr2": 2.4513392857145715,
         "session_anchored": false,
@@ -420,9 +822,10 @@
         "tg_message_id": 3533,
         "tp1": 44.87851666666667,
         "tp2": 44.92427500000001,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       },
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.4901960784313811,
         "combo": "intraday",
         "confidence": 0.45,
@@ -436,15 +839,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 0.74411,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784188800000,
         "filter_margin_thin": true,
+        "forensic_category": "correct_read_poor_rr",
         "id": "SUIUSDT-mean_reversion-1784187990183",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": -1.0,
         "regime_at_entry": {
           "breadth": 0.2,
           "label": "low_volatility",
@@ -461,6 +866,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-16T08:15:43.130615+00:00",
+        "result": "loss",
         "rr1": 1.5,
         "rr2": 2.2999999999999856,
         "session_anchored": false,
@@ -470,9 +877,8 @@
         "tg_message_id": 3534,
         "tp1": 0.7464050000000001,
         "tp2": 0.7476290000000001,
-        "watermark_ts": null
+        "watermark_ts": 1784188800000
       }
-    ],
-    "trade_log": []
+    ]
   }
 }
