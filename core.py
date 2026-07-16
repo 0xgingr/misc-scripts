@@ -1,5 +1,5 @@
 # VANTAGE ANNEX — Adaptive Institutional-Grade Signal Engine
-# v1.0.0
+# v1.1.1
 #
 # Ensemble of thirteen regime-specialized engines feeding a bounded
 # continuous-blend Decision Engine, gated by a composite eight-component
@@ -16,6 +16,19 @@
 # by a live-performance circuit breaker. State is split into a permanent
 # Tier 1 aggregate layer and a bounded, prunable Tier 2 raw log so pruning old
 # trades never resets learned behavior. Single file, no local imports.
+#
+# v1.1.0 — circuit breaker is now dual-metric: trips on EITHER a material
+# win-rate drop OR a material profit-factor drop vs baseline (previously
+# win-rate only), so a stretch where win rate holds but realized R degrades
+# (bigger losers / smaller winners) still gets caught. Recovery requires
+# BOTH metrics back at/above baseline.
+# BUGFIX (v1.1.1): the v1.1.0 dual-metric guard rejected the whole check
+# (both legs) whenever base["profit_factor"] was None -- which it legitimately
+# can be if the baseline window happened to contain zero losses -- silently
+# disabling the previously-independent, already-proven win-rate leg too.
+# Each metric's None-safety is now handled locally: a missing PF baseline
+# is neutral (doesn't trigger a trip, doesn't block a recovery) rather than
+# a blanket veto on the entire breaker.
 #
 # Discretionary engineering decisions the spec left open are marked
 # `# DECISION:` inline, at the point they matter -- never restated here.
@@ -40,7 +53,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "1.0.1"
+__version__ = "1.1.1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -96,6 +109,14 @@ MAX_CORRELATED_CONCURRENT = 1  # Sec 14 correlation cap on concurrent signals
 MIN_SAMPLE_SIZE = int(os.getenv("MIN_SAMPLE_SIZE", "20"))       # Sec 13 per-segment gate
 MIN_SAMPLE_SIZE_CATEGORY = int(os.getenv("MIN_SAMPLE_SIZE_CATEGORY", "12"))  # Sec 13 per-category gate
 TIER2_RETENTION_DAYS = 15   # Sec 5 raw-log pruning window
+
+# Sec 5 live-performance circuit breaker: kept as its own dedicated window/
+# thresholds rather than reusing MIN_SAMPLE_SIZE, so tightening the per-
+# segment statistical gate can never silently change the breaker's rolling
+# window (and vice versa).
+CIRCUIT_BREAKER_WINDOW = 30            # rolling trades compared against baseline
+CIRCUIT_BREAKER_WIN_RATE_DROP = 0.20   # absolute win-rate drop vs baseline that trips it
+CIRCUIT_BREAKER_PF_DROP_FRAC = 0.25    # fractional profit-factor drop vs baseline that trips it
 
 # Sec 10: TP1 hard floor / natural ceiling; TP2 uncapped beyond TP1.
 RR_TP1_FLOOR = 1.5
@@ -2180,26 +2201,55 @@ def resolve_and_learn(signal: dict, resolution: dict, state: dict) -> None:
 # ═══════════════════════════════════════════════════════════════════════
 
 def evaluate_circuit_breaker(state: dict) -> Optional[str]:
+    """Sec 5 live-performance circuit breaker. Dual-metric: trips on EITHER a
+    material win-rate drop OR a material profit-factor drop vs baseline (an
+    OR), so a stretch where win rate holds but average losses grow relative
+    to average wins still gets caught. Recovery requires BOTH metrics back
+    at/above baseline (an AND) -- deliberately stricter than the trip
+    condition so one lucky trade after a bad stretch can't flip it back off.
+
+    base["profit_factor"] is already computed and frozen at the same point
+    base["win_rate"] is (see the pre-deployment baseline block above) -- this
+    just starts reading it."""
     t1 = state["tier1"]
     base = t1["baseline"]
     cb = t1["circuit_breaker"]
-    # Filter to win/loss trades FIRST, then take the last MIN_SAMPLE_SIZE of
-    # those -- trade_log also contains "expired" (no-fill) entries, so
+    # Filter to win/loss trades FIRST, then take the last CIRCUIT_BREAKER_WINDOW
+    # of those -- trade_log also contains "expired" (no-fill) entries, so
     # slicing by raw position before filtering would silently shrink the
-    # effective sample below MIN_SAMPLE_SIZE whenever expirations are common,
-    # making the breaker less responsive than the constant implies.
+    # effective sample below CIRCUIT_BREAKER_WINDOW whenever expirations are
+    # common, making the breaker less responsive than the constant implies.
     resolved = [r for r in state["tier2"]["trade_log"] if r.get("result") in ("win", "loss")]
-    recent = resolved[-MIN_SAMPLE_SIZE:]
-    if base["win_rate"] is None or len(recent) < MIN_SAMPLE_SIZE:
+    recent = resolved[-CIRCUIT_BREAKER_WINDOW:]
+    # NOTE: only win_rate availability + sample size gate the check overall.
+    # profit_factor can legitimately freeze at None (zero losses in the
+    # baseline window -- see the pre-deployment baseline block above), and
+    # that must NOT disable the win-rate leg, which has data independent of
+    # it. Each metric's None-safety is handled locally below instead.
+    if base["win_rate"] is None or len(recent) < CIRCUIT_BREAKER_WINDOW:
         return None
     rolling_wr = sum(1 for r in recent if r["result"] == "win") / len(recent)
+    gains = sum(r["r_multiple"] for r in recent if r["r_multiple"] > 0)
+    losses = abs(sum(r["r_multiple"] for r in recent if r["r_multiple"] < 0)) or 1e-9
+    rolling_pf = gains / losses
 
-    if not cb["active"] and rolling_wr < base["win_rate"] - 0.20:
+    wr_trip = base["win_rate"] - rolling_wr >= CIRCUIT_BREAKER_WIN_RATE_DROP
+    pf_trip = (base["profit_factor"] is not None and
+               rolling_pf <= base["profit_factor"] * (1 - CIRCUIT_BREAKER_PF_DROP_FRAC))
+    materially_below = wr_trip or pf_trip
+
+    if not cb["active"] and materially_below:
         cb["active"] = True
         cb["since"] = datetime.now(timezone.utc).isoformat()
-        cb["reason"] = f"rolling win rate {rolling_wr:.2%} vs baseline {base['win_rate']:.2%}"
+        pf_baseline_txt = f"{base['profit_factor']:.2f}" if base["profit_factor"] is not None else "n/a (no baseline losses)"
+        cb["reason"] = (f"win_rate={rolling_wr:.2%} (baseline {base['win_rate']:.2%}), "
+                         f"pf={rolling_pf:.2f} (baseline {pf_baseline_txt})")
         return "tripped"
-    if cb["active"] and rolling_wr >= base["win_rate"]:
+    # profit_factor is None -> treat as "not blocking recovery", same as it's
+    # treated as "not triggering a trip" above -- a metric with no baseline
+    # to compare against should be neutral, not a permanent veto either way.
+    pf_recovered = base["profit_factor"] is None or rolling_pf >= base["profit_factor"]
+    if cb["active"] and rolling_wr >= base["win_rate"] and pf_recovered:
         cb["active"] = False
         cb["since"] = None
         cb["reason"] = None
@@ -2268,17 +2318,16 @@ def format_signal_message(cand: Candidate, tier: str, regime_label: str) -> str:
         f"Entry: `{format_price(cand.entry)}`",
         f"SL: `{format_price(cand.sl)}`",
         f"TP1: `{format_price(cand.tp1)}`",
-        f"TP2 (suggested): `{format_price(cand.tp2)}`",
+        f"TP2: `{format_price(cand.tp2)}`",
         "",
         f"RR: {cand.rr1:.2f} / {cand.rr2:.2f}",
         "",
         "Confluences: " + ", ".join(_display_name(c) for c in cand.confluences),
-        # DECISION: the "(suggested)" qualifier on the TP2 label above now
-        # carries the single-TP disclosure inline -- Vantage Annex is
+        # DECISION: kept even in this more compact layout -- Vantage Annex is
         # single-TP (100% of size closes at TP1, Sec 12), unlike engines that
-        # partial out across TP1/TP2. The separate italic footer line was
-        # removed as redundant; if the label is ever reworded, restore an
-        # explicit "closes in full at TP1" note somewhere in the message.
+        # partial out across TP1/TP2, so dropping this line would silently
+        # misrepresent the strategy as a two-target system.
+        "_TP2 is a suggested further target only — position closes in full at TP1._",
     ]
     if cand.entry_kind == "pending":
         lines.append(f"Pending — expires in {_expiry_hours(cand.combo):.1f}h")
