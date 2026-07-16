@@ -1,12 +1,15 @@
 # VANTAGE ANNEX — Adaptive Institutional-Grade Signal Engine
-# v1.1.1
+# v1.6.0
 #
 # Ensemble of thirteen regime-specialized engines feeding a bounded
 # continuous-blend Decision Engine, gated by a composite eight-component
 # Regime Vector and a structural HTF-bias -> POI -> SFP-purity -> MSS ->
-# breaker -> Fibonacci-OTE zone-selection sequence. Risk is built from an
-# adaptive-percentile SL buffer and a liquidity-wall-clipped TP plan with a
-# hard 1.5 TP1 RR floor and a structurally-enforced TP ordering guarantee.
+# breaker -> Fibonacci-OTE zone-selection sequence. Risk is built from a
+# genuine chart-structure SL/TP plan (SL = real invalidation level cleared
+# of noise and liquidity pools; TP1/TP2 = nearest and second-nearest real
+# opposing structural levels) with a structurally-enforced TP ordering
+# guarantee. RR is computed and displayed for information only -- it is
+# never used to construct, stretch, clip, or reject a target.
 # Resolution is single-TP (100% of size closes at TP1); TP2 is computed and
 # shown as a suggested further target only and never gates fill/exit.
 # Every signal is wrapped in entry-fill verification before it can be scored,
@@ -29,6 +32,66 @@
 # Each metric's None-safety is now handled locally: a missing PF baseline
 # is neutral (doesn't trigger a trip, doesn't block a recovery) rather than
 # a blanket veto on the entire breaker.
+#
+# v1.2.0 — SL/TP widened per operator request: TP1 RR floor 1.5 -> 2.0, soft
+# ceiling 2.0 -> 3.5, TP2 minimum extension 0.8R -> 1.5R. SL buffer cap
+# widened 0.1x-1.5x ATR -> 0.4x-2.5x ATR so stops carry real cushion instead
+# of sitting on top of structure. Liquidity-wall clipping now ignores walls
+# closer than 0.8% of entry price, so a trivially-close wall can no longer
+# collapse a target down to a near-nothing move. New hard floor: TP1/TP2
+# must represent >=1.2%/2.0% price distance from entry or the signal is
+# rejected outright -- a high-RR trade on a tiny % move is still a tiny
+# trade in dollar terms, independent of size or leverage.
+#
+# v1.3.0 — mean_reversion and range_trading (the two engines whose entire
+# premise is a small range/reversion move) are now vetoed outright whenever
+# the regime is low_volatility or consolidation, instead of being allowed to
+# fire and relying on the v1.2.0 percentage floor to reject them after the
+# fact. Vetoed at two points: (1) run_ensemble skips calling those engine
+# functions at all under those regimes, so no wasted computation; (2)
+# composite_score's eligibility check also hard-vetoes the combination as
+# defense in depth. The AVAX mean-reversion/low-volatility signal reported
+# by the operator (RR 3.00 "quality" label, 0.52% actual TP2 move, $10.34
+# profit on $2,000) would not have been generated under this version.
+#
+# v1.3.1 — removed the "Activated"/entry-filled Telegram notification per
+# operator request (only SL/TP-hit and expiry outcomes should reply to a
+# signal now). Fill state is still recorded internally for hold-time stats;
+# it's just no longer announced.
+#
+# v1.4.0 — build_risk_plan now clears the stop of known SSL/BSL liquidity
+# pools (eq_lows/eq_highs clusters). Previously structural_sl was often a
+# raw swing pivot that could itself be part of such a cluster, so the stop
+# could land at/inside a known sweep target with the wick-buffer none the
+# wiser. The stop is now pushed past the *whole* cluster (not just its
+# average level) plus a margin equal to the cluster's own width, so a
+# stop-hunt wick through the pool doesn't necessarily take the stop with it.
+#
+# v1.5.0 — SL/TP are no longer constructed or gated by RR-formula math.
+# TP1/TP2 are now the nearest and second-nearest genuine opposing chart
+# levels (swing pivot, EQH/EQL liquidity cluster, or unmitigated order
+# block/breaker/FVG edge) via the new _opposing_structural_levels -- no more
+# RR-ceiling stretch, no more clip-to-95%-of-wall, no more RR-floor override
+# that fabricated a target when real structure gave less. If the chart
+# doesn't offer a second real level, the signal is skipped rather than a TP2
+# being invented. SL is still the engine's real invalidation level plus only
+# the noise buffer and liquidity-pool clearance (v1.2.0/v1.4.0) -- unchanged,
+# since that was already chart-based, not RR-based.
+# The RR-floor eligibility veto is removed from both _finalize and
+# composite_score: a genuine chart-based setup is no longer rejected for
+# scoring low on RR. RR_TP1_FLOOR/CEIL_SOFT remain only as informational
+# inputs to scoring/tier-labeling/forensics -- they describe a signal now,
+# they don't construct or gate one.
+#
+# v1.6.0 — reintroduced RR as a signal-quality gate (RR_MIN_GATE = 1.5),
+# but reject-only: build_risk_plan computes rr1 from the already-final real
+# chart levels (from v1.5.0), and only then checks it against 1.5 -- if it's
+# under, the signal is skipped. Nothing about how SL/TP1/TP2 are chosen
+# changes; the gate can only say no, never stretch, clip, or fabricate a
+# level to pass. Kept deliberately separate from RR_TP1_FLOOR/CEIL_SOFT
+# (2.0/3.5), which remain informational-only inputs to scoring and tier
+# labeling (A/A+), so this new hard gate can be tuned without touching tier
+# semantics and vice versa.
 #
 # Discretionary engineering decisions the spec left open are marked
 # `# DECISION:` inline, at the point they matter -- never restated here.
@@ -53,7 +116,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "1.1.1"
+__version__ = "1.6.0"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,10 +181,38 @@ CIRCUIT_BREAKER_WINDOW = 30            # rolling trades compared against baselin
 CIRCUIT_BREAKER_WIN_RATE_DROP = 0.20   # absolute win-rate drop vs baseline that trips it
 CIRCUIT_BREAKER_PF_DROP_FRAC = 0.25    # fractional profit-factor drop vs baseline that trips it
 
-# Sec 10: TP1 hard floor / natural ceiling; TP2 uncapped beyond TP1.
-RR_TP1_FLOOR = 1.5
-RR_TP1_CEIL_SOFT = 2.0
-RR_TP2_MIN_EXTENSION = 0.8   # TP2 RR must exceed TP1 RR by at least this much when unanchored
+# v1.6.0: minimum RR required to actually *send* a signal, checked against
+# the real chart-derived rr1 (see build_risk_plan) -- reject-only, never
+# used to construct, stretch, or clip a target. Deliberately separate from
+# RR_TP1_FLOOR/CEIL_SOFT below (which now only feed scoring/tier-labeling)
+# so tightening/loosening this gate can never silently change tier labels,
+# and vice versa.
+RR_MIN_GATE = 1.5
+
+# Sec 10 (superseded by v1.5.0): RR_TP1_FLOOR/CEIL_SOFT are no longer used to
+# construct or gate TP -- see build_risk_plan and _finalize. Kept only as
+# informational inputs to scoring (composite_score's rr_term), tier labeling
+# (assign_tier), and forensic categorization (correct_read_poor_rr) -- none
+# of which reject a signal, they only describe/label one that already passed
+# on real chart structure.
+RR_TP1_FLOOR = 2.0
+RR_TP1_CEIL_SOFT = 3.5
+
+# v1.2.0: mandatory floor on the *percentage* price distance from entry to
+# TP1/TP2, independent of RR. A trade can be a "genuine chart level" and
+# still be too close to be worth taking; this rejects those outright rather
+# than showing them as a "solid" trade.
+MIN_MOVE_PCT_TP1 = 0.012   # 1.2% minimum entry-to-TP1 distance
+MIN_MOVE_PCT_TP2 = 0.020   # 2.0% minimum entry-to-TP2 distance
+
+# v1.3.0: engines whose entire premise is trading small ranges/reversion
+# inside a range -- by design they produce small % moves even when "working
+# correctly." Rather than let these fire and rely on the MIN_MOVE_PCT_* floor
+# to reject them after the fact, they're vetoed outright whenever the regime
+# itself is one of the small-move regimes below (operator explicitly does
+# not want scalp-style trades, regardless of RR or confidence).
+SCALP_PRONE_ENGINES = {"mean_reversion", "range_trading"}
+SCALP_PRONE_REGIMES = {"low_volatility", "consolidation"}
 
 PENDING_ENTRY_EXPIRY_BARS = {  # Sec 12, sized per LTF
     "15m": 8,   # ~2h on the intraday LTF
@@ -141,7 +232,6 @@ EMOJI_LOSS = "😭"
 EMOJI_EXPIRED = "🤷"
 EMOJI_CIRCUIT_BREAKER = "🤯"
 EMOJI_RECOVERED = "👏"
-EMOJI_ACTIVATED = "🔥"
 EMOJI_CANCELLED = "🚫"
 # DECISION: per Sec 17, the attached image is used as the engine's reaction/
 # acknowledgment visual wherever a reaction-style image (not a text emoji) is
@@ -1110,88 +1200,90 @@ def adaptive_sl_buffer(view: TFView, state: dict, asset: str) -> float:
     idx = clamp(int(len(wicks) * pctile / 100.0), 0, len(wicks) - 1)
     buffer = wicks[idx]
     atr_val = view.atr[-1] if view.atr else buffer
-    # DECISION: cap the buffer at 1.5x ATR so a single extreme historical
-    # wick outlier can never blow the stop out to an unreasonable size.
-    return clamp(buffer, atr_val * 0.1, atr_val * 1.5)
+    # DECISION (v1.2.0, widened per operator request): cap the buffer at
+    # 0.4x-2.5x ATR (was 0.1x-1.5x). The old floor let the buffer collapse
+    # to almost nothing, so the stop sat right on top of structure with no
+    # cushion against noise; the old ceiling capped it too tightly to ever
+    # represent a "solid" risk unit. The ceiling still exists so a single
+    # extreme historical wick outlier can't blow the stop out unreasonably.
+    return clamp(buffer, atr_val * 0.4, atr_val * 2.5)
 
 
-def _nearest_liquidity_wall(direction: str, entry: float, view: TFView) -> Optional[float]:
-    """Closest opposing EQH/EQL cluster (or unmitigated zone edge) that a TP
-    path would have to pass through first (Sec 10 liquidity-wall clipping)."""
-    walls = []
+def _clear_sl_of_liquidity_pool(direction: str, sl: float, view: TFView) -> float:
+    """v1.4.0: eq_lows/eq_highs mark clustered resting liquidity (SSL below
+    price for longs, BSL above price for shorts) -- exactly the kind of level
+    a stop-hunt wick targets before reversing. structural_sl is frequently
+    just a raw swing pivot, which is often one of the very pivots that feeds
+    an eq_lows/eq_highs cluster, so without this check the stop can land
+    at/inside a known pool instead of beyond it. If the stop doesn't clear
+    the full cluster (not just its average level), push it past the
+    cluster's far edge plus the cluster's own width as a margin."""
+    pools = view.eq_lows if direction == "bullish" else view.eq_highs
+    for pool in pools:
+        prices = [p.price for p in pool["pivots"]]
+        lo, hi = min(prices), max(prices)
+        margin = max(hi - lo, 1e-9)
+        if direction == "bullish" and sl >= lo:
+            sl = lo - margin
+        elif direction == "bearish" and sl <= hi:
+            sl = hi + margin
+    return sl
+
+
+def _opposing_structural_levels(direction: str, entry: float, view: TFView) -> list[float]:
+    """v1.5.0: every genuine chart level that could act as resistance (long)
+    or support (short) ahead of price -- swing pivots, EQH/EQL liquidity
+    clusters, and unmitigated opposing order/breaker blocks and FVGs. This
+    replaces RR-formula-derived targets entirely: TP is chosen from what's
+    actually on the chart, not synthesized to hit an RR number."""
+    levels = []
     if direction == "bullish":
-        walls.extend(e["level"] for e in view.eq_highs if e["level"] > entry)
-        walls.extend(z.bottom for z in view.order_blocks
-                      if z.direction == "bearish" and not z.mitigated and z.bottom > entry)
+        levels += [p.price for p in view.pivots if p.kind == "high" and p.price > entry]
+        levels += [e["level"] for e in view.eq_highs if e["level"] > entry]
+        levels += [z.bottom for z in (view.order_blocks + view.breaker_blocks)
+                   if z.direction == "bearish" and not z.mitigated and z.bottom > entry]
+        levels += [z.bottom for z in view.fvgs
+                   if z.direction == "bearish" and not z.mitigated and z.bottom > entry]
     else:
-        walls.extend(e["level"] for e in view.eq_lows if e["level"] < entry)
-        walls.extend(z.top for z in view.order_blocks
-                      if z.direction == "bullish" and not z.mitigated and z.top < entry)
-    if not walls:
-        return None
-    return min(walls, key=lambda w: abs(w - entry)) if direction == "bullish" else max(walls, key=lambda w: -abs(w - entry))
-
-
-def clip_target_to_liquidity_wall(direction: str, entry: float, raw_target: float, view: TFView) -> float:
-    wall = _nearest_liquidity_wall(direction, entry, view)
-    if wall is None:
-        return raw_target
-    # DECISION: clip to 95% of the distance to the wall, leaving a small
-    # buffer in front of it rather than projecting exactly onto the level.
-    if direction == "bullish" and entry < wall < raw_target:
-        return entry + (wall - entry) * 0.95
-    if direction == "bearish" and entry > wall > raw_target:
-        return entry - (entry - wall) * 0.95
-    return raw_target
-
-
-def _farthest_structural_level(direction: str, entry: float, view: TFView) -> Optional[float]:
-    levels = [p.price for p in view.pivots if
-              (p.kind == "high" and direction == "bullish" and p.price > entry) or
-              (p.kind == "low" and direction == "bearish" and p.price < entry)]
-    if not levels:
-        return None
-    return max(levels) if direction == "bullish" else min(levels)
+        levels += [p.price for p in view.pivots if p.kind == "low" and p.price < entry]
+        levels += [e["level"] for e in view.eq_lows if e["level"] < entry]
+        levels += [z.top for z in (view.order_blocks + view.breaker_blocks)
+                   if z.direction == "bullish" and not z.mitigated and z.top < entry]
+        levels += [z.top for z in view.fvgs
+                   if z.direction == "bullish" and not z.mitigated and z.top < entry]
+    levels = sorted(set(levels))
+    return levels if direction == "bullish" else list(reversed(levels))
 
 
 def build_risk_plan(direction: str, entry: float, structural_sl: float, view: TFView,
                      state: dict, asset: str) -> Optional[dict]:
-    """Builds SL/TP1/TP2 honoring: adaptive-percentile SL buffer, liquidity-
-    wall-clipped TP, 1.5 TP1 RR hard floor (TP2 uncapped), and the mandatory
-    TP-ordering-integrity final assertion."""
+    """v1.5.0/v1.6.0: SL/TP1/TP2 are genuine chart levels, not RR-formula
+    outputs. SL = the engine's real invalidation level (swing low/OB/BB/swept
+    level), pushed out only for noise (wick-based buffer) and to clear a
+    known liquidity pool -- never resized to hit an RR target. TP1/TP2 = the
+    nearest and second-nearest real opposing structural levels (pivot,
+    EQH/EQL, unmitigated OB/breaker/FVG) -- never stretched or clipped by an
+    RR formula. If the chart doesn't offer a second real target, no TP2
+    exists and the signal is skipped rather than fabricating one. The only
+    place RR appears is a final reject-only quality gate (RR_MIN_GATE): if
+    the resulting rr1 comes in under it, the signal is simply not sent --
+    the already-computed real levels are never reshaped to clear the gate."""
     buffer = adaptive_sl_buffer(view, state, asset)
     sl = (structural_sl - buffer) if direction == "bullish" else (structural_sl + buffer)
+    # v1.4.0: don't let the stop rest at/inside a known SSL/BSL liquidity
+    # pool -- that's exactly the level a sweep is expected to tag first.
+    sl = _clear_sl_of_liquidity_pool(direction, sl, view)
 
     risk = abs(entry - sl)
     if risk <= 1e-12:
         return None
 
-    # TP1: nearest genuine structural target at >= 1.5R; never stretched
-    # artificially toward 2.0 if real structure only supports less.
-    struct_target = _farthest_structural_level(direction, entry, view)
-    raw_tp1 = (entry + risk * RR_TP1_CEIL_SOFT) if direction == "bullish" else (entry - risk * RR_TP1_CEIL_SOFT)
-    if struct_target is not None:
-        rr_struct = _rr(entry, sl, struct_target, direction)
-        if rr_struct >= RR_TP1_FLOOR:
-            raw_tp1 = struct_target if rr_struct <= RR_TP1_CEIL_SOFT * 1.3 else \
-                (entry + risk * RR_TP1_CEIL_SOFT if direction == "bullish" else entry - risk * RR_TP1_CEIL_SOFT)
-
-    tp1 = clip_target_to_liquidity_wall(direction, entry, raw_tp1, view)
+    targets = _opposing_structural_levels(direction, entry, view)
+    if len(targets) < 2:
+        # no genuine second target on the chart -- don't invent one
+        return None
+    tp1, tp2 = targets[0], targets[1]
     rr1 = _rr(entry, sl, tp1, direction)
-    if rr1 < RR_TP1_FLOOR:
-        # floor override: honest 1.5 beats a padded, clipped-down target
-        floor_tp1 = (entry + risk * RR_TP1_FLOOR) if direction == "bullish" else (entry - risk * RR_TP1_FLOOR)
-        tp1 = floor_tp1
-        rr1 = RR_TP1_FLOOR
-
-    # TP2: further extension beyond TP1 by construction -- guarantees ordering
-    ext = max(RR_TP2_MIN_EXTENSION, rr1 * 0.5)
-    raw_tp2 = (entry + risk * (rr1 + ext)) if direction == "bullish" else (entry - risk * (rr1 + ext))
-    tp2 = clip_target_to_liquidity_wall(direction, entry, raw_tp2, view)
-    # if wall-clipping pulled TP2 back to/inside TP1, extend to the next
-    # valid level beyond TP1 rather than allow an inverted target (Sec 10)
-    if (direction == "bullish" and tp2 <= tp1) or (direction == "bearish" and tp2 >= tp1):
-        tp2 = (tp1 + risk * ext) if direction == "bullish" else (tp1 - risk * ext)
     rr2 = _rr(entry, sl, tp2, direction)
 
     # mandatory final assertion, independent of upstream derivation
@@ -1199,6 +1291,21 @@ def build_risk_plan(direction: str, entry: float, structural_sl: float, view: TF
         assert tp2 > tp1, "TP ordering integrity violated (bullish)"
     else:
         assert tp2 < tp1, "TP ordering integrity violated (bearish)"
+
+    # v1.2.0: reject outright if the actual percentage price move is too
+    # small, independent of RR -- a high-RR trade on a tiny % move is still
+    # a tiny trade in dollar terms at any given size/leverage.
+    if abs(tp1 - entry) < entry * MIN_MOVE_PCT_TP1:
+        return None
+    if abs(tp2 - entry) < entry * MIN_MOVE_PCT_TP2:
+        return None
+
+    # v1.6.0: RR quality gate, reject-only -- tp1/sl are already real chart
+    # levels at this point (untouched above), this never reshapes them. If
+    # the genuine structure only supports rr1 < RR_MIN_GATE, the signal is
+    # simply not sent rather than the target being stretched to compensate.
+    if rr1 < RR_MIN_GATE:
+        return None
 
     return {"sl": sl, "tp1": tp1, "tp2": tp2, "rr1": rr1, "rr2": rr2, "risk": risk, "buffer": buffer}
 
@@ -1296,14 +1403,16 @@ def _finalize(symbol: str, engine: str, combo: str, direction: str, entry: float
               liquidity_pool_hit: bool = False, mtf_aligned: bool = True,
               sfp_purity: Optional[float] = None) -> Optional[Candidate]:
     plan = build_risk_plan(direction, entry, structural_sl, ltf, state, symbol)
-    if plan is None or plan["rr1"] < RR_TP1_FLOOR:
+    if plan is None:
         return None
     atr_val = ltf.atr[-1] if ltf.atr else 0.0
     if not passes_entry_placement_rules(entry, plan["sl"], plan["tp1"], atr_val, mark):
         return None
-    # thin-margin flag (Sec 13 filter_over_permissiveness signature): passed
-    # every gate but close to the floor on both RR and confidence at once.
-    thin = plan["rr1"] < RR_TP1_FLOOR * 1.08 and confidence < 0.5
+    # v1.5.0: RR is no longer a legitimacy gate -- SL/TP are real chart
+    # levels now (see build_risk_plan), so a genuine setup with a lower RR
+    # is not rejected for it. "thin" now only flags low confidence, kept as
+    # a diagnostic signal for the forensic loop, not a rejection reason.
+    thin = confidence < 0.5
     buf_ratio = plan["buffer"] / plan["risk"] if plan["risk"] > 1e-12 else 0.0
     cand = Candidate(
         id=_new_id(symbol, engine), symbol=symbol, engine=engine, combo=combo,
@@ -1668,10 +1777,15 @@ ENGINE_FUNCS = {
 }
 
 
-def run_ensemble(snap: SymbolSnapshot, state: dict) -> list[Candidate]:
+def run_ensemble(snap: SymbolSnapshot, state: dict, regime_label: str) -> list[Candidate]:
     out = []
+    veto_scalp = regime_label in SCALP_PRONE_REGIMES
     for combo in ("intraday", "swing"):
         for name, fn in ENGINE_FUNCS.items():
+            if veto_scalp and name in SCALP_PRONE_ENGINES:
+                # v1.3.0: don't even run these -- their entire premise is a
+                # small range/reversion move, which is exactly what's unwanted.
+                continue
             try:
                 out.extend(fn(snap, combo, state))
             except Exception:
@@ -1774,7 +1888,11 @@ def composite_score(cand: Candidate, regime: RegimeVector, view: TFView, state: 
     score = clamp((raw / total_w) * eng_weight, 0.0, 1.0)
     # logistic squash keeps the blend smooth and bounded even as eng_weight drifts
     score = 1 / (1 + math.exp(-6 * (score - 0.5)))
-    eligible = fit_ok and liq_ok and cand.rr1 >= RR_TP1_FLOOR and _tp_ordering_sane(cand)
+    label = regime.label()
+    scalp_veto = label in SCALP_PRONE_REGIMES and cand.engine in SCALP_PRONE_ENGINES
+    # v1.5.0: RR is no longer part of eligibility -- SL/TP are real chart
+    # levels, so a genuine setup isn't vetoed just for scoring low on RR.
+    eligible = fit_ok and liq_ok and _tp_ordering_sane(cand) and not scalp_veto
     return score, eligible
 
 
@@ -2334,12 +2452,6 @@ def format_signal_message(cand: Candidate, tier: str, regime_label: str) -> str:
     return "\n".join(lines)
 
 
-def format_activation_message(signal: dict) -> str:
-    return (f"{EMOJI_ACTIVATED} *{ENGINE_NAME}* — {_display_name(signal['symbol'])} Activated\n\n"
-            f"Entry filled at `{format_price(signal['entry'])}`.\n"
-            f"SL: `{format_price(signal['sl'])}`  (unchanged, no auto breakeven)")
-
-
 def format_outcome_message(signal: dict, resolution: dict) -> str:
     if resolution["status"] == "expired":
         return (f"{EMOJI_EXPIRED} *{ENGINE_NAME}* — {_display_name(signal['symbol'])} Expired (No Fill)\n\n"
@@ -2442,7 +2554,10 @@ def monitor_active_signals(state: dict, hl: HyperliquidClient) -> None:
 
         if not was_filled and signal.get("entry_filled"):
             signal["filled_ts"] = signal.get("watermark_ts", 0)
-            send_telegram(format_activation_message(signal), reply_to=signal.get("tg_message_id"))
+            # v1.3.1: operator does not want an "Activated"/entry-filled
+            # notification -- only SL/TP (and expiry) outcomes should send a
+            # message. Fill state is still tracked internally (filled_ts feeds
+            # hold-time stats), it's just not announced.
 
         if resolution["status"] == "open":
             still_active.append(signal)
@@ -2484,7 +2599,7 @@ def run_scan(hl: HyperliquidClient, store: StateStore, cache_store: CandleCacheS
 
         all_candidates: list[Candidate] = []
         for sym, snap in snaps.items():
-            all_candidates.extend(run_ensemble(snap, state))
+            all_candidates.extend(run_ensemble(snap, state, regime_dict["label"]))
 
         if state["tier1"]["circuit_breaker"]["active"]:
             log.info("circuit breaker active -- signal generation continues, adaptation frozen")
