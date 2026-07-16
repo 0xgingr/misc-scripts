@@ -42,7 +42,16 @@
       "trend_continuation": 1.0,
       "volatility_expansion": 1.0
     },
-    "filter_funnel": {},
+    "filter_funnel": {
+      "composite_eligibility": {
+        "killed": 1,
+        "seen": 1
+      },
+      "news_blackout": {
+        "killed": 0,
+        "seen": 1
+      }
+    },
     "forensic_categories": {
       "chased_swept_liquidity": {
         "count": 0,
