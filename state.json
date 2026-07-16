@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 263,
-        "seen": 272
+        "killed": 328,
+        "seen": 343
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 272
+        "seen": 343
       }
     },
     "forensic_categories": {
@@ -90,6 +90,7 @@
         "recent_trend": []
       }
     },
+    "last_daily_summary_date": "2026-07-16",
     "liquidity_sanity_threshold": {
       "breaker_block": 0.5,
       "breakout": 0.5,
