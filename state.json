@@ -32,7 +32,7 @@
       "breakout": 1.0,
       "fair_value_gap": 1.0,
       "liquidity_sweep": 1.0,
-      "mean_reversion": 1.06,
+      "mean_reversion": 1.09,
       "momentum": 1.0,
       "order_block": 1.0,
       "pullback": 1.0,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 2732,
-        "seen": 2755
+        "killed": 2784,
+        "seen": 2808
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 2755
+        "seen": 2808
       }
     },
     "forensic_categories": {
@@ -149,6 +149,13 @@
           "sum_r": -12.0,
           "wins": 0
         },
+        "BNBUSDT": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 2.0,
+          "wins": 1
+        },
         "DOTUSDT": {
           "losses": 0,
           "n": 1,
@@ -195,28 +202,28 @@
       "engine": {
         "mean_reversion": {
           "losses": 16,
-          "n": 22,
+          "n": 23,
           "sum_hold_min": 0.0,
-          "sum_r": -5.0,
-          "wins": 6
+          "sum_r": -3.0,
+          "wins": 7
         }
       },
       "regime": {
         "low_volatility": {
           "losses": 16,
-          "n": 22,
+          "n": 23,
           "sum_hold_min": 0.0,
-          "sum_r": -5.0,
-          "wins": 6
+          "sum_r": -3.0,
+          "wins": 7
         }
       },
       "timeframe": {
         "intraday": {
           "losses": 4,
-          "n": 10,
+          "n": 11,
           "sum_hold_min": 0.0,
-          "sum_r": 7.0,
-          "wins": 6
+          "sum_r": 9.0,
+          "wins": 7
         },
         "swing": {
           "losses": 12,
@@ -237,10 +244,10 @@
       },
       "non_anchored": {
         "losses": 16,
-        "n": 22,
+        "n": 23,
         "sum_hold_min": 0.0,
-        "sum_r": -5.0,
-        "wins": 6
+        "sum_r": -3.0,
+        "wins": 7
       }
     },
     "session_open_weight": 0.05,
@@ -263,16 +270,16 @@
     "totals": {
       "expired": 0,
       "losses": 16,
-      "signals": 22,
+      "signals": 23,
       "sum_hold_min": 0.0,
-      "sum_r": -5.0,
-      "wins": 6
+      "sum_r": -3.0,
+      "wins": 7
     }
   },
   "tier2": {
     "active_signals": [
       {
-        "buffer_to_risk_ratio": 0.1935483870968097,
+        "buffer_to_risk_ratio": 0.17045454545457409,
         "combo": "intraday",
         "confidence": 0.45,
         "confluences": [
@@ -281,15 +288,15 @@
           "low_adx_range",
           "tier:A+"
         ],
-        "created_at": "2026-07-16T05:31:54.238470+00:00",
+        "created_at": "2026-07-16T05:46:28.397588+00:00",
         "direction": "bearish",
         "engine": "mean_reversion",
-        "entry": 584.58,
+        "entry": 584.37,
         "entry_filled": false,
         "entry_kind": "market",
         "filled_idx": null,
         "filter_margin_thin": false,
-        "id": "BNBUSDT-mean_reversion-1784179914238",
+        "id": "BNBUSDT-mean_reversion-1784180788397",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
@@ -300,7 +307,7 @@
           "liquidity_draw": 0.7337367624810892,
           "macro_bias": -1.0,
           "noise_index": 0.9853861874330944,
-          "session_open_proximity": 0.011111111111111072,
+          "session_open_proximity": 0.1777777777777778,
           "session_weight": 0.4,
           "trend_strength": 23.75022975189689,
           "volatility_pctile": 8.0
@@ -311,14 +318,14 @@
           "ranging"
         ],
         "rr1": 2.0,
-        "rr2": 2.2983870967740923,
+        "rr2": 3.0,
         "session_anchored": false,
         "sfp_purity": null,
         "sl": 586.1300000000001,
         "symbol": "BNBUSDT",
-        "tg_message_id": 3518,
-        "tp1": 581.4799999999999,
-        "tp2": 581.0175,
+        "tg_message_id": 3521,
+        "tp1": 580.8499999999998,
+        "tp2": 579.0899999999997,
         "watermark_idx": -1
       }
     ],
@@ -1531,6 +1538,61 @@
         "tg_message_id": 3508,
         "tp1": 0.75299,
         "tp2": 0.7479660000000001,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "engine_weights[mean_reversion] -> 1.090",
+        "buffer_to_risk_ratio": 0.1935483870968097,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A+"
+        ],
+        "created_at": "2026-07-16T05:31:54.238470+00:00",
+        "direction": "bearish",
+        "engine": "mean_reversion",
+        "entry": 584.58,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": false,
+        "forensic_category": "genuine_variance",
+        "id": "BNBUSDT-mean_reversion-1784179914238",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": 2.0,
+        "regime_at_entry": {
+          "breadth": 0.16,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.011111111111111072,
+          "session_weight": 0.4,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-16T05:45:25.465992+00:00",
+        "result": "win",
+        "rr1": 2.0,
+        "rr2": 2.2983870967740923,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 586.1300000000001,
+        "symbol": "BNBUSDT",
+        "tg_message_id": 3518,
+        "tp1": 581.4799999999999,
+        "tp2": 581.0175,
         "watermark_idx": 0
       }
     ]
