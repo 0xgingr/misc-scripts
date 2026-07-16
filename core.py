@@ -40,7 +40,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -1223,7 +1223,13 @@ class Candidate:
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     entry_filled: bool = False
     pending_bars: int = 0
-    watermark_idx: int = -1   # chronological candle-scanning watermark (Sec 12/13)
+    # Chronological candle-scanning watermark (Sec 12/13), anchored to the
+    # candle's OPEN TIMESTAMP (ms) -- never to its position in a fetched
+    # candle list. `candles()` returns a fixed-size *rolling* window that is
+    # re-fetched fresh every scan, so a raw array index saved on one scan
+    # does not point at the same candle on the next (see check_fill_and_
+    # resolve for the full rationale). None = never evaluated yet.
+    watermark_ts: Optional[int] = None
     sfp_purity: Optional[float] = None       # feeds sfp_mss_sequence_violated diagnosis
     filter_margin_thin: bool = False          # feeds filter_over_permissiveness diagnosis
     buffer_to_risk_ratio: float = 0.0         # feeds structural_invalidation_too_tight diagnosis
@@ -1834,9 +1840,35 @@ def decision_engine_rank(candidates: list[Candidate], regime: RegimeVector,
 
 def check_fill_and_resolve(signal: dict, candles: list[dict]) -> dict:
     """Chronological, closed-candle, watermark-based scan (never point-in-
-    time mark price). Advances signal['watermark_idx'] one closed candle at
+    time mark price). Advances signal['watermark_ts'] one closed candle at
     a time so re-runs never re-evaluate already-resolved history and never
     skip a candle. Enforces: no SL/TP evaluation before entry fill (Sec 12).
+
+    BUGFIX (v1.0.1): the watermark is anchored to each candle's OPEN
+    TIMESTAMP (`c["t"]`, ms), never to its position in `candles`. The list
+    passed in is a fixed-size *rolling* window that HyperliquidClient.candles()
+    re-fetches fresh every scan -- as new bars close, old ones fall off the
+    front and every remaining candle's array position shifts down. A raw
+    index persisted from a previous scan (the old `watermark_idx`) therefore
+    stops pointing at the candle it was saved against:
+      - On the very first monitoring pass watermark defaulted to -1, so the
+        scan started at position 0 of the freshly fetched window -- i.e. the
+        *oldest* candle in the whole lookback (days of history predating the
+        signal), not the candle after signal creation. Any coincidental old
+        SL/TP touch buried in that history resolved the trade immediately,
+        which is exactly the "SL/TP hit on a candle that never touched it"
+        symptom: the candle that "hit" was real, but it traded long before
+        the signal existed.
+      - On every later pass the saved index no longer lined up with the
+        shifted window at all: it either skipped genuinely-untouched candles
+        outright, or (in the common steady state, where watermark ends a
+        scan at the last index of that scan's window) landed exactly one
+        past the end of the next window, so the loop body never ran again
+        and the signal silently never resolved.
+    Anchoring on the candle's own timestamp makes resumption immune to the
+    window shifting underneath it, and seeding the watermark from the
+    signal's `created_at` on first use guarantees pre-creation history is
+    never evaluated.
 
     Single-TP resolution (matches the Cutwater engine): only SL and TP1 are
     ever checked here. TP2 is still computed and shown on the signal message
@@ -1851,10 +1883,21 @@ def check_fill_and_resolve(signal: dict, candles: list[dict]) -> dict:
     expiry_bars = PENDING_ENTRY_EXPIRY_BARS.get(
         TF_LTF_INTRADAY if signal["combo"] == "intraday" else TF_LTF_SWING, 10)
 
-    start_idx = max(signal.get("watermark_idx", -1) + 1, 0)
-    for i in range(start_idx, len(candles)):
-        c = candles[i]
-        signal["watermark_idx"] = i
+    watermark_ts = signal.get("watermark_ts")
+    if watermark_ts is None:
+        # Never evaluated before (including signals persisted under the old,
+        # index-based format -- `.get` returns None for them too, so they
+        # safely re-anchor here instead of resuming from a stale index).
+        # Seed just before signal creation so the first candle considered is
+        # the first one that closes at/after the signal actually existed.
+        created_ms = int(datetime.fromisoformat(signal["created_at"]).timestamp() * 1000)
+        watermark_ts = created_ms - 1
+
+    for c in candles:
+        if c["t"] <= watermark_ts:
+            continue  # already evaluated (or predates signal creation)
+        watermark_ts = c["t"]
+        signal["watermark_ts"] = watermark_ts
 
         if entry_kind == "market" and not signal.get("entry_filled"):
             signal["entry_filled"] = True  # market entries fill instantly at signal time
@@ -2064,8 +2107,12 @@ def resolve_and_learn(signal: dict, resolution: dict, state: dict) -> None:
     else:
         r_multiple = -1.0
 
-    hold_min = (signal.get("watermark_idx", 0) - signal.get("filled_idx", 0)) * \
-        (15 if signal["combo"] == "intraday" else 60)
+    # Real elapsed time between fill and resolution, both anchored to actual
+    # candle timestamps (ms) rather than positions in a rolling window --
+    # see check_fill_and_resolve for why array-position arithmetic here was
+    # unsafe (v1.0.1 bugfix).
+    filled_ts = signal.get("filled_ts") or signal.get("watermark_ts", 0)
+    hold_min = (signal.get("watermark_ts", 0) - filled_ts) / 60000.0
     hold_min = max(hold_min, 0)
 
     category = diagnose_trade(signal, signal.get("regime_at_entry", {}), state, result)
@@ -2169,6 +2216,17 @@ def _display_name(identifier: str) -> str:
     return identifier.replace("_", " ").replace("-", " ").title()
 
 
+def _ticker(symbol: str) -> str:
+    """Bare uppercase ticker for message headers, e.g. 'BNBUSDT' -> 'BNB'."""
+    return symbol.replace("USDT", "").replace("USD", "").upper()
+
+
+def _expiry_hours(combo: str) -> float:
+    tf = TF_LTF_INTRADAY if combo == "intraday" else TF_LTF_SWING
+    bars = PENDING_ENTRY_EXPIRY_BARS.get(tf, 10)
+    return bars * (_interval_to_ms(tf) / 3_600_000)
+
+
 def format_price(price: float) -> str:
     if price >= 100:
         return f"{price:.2f}"
@@ -2198,25 +2256,31 @@ def send_telegram(text: str, reply_to: Optional[int] = None, photo_path: Optiona
         return None
 
 
-def format_signal_message(cand: Candidate, tier: str) -> str:
+def format_signal_message(cand: Candidate, tier: str, regime_label: str) -> str:
+    direction_tag = "LONG \U0001F7E2" if cand.direction == "bullish" else "SHORT \U0001F534"
     lines = [
-        f"*{ENGINE_NAME}* `{__version__}`",
-        f"{_display_name(cand.symbol)}  ({_display_name(cand.direction)})",
+        f"*{ENGINE_NAME}* v{__version__}",
+        f"*{_ticker(cand.symbol)}* — {direction_tag}",
         "",
         f"Setup: {_display_name(cand.engine)}  |  Tier: {tier}",
-        f"Style: {_display_name(cand.combo)}",
+        f"Regime: {_display_name(regime_label)}  |  Confidence: {cand.confidence:.0%}",
         "",
         f"Entry: `{format_price(cand.entry)}`",
         f"SL: `{format_price(cand.sl)}`",
         f"TP1: `{format_price(cand.tp1)}`",
-        f"TP2 (suggested): `{format_price(cand.tp2)}`",
+        f"TP2: `{format_price(cand.tp2)}`",
         "",
-        f"RR (TP1): {cand.rr1:.2f}",
-        f"Confidence: {cand.confidence:.0%}",
-        f"Entry Type: {_display_name(cand.entry_kind)}",
+        f"RR: {cand.rr1:.2f} / {cand.rr2:.2f}",
         "",
         "Confluences: " + ", ".join(_display_name(c) for c in cand.confluences),
+        # DECISION: kept even in this more compact layout -- Vantage Annex is
+        # single-TP (100% of size closes at TP1, Sec 12), unlike engines that
+        # partial out across TP1/TP2, so dropping this line would silently
+        # misrepresent the strategy as a two-target system.
+        "_TP2 is a suggested further target only — position closes in full at TP1._",
     ]
+    if cand.entry_kind == "pending":
+        lines.append(f"Pending — expires in {_expiry_hours(cand.combo):.1f}h")
     return "\n".join(lines)
 
 
@@ -2320,12 +2384,14 @@ def monitor_active_signals(state: dict, hl: HyperliquidClient) -> None:
             still_active.append(signal)
             continue
         # only evaluate candles strictly after the signal was created, using
-        # the persisted watermark so re-runs never re-scan resolved history
+        # the persisted timestamp watermark so re-runs never re-scan
+        # resolved history and never skip a candle when the rolling window
+        # shifts underneath them (see check_fill_and_resolve)
         was_filled = signal.get("entry_filled", False)
         resolution = check_fill_and_resolve(signal, candles)
 
         if not was_filled and signal.get("entry_filled"):
-            signal["filled_idx"] = signal.get("watermark_idx", 0)
+            signal["filled_ts"] = signal.get("watermark_ts", 0)
             send_telegram(format_activation_message(signal), reply_to=signal.get("tg_message_id"))
 
         if resolution["status"] == "open":
@@ -2377,12 +2443,12 @@ def run_scan(hl: HyperliquidClient, store: StateStore, cache_store: CandleCacheS
 
         for cand in ranked:
             tier = next((c.split(":", 1)[1] for c in cand.confluences if c.startswith("tier:")), "B")
-            msg_id = send_telegram(format_signal_message(cand, tier))
+            msg_id = send_telegram(format_signal_message(cand, tier, regime_dict["label"]))
             sig = cand.to_dict()
             sig["regime_at_entry"] = regime_dict
             sig["ltf_tf"] = TF_LTF_INTRADAY if cand.combo == "intraday" else TF_LTF_SWING
             sig["tg_message_id"] = msg_id
-            sig["filled_idx"] = None
+            sig["filled_ts"] = None
             state["tier2"]["active_signals"].append(sig)
 
         cb_now_active = state["tier1"]["circuit_breaker"]["active"]
