@@ -2268,16 +2268,17 @@ def format_signal_message(cand: Candidate, tier: str, regime_label: str) -> str:
         f"Entry: `{format_price(cand.entry)}`",
         f"SL: `{format_price(cand.sl)}`",
         f"TP1: `{format_price(cand.tp1)}`",
-        f"TP2: `{format_price(cand.tp2)}`",
+        f"TP2 (suggested): `{format_price(cand.tp2)}`",
         "",
         f"RR: {cand.rr1:.2f} / {cand.rr2:.2f}",
         "",
         "Confluences: " + ", ".join(_display_name(c) for c in cand.confluences),
-        # DECISION: kept even in this more compact layout -- Vantage Annex is
+        # DECISION: the "(suggested)" qualifier on the TP2 label above now
+        # carries the single-TP disclosure inline -- Vantage Annex is
         # single-TP (100% of size closes at TP1, Sec 12), unlike engines that
-        # partial out across TP1/TP2, so dropping this line would silently
-        # misrepresent the strategy as a two-target system.
-        "_TP2 is a suggested further target only — position closes in full at TP1._",
+        # partial out across TP1/TP2. The separate italic footer line was
+        # removed as redundant; if the label is ever reworded, restore an
+        # explicit "closes in full at TP1" note somewhere in the message.
     ]
     if cand.entry_kind == "pending":
         lines.append(f"Pending — expires in {_expiry_hours(cand.combo):.1f}h")
