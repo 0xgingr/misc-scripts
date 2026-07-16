@@ -2,10 +2,10 @@
   "schema_version": 1,
   "tier1": {
     "baseline": {
-      "avg_rr": -0.3333333333333333,
-      "n": 18,
-      "profit_factor": 0.6153846153846154,
-      "win_rate": 0.2222222222222222
+      "avg_rr": -0.4,
+      "n": 20,
+      "profit_factor": 0.5333333333333333,
+      "win_rate": 0.2
     },
     "circuit_breaker": {
       "active": false,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 2051,
-        "seen": 2071
+        "killed": 2101,
+        "seen": 2121
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 2071
+        "seen": 2121
       }
     },
     "forensic_categories": {
@@ -58,8 +58,10 @@
         "recent_trend": []
       },
       "confidence_miscalibration": {
-        "count": 1,
+        "count": 3,
         "recent_trend": [
+          1,
+          1,
           1
         ]
       },
@@ -169,44 +171,44 @@
           "wins": 2
         },
         "TAOUSDT": {
-          "losses": 1,
-          "n": 1,
+          "losses": 2,
+          "n": 2,
           "sum_hold_min": 0.0,
-          "sum_r": -1.0,
+          "sum_r": -2.0,
           "wins": 0
         },
         "UNIUSDT": {
-          "losses": 1,
-          "n": 1,
+          "losses": 2,
+          "n": 2,
           "sum_hold_min": 0.0,
-          "sum_r": -1.0,
+          "sum_r": -2.0,
           "wins": 0
         }
       },
       "engine": {
         "mean_reversion": {
-          "losses": 14,
-          "n": 18,
+          "losses": 16,
+          "n": 20,
           "sum_hold_min": 0.0,
-          "sum_r": -6.0,
+          "sum_r": -8.0,
           "wins": 4
         }
       },
       "regime": {
         "low_volatility": {
-          "losses": 14,
-          "n": 18,
+          "losses": 16,
+          "n": 20,
           "sum_hold_min": 0.0,
-          "sum_r": -6.0,
+          "sum_r": -8.0,
           "wins": 4
         }
       },
       "timeframe": {
         "intraday": {
-          "losses": 2,
-          "n": 6,
+          "losses": 4,
+          "n": 8,
           "sum_hold_min": 0.0,
-          "sum_r": 6.0,
+          "sum_r": 4.0,
           "wins": 4
         },
         "swing": {
@@ -227,10 +229,10 @@
         "wins": 0
       },
       "non_anchored": {
-        "losses": 14,
-        "n": 18,
+        "losses": 16,
+        "n": 20,
         "sum_hold_min": 0.0,
-        "sum_r": -6.0,
+        "sum_r": -8.0,
         "wins": 4
       }
     },
@@ -253,116 +255,15 @@
     "sl_buffer_percentile": {},
     "totals": {
       "expired": 0,
-      "losses": 14,
-      "signals": 18,
+      "losses": 16,
+      "signals": 20,
       "sum_hold_min": 0.0,
-      "sum_r": -6.0,
+      "sum_r": -8.0,
       "wins": 4
     }
   },
   "tier2": {
-    "active_signals": [
-      {
-        "buffer_to_risk_ratio": 0.16713091922006082,
-        "combo": "intraday",
-        "confidence": 0.45,
-        "confluences": [
-          "premium_discount_extreme",
-          "rsi_extreme",
-          "low_adx_range",
-          "tier:A"
-        ],
-        "created_at": "2026-07-16T02:16:35.330130+00:00",
-        "direction": "bearish",
-        "engine": "mean_reversion",
-        "entry": 3.7232,
-        "entry_filled": false,
-        "entry_kind": "market",
-        "filled_idx": null,
-        "filter_margin_thin": false,
-        "id": "UNIUSDT-mean_reversion-1784168195330",
-        "liquidity_pool_hit": false,
-        "ltf_tf": "15m",
-        "mtf_aligned": true,
-        "pending_bars": 0,
-        "regime_at_entry": {
-          "breadth": 0.16,
-          "label": "low_volatility",
-          "liquidity_draw": 0.7337367624810892,
-          "macro_bias": -1.0,
-          "noise_index": 0.9853861874330944,
-          "session_open_proximity": 0.0,
-          "session_weight": 0.4,
-          "trend_strength": 23.75022975189689,
-          "volatility_pctile": 8.0
-        },
-        "regime_best_fit": [
-          "consolidation",
-          "low_volatility",
-          "ranging"
-        ],
-        "rr1": 1.8629526462395358,
-        "rr2": 2.7944289693592976,
-        "session_anchored": false,
-        "sfp_purity": null,
-        "sl": 3.7591,
-        "symbol": "UNIUSDT",
-        "tg_message_id": 3495,
-        "tp1": 3.65632,
-        "tp2": 3.6228800000000003,
-        "watermark_idx": -1
-      },
-      {
-        "buffer_to_risk_ratio": 0.20300751879699827,
-        "combo": "intraday",
-        "confidence": 0.45,
-        "confluences": [
-          "premium_discount_extreme",
-          "rsi_extreme",
-          "low_adx_range",
-          "tier:A"
-        ],
-        "created_at": "2026-07-16T02:16:35.321494+00:00",
-        "direction": "bearish",
-        "engine": "mean_reversion",
-        "entry": 202.24,
-        "entry_filled": false,
-        "entry_kind": "market",
-        "filled_idx": null,
-        "filter_margin_thin": true,
-        "id": "TAOUSDT-mean_reversion-1784168195321",
-        "liquidity_pool_hit": false,
-        "ltf_tf": "15m",
-        "mtf_aligned": true,
-        "pending_bars": 0,
-        "regime_at_entry": {
-          "breadth": 0.16,
-          "label": "low_volatility",
-          "liquidity_draw": 0.7337367624810892,
-          "macro_bias": -1.0,
-          "noise_index": 0.9853861874330944,
-          "session_open_proximity": 0.0,
-          "session_weight": 0.4,
-          "trend_strength": 23.75022975189689,
-          "volatility_pctile": 8.0
-        },
-        "regime_best_fit": [
-          "consolidation",
-          "low_volatility",
-          "ranging"
-        ],
-        "rr1": 1.5,
-        "rr2": 2.299999999999998,
-        "session_anchored": false,
-        "sfp_purity": null,
-        "sl": 203.57000000000002,
-        "symbol": "TAOUSDT",
-        "tg_message_id": 3496,
-        "tp1": 200.245,
-        "tp2": 199.18099999999998,
-        "watermark_idx": -1
-      }
-    ],
+    "active_signals": [],
     "trade_log": [
       {
         "adaptive_response": "no_change_insufficient_sample",
@@ -1352,6 +1253,116 @@
         "tg_message_id": 3490,
         "tp1": 3.7276000000000002,
         "tp2": 3.7216000000000005,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.16713091922006082,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-16T02:16:35.330130+00:00",
+        "direction": "bearish",
+        "engine": "mean_reversion",
+        "entry": 3.7232,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": false,
+        "forensic_category": "confidence_miscalibration",
+        "id": "UNIUSDT-mean_reversion-1784168195330",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": -1.0,
+        "regime_at_entry": {
+          "breadth": 0.16,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.4,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-16T02:30:53.761245+00:00",
+        "result": "loss",
+        "rr1": 1.8629526462395358,
+        "rr2": 2.7944289693592976,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 3.7591,
+        "symbol": "UNIUSDT",
+        "tg_message_id": 3495,
+        "tp1": 3.65632,
+        "tp2": 3.6228800000000003,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "no_change_insufficient_sample",
+        "buffer_to_risk_ratio": 0.20300751879699827,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-16T02:16:35.321494+00:00",
+        "direction": "bearish",
+        "engine": "mean_reversion",
+        "entry": 202.24,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": true,
+        "forensic_category": "confidence_miscalibration",
+        "id": "TAOUSDT-mean_reversion-1784168195321",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": -1.0,
+        "regime_at_entry": {
+          "breadth": 0.16,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.4,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-16T02:30:55.028561+00:00",
+        "result": "loss",
+        "rr1": 1.5,
+        "rr2": 2.299999999999998,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 203.57000000000002,
+        "symbol": "TAOUSDT",
+        "tg_message_id": 3496,
+        "tp1": 200.245,
+        "tp2": 199.18099999999998,
         "watermark_idx": 0
       }
     ]
