@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 1891,
-        "seen": 1907
+        "killed": 1944,
+        "seen": 1960
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 1907
+        "seen": 1960
       }
     },
     "forensic_categories": {
