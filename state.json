@@ -32,7 +32,7 @@
       "breakout": 1.0,
       "fair_value_gap": 1.0,
       "liquidity_sweep": 1.0,
-      "mean_reversion": 1.03,
+      "mean_reversion": 1.06,
       "momentum": 1.0,
       "order_block": 1.0,
       "pullback": 1.0,
@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 2298,
-        "seen": 2320
+        "killed": 2345,
+        "seen": 2367
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 2320
+        "seen": 2367
       }
     },
     "forensic_categories": {
@@ -172,10 +172,10 @@
         },
         "SUIUSDT": {
           "losses": 0,
-          "n": 1,
+          "n": 2,
           "sum_hold_min": 0.0,
-          "sum_r": 1.5,
-          "wins": 1
+          "sum_r": 3.0,
+          "wins": 2
         },
         "TAOUSDT": {
           "losses": 2,
@@ -195,28 +195,28 @@
       "engine": {
         "mean_reversion": {
           "losses": 16,
-          "n": 21,
+          "n": 22,
           "sum_hold_min": 0.0,
-          "sum_r": -6.5,
-          "wins": 5
+          "sum_r": -5.0,
+          "wins": 6
         }
       },
       "regime": {
         "low_volatility": {
           "losses": 16,
-          "n": 21,
+          "n": 22,
           "sum_hold_min": 0.0,
-          "sum_r": -6.5,
-          "wins": 5
+          "sum_r": -5.0,
+          "wins": 6
         }
       },
       "timeframe": {
         "intraday": {
           "losses": 4,
-          "n": 9,
+          "n": 10,
           "sum_hold_min": 0.0,
-          "sum_r": 5.5,
-          "wins": 5
+          "sum_r": 7.0,
+          "wins": 6
         },
         "swing": {
           "losses": 12,
@@ -237,10 +237,10 @@
       },
       "non_anchored": {
         "losses": 16,
-        "n": 21,
+        "n": 22,
         "sum_hold_min": 0.0,
-        "sum_r": -6.5,
-        "wins": 5
+        "sum_r": -5.0,
+        "wins": 6
       }
     },
     "session_open_weight": 0.05,
@@ -263,65 +263,14 @@
     "totals": {
       "expired": 0,
       "losses": 16,
-      "signals": 21,
+      "signals": 22,
       "sum_hold_min": 0.0,
-      "sum_r": -6.5,
-      "wins": 5
+      "sum_r": -5.0,
+      "wins": 6
     }
   },
   "tier2": {
-    "active_signals": [
-      {
-        "buffer_to_risk_ratio": 0.11942675159236212,
-        "combo": "intraday",
-        "confidence": 0.45,
-        "confluences": [
-          "premium_discount_extreme",
-          "rsi_extreme",
-          "low_adx_range",
-          "tier:A"
-        ],
-        "created_at": "2026-07-16T03:31:59.491625+00:00",
-        "direction": "bearish",
-        "engine": "mean_reversion",
-        "entry": 0.76241,
-        "entry_filled": false,
-        "entry_kind": "market",
-        "filled_idx": null,
-        "filter_margin_thin": true,
-        "id": "SUIUSDT-mean_reversion-1784172719491",
-        "liquidity_pool_hit": false,
-        "ltf_tf": "15m",
-        "mtf_aligned": true,
-        "pending_bars": 0,
-        "regime_at_entry": {
-          "breadth": 0.16,
-          "label": "low_volatility",
-          "liquidity_draw": 0.7337367624810892,
-          "macro_bias": -1.0,
-          "noise_index": 0.9853861874330944,
-          "session_open_proximity": 0.0,
-          "session_weight": 0.4,
-          "trend_strength": 23.75022975189689,
-          "volatility_pctile": 8.0
-        },
-        "regime_best_fit": [
-          "consolidation",
-          "low_volatility",
-          "ranging"
-        ],
-        "rr1": 1.5,
-        "rr2": 2.3000000000000016,
-        "session_anchored": false,
-        "sfp_purity": null,
-        "sl": 0.76869,
-        "symbol": "SUIUSDT",
-        "tg_message_id": 3508,
-        "tp1": 0.75299,
-        "tp2": 0.7479660000000001,
-        "watermark_idx": -1
-      }
-    ],
+    "active_signals": [],
     "trade_log": [
       {
         "adaptive_response": "no_change_insufficient_sample",
@@ -1476,6 +1425,61 @@
         "tg_message_id": 3504,
         "tp1": 0.7532900000000001,
         "tp2": 0.7483620000000002,
+        "watermark_idx": 0
+      },
+      {
+        "adaptive_response": "engine_weights[mean_reversion] -> 1.060",
+        "buffer_to_risk_ratio": 0.11942675159236212,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-16T03:31:59.491625+00:00",
+        "direction": "bearish",
+        "engine": "mean_reversion",
+        "entry": 0.76241,
+        "entry_filled": true,
+        "entry_kind": "market",
+        "filled_idx": 0,
+        "filter_margin_thin": true,
+        "forensic_category": "genuine_variance",
+        "id": "SUIUSDT-mean_reversion-1784172719491",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "r_multiple": 1.5,
+        "regime_at_entry": {
+          "breadth": 0.16,
+          "label": "low_volatility",
+          "liquidity_draw": 0.7337367624810892,
+          "macro_bias": -1.0,
+          "noise_index": 0.9853861874330944,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.4,
+          "trend_strength": 23.75022975189689,
+          "volatility_pctile": 8.0
+        },
+        "regime_best_fit": [
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "resolved_at": "2026-07-16T03:45:27.380679+00:00",
+        "result": "win",
+        "rr1": 1.5,
+        "rr2": 2.3000000000000016,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.76869,
+        "symbol": "SUIUSDT",
+        "tg_message_id": 3508,
+        "tp1": 0.75299,
+        "tp2": 0.7479660000000001,
         "watermark_idx": 0
       }
     ]
