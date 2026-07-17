@@ -19,7 +19,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -142,6 +142,23 @@ SPECIALIST_ENGINES = [
     "mean_reversion", "range_trading", "volatility_expansion",
 ]
 
+# BUGFIX (v2.0.1): RegimeVector.label() can return "choppy", but no engine
+# listed it as a fit regime -- composite_score()'s fit_ok gate is a hard
+# reject, so every candidate from every engine was killed at the eligibility
+# stage for as long as the macro regime (computed off BTC's 1D candles, so
+# it can hold for many consecutive days) read as choppy. That's a complete,
+# silent, deterministic signal blackout, not just a low pass-rate filter.
+# Fixed by adding "choppy" to the three engines already designed for
+# range-bound/no-trend conditions (liquidity_sweep, mean_reversion,
+# range_trading) -- every trend/breakout/momentum engine is still correctly
+# vetoed in choppy conditions, unchanged from before.
+#
+# Also note: "reversal" is listed below by 5 engines (smc, liquidity_sweep,
+# order_block, breaker_block, reversal) but label() has no branch that ever
+# returns "reversal" -- it's currently dead/unreachable. Those engines still
+# fit via their other listed regimes so this doesn't block them outright,
+# but if a real reversal-regime detector was intended, it never got wired
+# into RegimeVector.label(). Left as-is pending a decision on that.
 ENGINE_REGIME_FIT = {
     "smc": {"trending", "expansion", "reversal"},
     "trend_continuation": {"trending", "expansion"},
@@ -152,7 +169,7 @@ ENGINE_REGIME_FIT = {
     "breaker_block": {"reversal", "trending"},
     "fair_value_gap": {"trending", "expansion"},
     "momentum": {"trending", "expansion", "high_volatility"},
-    "reversal": {"reversal", "ranging", "choppy"},
+    "reversal": {"reversal", "ranging"},
     "mean_reversion": {"ranging", "consolidation", "low_volatility", "choppy"},
     "range_trading": {"ranging", "consolidation", "choppy"},
     "volatility_expansion": {"expansion", "high_volatility"},
@@ -1750,6 +1767,8 @@ def decision_engine_rank(candidates: list[Candidate], regime: RegimeVector,
                           active_signals: list[dict]) -> list[Candidate]:
     scored = []
     funnel = state["tier1"]["filter_funnel"]
+    regime_label = regime.label()
+    regime_fit_kills = 0
 
     def _track(stage: str, killed: bool):
         f = funnel.setdefault(stage, {"seen": 0, "killed": 0})
@@ -1769,6 +1788,8 @@ def decision_engine_rank(candidates: list[Candidate], regime: RegimeVector,
         score, eligible = composite_score(cand, regime, view, state)
         _track("composite_eligibility", not eligible)
         if not eligible:
+            if regime_label not in cand.regime_best_fit:
+                regime_fit_kills += 1
             continue
         cand.confidence = calibrate_confidence(cand, state)
         tier = assign_tier(score, cand.rr1)
@@ -1796,6 +1817,11 @@ def decision_engine_rank(candidates: list[Candidate], regime: RegimeVector,
         seen_symbols.add(cand.symbol)
         active_groups[group] = active_groups.get(group, 0) + 1
 
+    log.info(
+        "decision_engine_rank: regime=%s raw_candidates=%d passed_eligibility=%d "
+        "killed_on_regime_fit=%d sent=%d",
+        regime_label, len(candidates), len(scored), regime_fit_kills, len(final),
+    )
     return final
 
 
@@ -2322,6 +2348,11 @@ def run_scan(hl: HyperliquidClient, store: StateStore, cache_store: CandleCacheS
         macro_view = macro_snap.views.get("1d") if macro_snap else None
         regime = compute_regime_vector(macro_view, snaps)
         regime_dict = {**asdict(regime), "label": regime.label()}
+        log.info(
+            "regime=%s macro_bias=%.3f vol_pctile=%.1f trend_strength=%.1f noise=%.2f breadth=%.2f",
+            regime_dict["label"], regime.macro_bias, regime.volatility_pctile,
+            regime.trend_strength, regime.noise_index, regime.breadth,
+        )
 
         prev_cb_active = state["tier1"]["circuit_breaker"]["active"]
 
