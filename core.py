@@ -147,14 +147,14 @@ ENGINE_REGIME_FIT = {
     "trend_continuation": {"trending", "expansion"},
     "breakout": {"expansion", "trending"},
     "pullback": {"trending"},
-    "liquidity_sweep": {"reversal", "ranging", "consolidation"},
+    "liquidity_sweep": {"reversal", "ranging", "consolidation", "choppy"},
     "order_block": {"trending", "reversal"},
     "breaker_block": {"reversal", "trending"},
     "fair_value_gap": {"trending", "expansion"},
     "momentum": {"trending", "expansion", "high_volatility"},
-    "reversal": {"reversal", "ranging"},
-    "mean_reversion": {"ranging", "consolidation", "low_volatility"},
-    "range_trading": {"ranging", "consolidation"},
+    "reversal": {"reversal", "ranging", "choppy"},
+    "mean_reversion": {"ranging", "consolidation", "low_volatility", "choppy"},
+    "range_trading": {"ranging", "consolidation", "choppy"},
     "volatility_expansion": {"expansion", "high_volatility"},
 }
 
