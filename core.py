@@ -19,7 +19,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,7 +118,28 @@ ASSUMED_LEVERAGE = float(os.getenv("ASSUMED_LEVERAGE", "10"))
 MAINTENANCE_MARGIN_RATE = 0.005
 
 SCALP_PRONE_ENGINES = {"mean_reversion", "range_trading"}
-SCALP_PRONE_REGIMES = {"low_volatility", "consolidation"}
+
+# BUGFIX (v2.0.2): SCALP_PRONE_REGIMES used to be {"low_volatility",
+# "consolidation"} -- run_ensemble() skips every SCALP_PRONE_ENGINES engine
+# outright whenever the regime label is in this set, *before* composite_score
+# ever sees a candidate. But ENGINE_REGIME_FIT lists "low_volatility" and
+# "consolidation" as the home-turf fit regimes for exactly those two engines
+# (mean_reversion: ranging/consolidation/low_volatility/choppy;
+# range_trading: ranging/consolidation/choppy) -- and no other engine's fit
+# set includes "low_volatility", and only liquidity_sweep also fits
+# "consolidation". Net effect: in "low_volatility" every engine was
+# unreachable (0 eligible, a complete deterministic blackout, same failure
+# shape as the choppy bug fixed in v2.0.1 -- just missed for this label),
+# and in "consolidation" only liquidity_sweep survived, which itself only
+# fires on an actual last-closed-candle SFP, so signals there were reduced
+# to near-zero. Fixed by emptying this set: mean_reversion/range_trading
+# are the engines *designed* for quiet/range conditions, so vetoing them
+# specifically in their own fit regimes was never protecting anything --
+# no other engine could reach eligibility there anyway. If a genuine need
+# to suppress these two engines under some other condition (e.g. extremely
+# thin liquidity) comes up later, gate it on something other than a regime
+# label already claimed by their own ENGINE_REGIME_FIT entry.
+SCALP_PRONE_REGIMES: set[str] = set()
 
 PENDING_ENTRY_EXPIRY_BARS = {
     "15m": 8,
