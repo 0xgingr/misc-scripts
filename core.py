@@ -267,7 +267,13 @@ class StateStore:
             loaded = {}
         state = default_state()
         _deep_merge_defaults(loaded, state)
-        return state
+        # BUGFIX: _deep_merge_defaults mutates `loaded` in place (filling any
+        # keys missing vs. a fresh default_state()); the merged, USED state
+        # is therefore `loaded`, not the untouched `state` default object.
+        # Returning `state` here discarded everything ever persisted to
+        # state.json (engine weights, confidence calibration, active
+        # signals, circuit breaker) on every single load.
+        return loaded
 
     def save(self, state: dict) -> None:
         tmp = self.path.with_suffix(".tmp")
