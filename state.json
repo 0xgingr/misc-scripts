@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 41,
-        "seen": 42
+        "killed": 42,
+        "seen": 44
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 42
+        "seen": 44
       }
     },
     "forensic_categories": {
@@ -203,7 +203,59 @@
     }
   },
   "tier2": {
-    "active_signals": [],
+    "active_signals": [
+      {
+        "buffer_to_risk_ratio": 0.7000000000000333,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-19T16:47:20.408245+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 0.5952,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": true,
+        "id": "APTUSDT-mean_reversion-1784479640408",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.48,
+          "label": "low_volatility",
+          "liquidity_draw": 0.22561863173216884,
+          "macro_bias": -1.0,
+          "noise_index": 0.9777296052297323,
+          "session_open_proximity": 0.0,
+          "session_weight": 0.75,
+          "trend_strength": 23.009906074470074,
+          "volatility_pctile": 2.0
+        },
+        "regime_best_fit": [
+          "choppy",
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 2.4000000000000665,
+        "rr2": 2.6000000000000445,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.5942,
+        "symbol": "APTUSDT",
+        "tg_message_id": 3972,
+        "tp1": 0.5976,
+        "tp2": 0.5978,
+        "watermark_ts": null
+      }
+    ],
     "trade_log": [
       {
         "adaptive_response": "no_change_insufficient_sample",
