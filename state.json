@@ -2,10 +2,10 @@
   "schema_version": 1,
   "tier1": {
     "baseline": {
-      "avg_rr": null,
-      "n": 0,
+      "avg_rr": 1.8749999999998785,
+      "n": 1,
       "profit_factor": null,
-      "win_rate": null
+      "win_rate": 1.0
     },
     "circuit_breaker": {
       "active": false,
@@ -123,10 +123,42 @@
       "volatility_expansion": {}
     },
     "segments": {
-      "asset": {},
-      "engine": {},
-      "regime": {},
-      "timeframe": {}
+      "asset": {
+        "APTUSDT": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.8749999999998785,
+          "wins": 1
+        }
+      },
+      "engine": {
+        "mean_reversion": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.8749999999998785,
+          "wins": 1
+        }
+      },
+      "regime": {
+        "low_volatility": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.8749999999998785,
+          "wins": 1
+        }
+      },
+      "timeframe": {
+        "intraday": {
+          "losses": 0,
+          "n": 1,
+          "sum_hold_min": 0.0,
+          "sum_r": 1.8749999999998785,
+          "wins": 1
+        }
+      }
     },
     "session_anchor_bucket": {
       "anchored": {
@@ -138,10 +170,10 @@
       },
       "non_anchored": {
         "losses": 0,
-        "n": 0,
+        "n": 1,
         "sum_hold_min": 0.0,
-        "sum_r": 0.0,
-        "wins": 0
+        "sum_r": 1.8749999999998785,
+        "wins": 1
       }
     },
     "session_open_weight": 0.05,
@@ -164,15 +196,17 @@
     "totals": {
       "expired": 0,
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "sum_hold_min": 0.0,
-      "sum_r": 0.0,
-      "wins": 0
+      "sum_r": 1.8749999999998785,
+      "wins": 1
     }
   },
   "tier2": {
-    "active_signals": [
+    "active_signals": [],
+    "trade_log": [
       {
+        "adaptive_response": "no_change_insufficient_sample",
         "buffer_to_risk_ratio": 0.8750000000000173,
         "combo": "intraday",
         "confidence": 0.45,
@@ -186,15 +220,17 @@
         "direction": "bullish",
         "engine": "mean_reversion",
         "entry": 0.5976,
-        "entry_filled": false,
+        "entry_filled": true,
         "entry_kind": "market",
-        "filled_ts": null,
+        "filled_ts": 1784464200000,
         "filter_margin_thin": true,
+        "forensic_category": "genuine_variance",
         "id": "APTUSDT-mean_reversion-1784463388674",
         "liquidity_pool_hit": false,
         "ltf_tf": "15m",
         "mtf_aligned": true,
         "pending_bars": 0,
+        "r_multiple": 1.8749999999998785,
         "regime_at_entry": {
           "breadth": 0.48,
           "label": "low_volatility",
@@ -212,6 +248,8 @@
           "low_volatility",
           "ranging"
         ],
+        "resolved_at": "2026-07-19T12:46:08.562125+00:00",
+        "result": "win",
         "rr1": 1.8749999999998785,
         "rr2": 2.8749999999998788,
         "session_anchored": false,
@@ -221,9 +259,8 @@
         "tg_message_id": 3963,
         "tp1": 0.5991,
         "tp2": 0.5999,
-        "watermark_ts": null
+        "watermark_ts": 1784464200000
       }
-    ],
-    "trade_log": []
+    ]
   }
 }
