@@ -19,7 +19,7 @@ import requests
 
 ENGINE_NAME = "VANTAGE ANNEX"
 ENGINE_SLUG = "vantage_annex"
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -82,6 +82,18 @@ MIN_MOVE_PCT_TP2 = 0.020
 MIN_MOVE_ATR_TP1 = 0.5
 MIN_MOVE_ATR_TP2 = 0.8
 
+# NEW (v2.0.3): SL previously had a MAX_MOVE ceiling (stop can't be
+# unreasonably far) but no MIN_MOVE floor (stop could sit right on top of
+# entry). Combined with the _atr_pct_bound floor bug above, a low-vol
+# structural SL could clear every existing gate while sitting a fraction
+# of a percent from entry -- easy to clip on noise, and it also compresses
+# TP1's R-multiple in dollar terms even when the RR *ratio* still passes
+# RR_MIN_GATE. Reject-only, same as the TP floors: never widens a real
+# structural SL, just declines to trade one that's too tight to be safe.
+MIN_MOVE_PCT_SL_INTRADAY = 0.006
+MIN_MOVE_PCT_SL_SWING = 0.010
+MIN_MOVE_ATR_SL = 0.5
+
 ENTRY_MIN_DIST_ATR_INTRADAY = 0.15
 ENTRY_MIN_DIST_ATR_SWING = 0.25
 ENTRY_MAX_PENDING_ATR_INTRADAY = 2.5
@@ -113,6 +125,33 @@ def _atr_pct_bound(entry: float, atr_val: float, atr_mult: float, pct: float) ->
     if atr_val <= 1e-12:
         return pct_cap
     return min(atr_val * atr_mult, pct_cap)
+
+
+def _atr_pct_floor(entry: float, atr_val: float, atr_mult: float, pct: float) -> float:
+    """max(ATR-relative distance, flat-% distance). Floor-only counterpart
+    to _atr_pct_bound.
+
+    BUGFIX (v2.0.3): _atr_pct_bound() was being reused for both ceilings
+    (MAX_MOVE_*) and floors (MIN_MOVE_*) with the same min() operator. For a
+    ceiling that's correct -- min(atr_term, pct_cap) enforces both limits,
+    since exceeding either one should reject. For a floor it's backwards:
+    min() picks whichever minimum is *smaller*, so the flat-% floor can
+    never bind tighter than the ATR-scaled one -- it only ever bound looser.
+    In a low-volatility regime the ATR term shrinks below the flat-% floor,
+    min() selects that shrunken ATR term, and the flat-% "backstop" never
+    actually backstops anything. Net effect: TP1/TP2 minimum-distance gates
+    silently collapsed toward zero in exactly the low-vol regime they were
+    meant to guard, producing signals with real but economically
+    negligible profit targets (e.g. sub-0.5% TP1 on a 1.2%-floor setting).
+    Fixed by giving floors their own helper that takes max(), so a
+    real level must clear BOTH the ATR-relative minimum AND the flat-%
+    minimum -- the flat % now genuinely acts as a backstop instead of
+    being silently overridden. Reject if actual distance < this."""
+    pct_floor = entry * pct
+    if atr_val <= 1e-12:
+        return pct_floor
+    return max(atr_val * atr_mult, pct_floor)
+
 
 ASSUMED_LEVERAGE = float(os.getenv("ASSUMED_LEVERAGE", "10"))
 MAINTENANCE_MARGIN_RATE = 0.005
@@ -1172,6 +1211,11 @@ def build_risk_plan(direction: str, entry: float, structural_sl: float, view: TF
     if risk > max_sl_dist:
         return None
 
+    min_sl_pct = MIN_MOVE_PCT_SL_INTRADAY if combo == "intraday" else MIN_MOVE_PCT_SL_SWING
+    min_sl_dist = _atr_pct_floor(entry, atr_val_now, MIN_MOVE_ATR_SL, min_sl_pct)
+    if risk < min_sl_dist:
+        return None
+
     liq = estimate_liquidation_price(direction, entry)
     if direction == "bullish" and sl <= liq:
         return None
@@ -1190,9 +1234,9 @@ def build_risk_plan(direction: str, entry: float, structural_sl: float, view: TF
     else:
         assert tp2 < tp1, "TP ordering integrity violated (bearish)"
 
-    if abs(tp1 - entry) < _atr_pct_bound(entry, atr_val_now, MIN_MOVE_ATR_TP1, MIN_MOVE_PCT_TP1):
+    if abs(tp1 - entry) < _atr_pct_floor(entry, atr_val_now, MIN_MOVE_ATR_TP1, MIN_MOVE_PCT_TP1):
         return None
-    if abs(tp2 - entry) < _atr_pct_bound(entry, atr_val_now, MIN_MOVE_ATR_TP2, MIN_MOVE_PCT_TP2):
+    if abs(tp2 - entry) < _atr_pct_floor(entry, atr_val_now, MIN_MOVE_ATR_TP2, MIN_MOVE_PCT_TP2):
         return None
 
     max_tp1_pct = MAX_MOVE_PCT_TP1_INTRADAY if combo == "intraday" else MAX_MOVE_PCT_TP1_SWING
