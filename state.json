@@ -44,12 +44,12 @@
     },
     "filter_funnel": {
       "composite_eligibility": {
-        "killed": 36,
-        "seen": 36
+        "killed": 39,
+        "seen": 40
       },
       "news_blackout": {
         "killed": 0,
-        "seen": 36
+        "seen": 40
       }
     },
     "forensic_categories": {
@@ -171,7 +171,59 @@
     }
   },
   "tier2": {
-    "active_signals": [],
+    "active_signals": [
+      {
+        "buffer_to_risk_ratio": 0.8750000000000173,
+        "combo": "intraday",
+        "confidence": 0.45,
+        "confluences": [
+          "premium_discount_extreme",
+          "rsi_extreme",
+          "low_adx_range",
+          "tier:A"
+        ],
+        "created_at": "2026-07-19T12:16:28.674831+00:00",
+        "direction": "bullish",
+        "engine": "mean_reversion",
+        "entry": 0.5976,
+        "entry_filled": false,
+        "entry_kind": "market",
+        "filled_ts": null,
+        "filter_margin_thin": true,
+        "id": "APTUSDT-mean_reversion-1784463388674",
+        "liquidity_pool_hit": false,
+        "ltf_tf": "15m",
+        "mtf_aligned": true,
+        "pending_bars": 0,
+        "regime_at_entry": {
+          "breadth": 0.48,
+          "label": "low_volatility",
+          "liquidity_draw": 0.22561863173216884,
+          "macro_bias": -1.0,
+          "noise_index": 0.9777296052297323,
+          "session_open_proximity": 0.8222222222222222,
+          "session_weight": 1.0,
+          "trend_strength": 23.009906074470074,
+          "volatility_pctile": 2.0
+        },
+        "regime_best_fit": [
+          "choppy",
+          "consolidation",
+          "low_volatility",
+          "ranging"
+        ],
+        "rr1": 1.8749999999998785,
+        "rr2": 2.8749999999998788,
+        "session_anchored": false,
+        "sfp_purity": null,
+        "sl": 0.5968,
+        "symbol": "APTUSDT",
+        "tg_message_id": 3963,
+        "tp1": 0.5991,
+        "tp2": 0.5999,
+        "watermark_ts": null
+      }
+    ],
     "trade_log": []
   }
 }
