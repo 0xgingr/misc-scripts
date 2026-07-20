@@ -23,6 +23,7 @@ import argparse
 import statistics
 import threading
 import collections
+from concurrent.futures import ThreadPoolExecutor
 import urllib.request
 import urllib.error
 from dataclasses import dataclass
@@ -58,6 +59,13 @@ HL_MAX_WEIGHT_PER_MIN = 1150
 HL_REQUEST_TIMEOUT_SEC = 15
 HL_MAX_RETRIES = 4
 HL_BACKOFF_BASE_SEC = 0.75
+
+# Symbols are scanned concurrently (I/O-bound: each is mostly waiting on
+# Hyperliquid HTTP calls). All threads share HyperliquidClient's single
+# _WeightRateLimiter, so raising this doesn't bypass the weight budget --
+# it just lets more symbols queue up waiting on the same pacer instead of
+# waiting on each other one at a time. Override via env if needed.
+SCAN_WORKER_THREADS = int(os.environ.get("PRISM_SCAN_WORKERS", "6"))
 
 WATCHLIST: List[str] = [
     "BTC", "ETH", "HYPE", "ZEC", "NEAR", "ONDO", "SUI", "PENGU", "BNB", "SOL",
@@ -271,6 +279,14 @@ class HyperliquidClient:
             self.base_url, data=body,
             headers={"Content-Type": "application/json"}, method="POST",
         )
+        # Label used only for logging so retry/backoff waits are traceable to
+        # a specific request instead of showing up as an unexplained gap in
+        # the run log (previously every branch below slept in total silence).
+        req_kind = payload.get("type", "?")
+        req_args = payload.get("req")
+        coin = req_args.get("coin") if isinstance(req_args, dict) else None
+        req_label = f"{req_kind}/{coin}" if coin else req_kind
+
         last_err: Optional[Exception] = None
         for attempt in range(HL_MAX_RETRIES):
             try:
@@ -286,16 +302,26 @@ class HyperliquidClient:
                             HL_BACKOFF_BASE_SEC * (2 ** attempt) + random.uniform(0, 0.3))
                     except (TypeError, ValueError):
                         sleep_s = HL_BACKOFF_BASE_SEC * (2 ** attempt) + random.uniform(0, 0.3)
+                    log.warning(
+                        "Rate-limited (429) on %s -- attempt %d/%d, sleeping %.1fs (%s).",
+                        req_label, attempt + 1, HL_MAX_RETRIES, sleep_s,
+                        "server Retry-After" if retry_after else "local backoff")
                     time.sleep(sleep_s)
                     continue
                 if 500 <= e.code < 600:
                     sleep_s = HL_BACKOFF_BASE_SEC * (2 ** attempt) + random.uniform(0, 0.3)
+                    log.warning(
+                        "Server error (%d) on %s -- attempt %d/%d, sleeping %.1fs.",
+                        e.code, req_label, attempt + 1, HL_MAX_RETRIES, sleep_s)
                     time.sleep(sleep_s)
                     continue
                 break
             except (urllib.error.URLError, TimeoutError, OSError) as e:
                 last_err = e
                 sleep_s = HL_BACKOFF_BASE_SEC * (2 ** attempt) + random.uniform(0, 0.3)
+                log.warning(
+                    "Network error on %s (%s) -- attempt %d/%d, sleeping %.1fs.",
+                    req_label, e, attempt + 1, HL_MAX_RETRIES, sleep_s)
                 time.sleep(sleep_s)
                 continue
         log.error("Hyperliquid request failed after retries: %s (payload type=%s)",
@@ -349,12 +375,19 @@ class CandleCacheStore:
         if not isinstance(self.data, dict):
             log.warning("candle_cache.json content was not a dict -- resetting.")
             self.data = {}
+        # Multiple symbols can now be scanned concurrently (run_scan uses a
+        # thread pool); each symbol touches a different top-level key, but an
+        # explicit lock removes any doubt about interleaved get/put safety
+        # rather than relying on CPython dict-op atomicity implicitly.
+        self._lock = threading.Lock()
 
     def get(self, symbol: str, tf: str) -> List[Dict[str, Any]]:
-        return list(self.data.get(symbol, {}).get(tf, []))
+        with self._lock:
+            return list(self.data.get(symbol, {}).get(tf, []))
 
     def put(self, symbol: str, tf: str, candles: List[Dict[str, Any]]) -> None:
-        self.data.setdefault(symbol, {})[tf] = candles[-CANDLE_LOOKBACK[tf]:]
+        with self._lock:
+            self.data.setdefault(symbol, {})[tf] = candles[-CANDLE_LOOKBACK[tf]:]
 
     def save(self) -> None:
         if not _atomic_write_json(self.path, self.data):
@@ -3087,9 +3120,25 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
 
     _retry_pending_notifications(state, notifier)
 
-    for symbol in WATCHLIST:
+    def _scan_one(symbol: str) -> Tuple[str, Optional[Dict[str, FeatureSet]], Optional[Dict[str, Any]]]:
+        # Runs on a worker thread. scan_symbol only *reads* state/cache during
+        # this phase (state mutation happens below, back on the main thread,
+        # once every symbol's result is in) so no lock is needed here beyond
+        # the ones already added to CandleCacheStore and the pacer.
         try:
             mtf_features, sig = scan_symbol(client, cache, state, symbol, now_ms)
+            return symbol, mtf_features, sig
+        except Exception:
+            log.exception("Unhandled exception scanning %s -- skipping this asset for this run.", symbol)
+            return symbol, None, None
+
+    # Symbols are I/O-bound (waiting on Hyperliquid HTTP calls), so a small
+    # thread pool lets that waiting overlap instead of serializing 25 symbols
+    # one after another. pool.map still yields results in WATCHLIST order
+    # even though the underlying work completes out of order, so downstream
+    # bookkeeping (per_asset_stats, log ordering, etc.) is unchanged.
+    with ThreadPoolExecutor(max_workers=SCAN_WORKER_THREADS) as pool:
+        for symbol, mtf_features, sig in pool.map(_scan_one, WATCHLIST):
             if mtf_features:
                 mtf_features_by_symbol[symbol] = mtf_features
             else:
@@ -3100,9 +3149,6 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
                     new_watch_alerts.append(sig)
                 else:
                     new_signals.append(sig)
-        except Exception:
-            log.exception("Unhandled exception scanning %s -- skipping this asset for this run.", symbol)
-            skipped.append(symbol)
 
     log.info("Scan complete: %d/%d assets evaluated, %d skipped, %d signals generated, %d watch-tier alerts.",
               len(WATCHLIST) - len(skipped), len(WATCHLIST), len(skipped), len(new_signals), len(new_watch_alerts))
