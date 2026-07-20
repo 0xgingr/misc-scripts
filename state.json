@@ -81,6 +81,7 @@
         "recent_trend": []
       }
     },
+    "last_daily_summary_date": "2026-07-20",
     "liquidity_sanity_threshold": {
       "breaker_block": 0.5,
       "breakout": 0.5,
