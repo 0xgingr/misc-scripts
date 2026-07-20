@@ -81,6 +81,17 @@ CANDLE_LOOKBACK: Dict[str, int] = {
 CANDLE_STALE_AFTER_SEC: Dict[str, int] = {
     "1D": 3 * 86400, "4H": 6 * 3600, "1H": 3 * 3600, "30M": 2 * 3600, "15M": 45 * 60,
 }
+CANDLE_REFETCH_OVERLAP_BARS: Dict[str, int] = {
+    # On every incremental fetch, re-request this many already-cached
+    # trailing *closed* candles (in addition to anything newer) instead of
+    # starting exactly at the last cached timestamp. The merge step below
+    # overwrites the cached rows with whatever comes back, so this makes the
+    # cache self-healing against an exchange-side candle that was still
+    # finalizing (missing/short-lived stale close) at the moment a previous
+    # run fetched it. 15M is EXECUTION_TF -- what entries/exits key off of --
+    # so it gets the widest overlap; others get a minimal 1-bar safety net.
+    "1D": 1, "4H": 1, "1H": 1, "30M": 2, "15M": 3,
+}
 
 RESEARCH_PARAMS: Dict[str, Any] = {
     "min_consecutive_windows_for_weight_change": 2,
@@ -399,10 +410,12 @@ def fetch_symbol_mtf(client: HyperliquidClient, cache: CandleCacheStore, symbol:
             out[tf] = cache.get(symbol, tf)
             continue
 
-        start_ms = cached[-1]["t"]
-        if start_ms + step_ms > now_ms:
+        last_cached_t = cached[-1]["t"]
+        if last_cached_t + step_ms > now_ms:
             out[tf] = cached
             continue
+        overlap_bars = CANDLE_REFETCH_OVERLAP_BARS.get(tf, 1)
+        start_ms = max(cached[0]["t"], last_cached_t - overlap_bars * step_ms)
         fresh = client.candles(symbol, interval, start_ms, now_ms)
         if fresh is None:
             log.error("Incremental fetch failed for %s/%s -- using stale cache.", symbol, tf)
