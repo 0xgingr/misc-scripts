@@ -2961,12 +2961,13 @@ class TelegramNotifier:
         profit_factor = round(gross_profit / gross_loss, 2) if gross_loss else (round(gross_profit, 2) if gross_profit else None)
 
         e = _escape_markdown_v2
+        win_rate_str = e(f"{win_rate:.0%}") if win_rate is not None else "\\-"
         lines = [
             f"*{e(ENGINE_NAME)} {e(ENGINE_VERSION)} \\-\\- Daily Summary*",
             f"Date: {e(today)}",
             "",
             f"Total signals: {e(total)}",
-            f"Wins: {e(wins)}   Losses: {e(losses)}   Win rate: {e(f'{win_rate:.0%}') if win_rate is not None else '\\-'}",
+            f"Wins: {e(wins)}   Losses: {e(losses)}   Win rate: {win_rate_str}",
             f"Profit factor: {e(profit_factor) if profit_factor is not None else '\\-'}",
             f"Avg risk/reward: {e(avg_rr) if avg_rr is not None else '\\-'}",
             "",
