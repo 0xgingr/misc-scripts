@@ -2652,9 +2652,10 @@ class TelegramNotifier:
     def format_signal_message(self, sig: Dict[str, Any]) -> str:
         e = _escape_markdown_v2
         ec = _escape_markdown_v2_code
+        direction_emoji = {"LONG": "🟢", "SHORT": "🔴"}.get(sig["signal"], "")
         lines = [
             f"*{e(ENGINE_NAME)} {e(ENGINE_VERSION)}*",
-            f"{e(_clean_label(sig['symbol']))}  \\-\\-  {e(sig['signal'])}",
+            f"{e(_clean_label(sig['symbol']))}  \\-\\-  {e(sig['signal'])} {direction_emoji}",
             "",
             f"Grade: *{e(sig['grade'])}*   Confidence: *{e(sig['confidence'])}*",
             f"Regime: {e(_clean_label(sig['market_regime']))}   Trend: {e(sig['trend'])}",
@@ -2718,21 +2719,19 @@ class TelegramNotifier:
         if status not in SIGNAL_STATUSES:
             log.error("Refusing to dispatch unknown status '%s' -- not in fixed status set.", status)
             return False
+        if status not in ("TP1", "SL"):
+            return True
         symbol = _escape_markdown_v2(_clean_label(sig_record["symbol"]))
         engine = _escape_markdown_v2(ENGINE_NAME)
         header_map = {
-            "Pending": f"{engine} \\-\\- {symbol} Pending \\(awaiting entry\\)",
-            "Activated": f"{engine} \\-\\- {symbol} Activated \\(entry filled\\)",
             "TP1": f"{engine} \\-\\- {symbol} TP1 Hit \\(Win\\)",
             "SL": f"{engine} \\-\\- {symbol} Stop Loss Hit \\(Loss\\)",
-            "Expired": f"{engine} \\-\\- {symbol} Expired \\(No Fill\\)",
-            "Closed": f"{engine} \\-\\- {symbol} Closed",
-            "Cancelled": f"{engine} \\-\\- {symbol} Cancelled",
         }
         text = f"*{header_map[status]}*"
         reply_id = sig_record.get("telegram_message_id")
         message_id = self.send_message(text, reply_to_message_id=reply_id)
         return message_id is not None or not self.enabled
+
 
     def dispatch_daily_summary(self, state: Dict[str, Any]) -> None:
         today = _utcnow().strftime("%Y-%m-%d")
