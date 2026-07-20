@@ -160,7 +160,7 @@ assert EXIT_MODEL == "full_exit_at_tp1"
 
 SIGNAL_STATUSES = ("Pending", "Activated", "TP1", "SL", "Expired", "Closed", "Cancelled")
 
-REACTION_EMOJI = "\U0001F4CC"
+REACTION_EMOJI = "\U0001F4AF"  # 💯 -- must be one of Telegram's fixed standard reaction emoji
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
