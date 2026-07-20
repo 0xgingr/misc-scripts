@@ -30,62 +30,7 @@ logging.Formatter.converter = time.gmtime
 log = logging.getLogger("PRISM")
 
 ENGINE_NAME = "PRISM"
-ENGINE_VERSION = "1.1.3"
-# v1.1.3 changelog: reconciles two branches that had independently diverged
-# from v1.1.2 -- this one (AUDIT-*/FREQ-* fixes below) and a separate
-# signal-quality pass that fixed trend_reliability discounting, an MTF-
-# alignment scoring cliff, and internal-trend-vs-EMA conflict handling.
-# Neither branch had the other's fixes; this version has all of them.
-#   RECONCILE-1  trend_reliability restored: BOS/CHoCH/RSI/MACD confluence
-#                credit is scaled down when trend_direction's underlying
-#                vote was marginal (trend_strength < 60), instead of always
-#                crediting full weight regardless of vote margin.
-#   RECONCILE-2  risk-category MTF-alignment scoring restored to a single
-#                continuous term (alignment_score * 100). The AUDIT/FREQ
-#                branch had reintroduced a flat +50 "mtf.aligned" bonus on
-#                top of a halved continuous term, recreating the cliff a
-#                prior fix had removed. FREQ1's new soft_conflict penalty is
-#                kept, unchanged, at the risk-category level.
-#   RECONCILE-3  internal-trend-vs-EMA/ADX conflict discount restored to
-#                composite (total *= 0.85) rather than risk-category-only,
-#                so the other six categories can no longer fully offset a
-#                genuine structure-vs-indicator disagreement.
-#   RECONCILE-4  RR floor reverted 1.2 -> 1.5. The AUDIT/FREQ branch had
-#                silently lowered it with no tag and no comment -- the one
-#                unexplained numeric change in that branch. Restored pending
-#                an explicit, documented rationale for loosening it.
-# v1.1.2 changelog (in response to the v1.1.1 audit report):
-#   AUDIT-H1  evaluate_liquidity(): PDH/PDL off-by-one-day fixed.
-#   AUDIT-H2  _find_liquidity_pools(): sweep window now inherits the L6 fix
-#             (configurable lookback/confirm bars) instead of a stale
-#             hardcoded 5/3-bar window.
-#   AUDIT-M3  CORRELATION_MIN_OVERLAP_BARS widened 20 -> 60 bars.
-#   AUDIT-M4  Correlation-fallback bucket map replaced with sector buckets.
-#   AUDIT-M5  Portfolio guardrail daily-loss/drawdown math now uses each
-#             trade's actually-recorded risk_pct_of_equity instead of
-#             assuming every trade was sized at the flat risk_per_trade_pct
-#             -- correct under Kelly sizing as well as fixed-risk sizing.
-#   AUDIT-L7  Unused `equity` var removed from _check_portfolio_guardrails
-#             (superseded by the AUDIT-M5 fix, which needed real per-trade
-#             risk data instead).
-#   AUDIT-L8  SignalDecision.fired_features annotation corrected to Optional.
-#   AUDIT-L11 _pivot_compare_divergence() given an explicit recency cap,
-#             matching its sibling SMC-detection functions.
-#   FREQ1     aggregate_mtf(): the hard Daily-vs-4H veto now only fires when
-#             both reads are reasonably confident (trend_strength above a
-#             configurable floor); a conflict where one side is a marginal
-#             read is no longer a hard veto -- it becomes a heavy, visible
-#             penalty on the risk-category score instead, so a genuinely
-#             strong aligned setup is no longer discarded before the other
-#             sub-engines even run. The confluence_threshold bar itself is
-#             unchanged.
-#   FREQ2     New watch-tier: setups scoring below confluence_threshold but
-#             above watch_tier_threshold are surfaced as a clearly-labeled,
-#             non-tradeable "developing setup" notification. They never
-#             touch active_signals, portfolio guardrails, correlation
-#             gating, or win-rate stats -- purely informational, so they
-#             cannot dilute signal quality or the feature-weight evidence
-#             trail that only real signals feed.
+ENGINE_VERSION = "1.1.4"
 
 TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID", "")
@@ -154,24 +99,9 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
     "kelly_mode_enabled": False,
     "kelly_fraction_cap": 0.5,
     "daily_summary_hour_utc": 8,
-    # L6 fix: previously hard-coded as recent[-6:] / recent[idx:idx+3]
-    # (~1.5h lookback / ~45min confirm window on 15M), which missed a valid
-    # sweep-and-reclaim that took longer to close back inside range. Widened
-    # and made configurable rather than magic numbers buried in the function.
     "liquidity_sweep_lookback_bars": 12,
     "liquidity_sweep_confirm_bars": 6,
-    # FREQ2: setups scoring in [watch_tier_threshold, confluence_threshold)
-    # are surfaced as an informational "watch tier" notification instead of
-    # being silently discarded. Never gates a real trade -- confluence_threshold
-    # remains the only bar a position must clear.
     "watch_tier_threshold": 65,
-    # FREQ1: minimum TrendResult.trend_strength (0-100) BOTH the Daily and 4H
-    # reads must have for a direct Daily-vs-4H directional conflict to hard-
-    # veto a symbol before the other sub-engines run. Below this floor on
-    # either side, the conflict is treated as a soft, visible penalty on the
-    # risk-category score (see aggregate_mtf/score_confluence) rather than an
-    # outright veto -- a low-conviction Daily flip (e.g. one weak vote) should
-    # not by itself discard a strongly-aligned 4H-1H-30M-15M setup.
     "mtf_veto_strength_floor": 40.0,
 }
 
@@ -460,14 +390,6 @@ def fetch_symbol_mtf(client: HyperliquidClient, cache: CandleCacheStore, symbol:
             out[tf] = cache.get(symbol, tf)
             continue
 
-        # H7 defense-in-depth: re-request starting at the last cached
-        # candle's OWN timestamp, not one interval past it. Combined with
-        # H6 above, cached[-1] should always already be a genuinely closed
-        # candle -- but if it was ever cached while still forming (clock
-        # skew between this host and the exchange, a run landing exactly on
-        # a boundary, etc.), this re-fetches it and the merge below lets the
-        # fresh value overwrite the frozen one, instead of never requesting
-        # it again.
         start_ms = cached[-1]["t"]
         if start_ms + step_ms > now_ms:
             out[tf] = cached
@@ -479,9 +401,6 @@ def fetch_symbol_mtf(client: HyperliquidClient, cache: CandleCacheStore, symbol:
             continue
         fresh = _drop_unclosed_candles(fresh, step_ms, now_ms)
         fresh_ts = {c["t"] for c in fresh}
-        # Fresh rows supersede any cached row at the same timestamp (this is
-        # what actually fixes H7: a previously-frozen candle gets replaced
-        # with its final closed values rather than skipped forever).
         merged = [c for c in cached if c["t"] not in fresh_ts] + fresh
         merged.sort(key=lambda r: r["t"])
         cache.put(symbol, tf, merged)
@@ -1331,13 +1250,6 @@ def _find_liquidity_pools(fs: FeatureSet, tolerance_pct: float) -> List[Liquidit
     if sl_idx:
         pools.append(LiquidityPool("sell_side", fs.lows[sl_idx[-1]], [sl_idx[-1]]))
 
-    # AUDIT-H2 fix: this loop does the same conceptual job as
-    # evaluate_liquidity()'s PDH/PWH/session-high sweep detection but had not
-    # inherited the L6 fix, which widened that sibling's hardcoded ~6-bar
-    # lookback / ~3-bar confirm window to a configurable 12/6 specifically to
-    # catch a sweep-and-reclaim that takes longer to close back inside range.
-    # Route through the same PRODUCTION_PARAMS keys so both sweep-detection
-    # paths move together instead of silently diverging after future tuning.
     lookback_bars = PRODUCTION_PARAMS["liquidity_sweep_lookback_bars"]
     confirm_bars = PRODUCTION_PARAMS["liquidity_sweep_confirm_bars"]
     last_i = n - 1
@@ -1639,13 +1551,6 @@ def evaluate_liquidity(mtf_features: Dict[str, FeatureSet]) -> Optional[Liquidit
     reasons: List[str] = []
 
     pdh = pdl = pwh = pwl = None
-    # AUDIT-H1 fix: H6 (v1.1.1) now trims any still-forming candle -- including
-    # today's in-progress daily candle -- before it ever reaches
-    # build_feature_set. That means fs_1d.candles[-1] is already the last
-    # CLOSED day (yesterday), so PDH/PDL is the [-1] index, not [-2]. The old
-    # [-2] read pointed one day further back than intended, a regression
-    # introduced by H6's correctly-motivated fix rippling into this sibling
-    # read. Guard relaxed to >= 1 closed daily candle accordingly.
     if fs_1d and len(fs_1d.candles) >= 1:
         pdh, pdl = fs_1d.highs[-1], fs_1d.lows[-1]
     fs_4h = mtf_features.get("4H")
@@ -1692,11 +1597,6 @@ def evaluate_liquidity(mtf_features: Dict[str, FeatureSet]) -> Optional[Liquidit
                 if closed_back:
                     sweep_events.append(f"{name} ({level:.6g}) swept then closed back inside range")
                     if name in ("PWH", "PWL"):
-                        # L5 fix: this level is "last 7 days of 4H candles minus
-                        # the most recent ~1 day," not a real calendar week --
-                        # surface that approximation whenever it actually
-                        # contributed to a detected sweep, instead of silently
-                        # treating it as an exact weekly high/low.
                         sweep_events.append(
                             f"(Note: {name} is an approximate rolling-week high/low from 4H candles, "
                             "not an exact calendar week)"
@@ -1708,10 +1608,7 @@ def evaluate_liquidity(mtf_features: Dict[str, FeatureSet]) -> Optional[Liquidit
                     confirmed = True
                     break
             if confirmed:
-                # Confirmed sweep found for this level -- stop scanning this level.
                 break
-            # Not confirmed: keep scanning later candles in the window for a
-            # genuine sweep instead of abandoning the level entirely.
 
     if sweep_events:
         reasons.extend(sweep_events)
@@ -1727,9 +1624,6 @@ class MTFResult:
     veto: bool
     veto_reason: Optional[str]
     alignment_score: float
-    # FREQ1: a Daily-vs-4H conflict that exists but didn't clear the
-    # mtf_veto_strength_floor on both sides -- not a hard veto, but scored as
-    # an explicit, visible penalty (see score_confluence).
     soft_conflict: bool = False
     soft_conflict_reason: Optional[str] = None
 
@@ -1851,15 +1745,6 @@ def score_confluence(
     bullish_bias = trend.trend_direction == "bullish"
     bearish_bias = trend.trend_direction == "bearish"
 
-    # RECONCILE (restored from the pre-AUDIT/FREQ v1.1.2 branch, dropped in
-    # the branch that produced the AUDIT-*/FREQ-* fixes below): trend_direction
-    # is a bare-majority vote in evaluate_trend (e.g. a 4-3 split produces the
-    # same "bullish" as a 7-0 split; only trend_strength reflects the margin,
-    # and nothing else here gates on it). Every "agreement with bias"
-    # condition below was crediting a weak, unreliable trend read as if it
-    # were independent confluence. trend_reliability scales that credit down
-    # when the underlying vote was marginal, instead of an all-or-nothing
-    # gate that would suppress signals outright on a merely-average read.
     TREND_STRENGTH_AGREEMENT_FLOOR = 60.0
     trend_reliability = (
         min(1.0, trend.trend_strength / TREND_STRENGTH_AGREEMENT_FLOOR)
@@ -1908,12 +1793,6 @@ def score_confluence(
     cat["momentum"] = min(100.0, m_raw)
     reasons["momentum"].extend(momentum.reasons)
 
-    # RECONCILE: liquidity/SMC-zone and volume conditions below also gate on
-    # bullish_bias/bearish_bias, but they're independent price-action/order-flow
-    # evidence (order blocks, FVGs, CMF/OBV) rather than restatements of the
-    # trend vote itself -- unlike structure's BOS/CHoCH and momentum's RSI/MACD
-    # checks above, discounting them by trend_reliability isn't warranted and
-    # is left out deliberately.
     dir_kind = "bullish" if bullish_bias else ("bearish" if bearish_bias else None)
     fresh_ob_aligned = dir_kind is not None and any(
         ob.kind == dir_kind and not ob.breaker and not ob.mitigated for ob in smc.order_blocks)
@@ -1971,13 +1850,6 @@ def score_confluence(
         reasons["volatility"].append("Stop-placement quality unfavorable at current volatility")
     reasons["volatility"].extend(volatility.reasons)
 
-    # L3 fix: structure.internal_trend (swing-high/low based) and
-    # trend.trend_direction (EMA/SMA/ADX based) are computed from
-    # overlapping but not identical evidence and were never reconciled
-    # anywhere before scoring -- only bos's directional check (and, after the
-    # H1 fix, choch's) touched trend_direction at all. Make the agreement
-    # between the two an explicit, visible risk-category condition: a soft
-    # signal (a few points either way), not a new hard veto.
     internal_vs_trend_agree = (
         (bullish_bias or bearish_bias)
         and structure.internal_trend != "neutral"
@@ -1993,20 +1865,7 @@ def score_confluence(
          "Internal (swing) structure trend agrees with the EMA/ADX trend read"),
     ]
     r_raw, _, r_fired = _weighted_condition_score(risk_conditions, feature_weights)
-    # RECONCILE (restored): mtf.aligned (alignment_score >= 0.75) used to add
-    # a flat +50 on top of a continuous alignment_score*50 term, producing a
-    # cliff -- one fewer HTF agreeing (alignment_score 0.75 -> 0.5, a single
-    # timeframe) dropped this category's HTF contribution from 87.5 to 25. A
-    # single continuous term removes the step so a marginal HTF read costs
-    # proportionally instead of falling off a ledge. The AUDIT/FREQ branch
-    # this file was based on had reintroduced the flat+cliff combination;
-    # restored to continuous-only here.
     r_raw += mtf.alignment_score * 100
-    # FREQ1: a below-strength-floor Daily-vs-4H conflict (soft_conflict) no
-    # longer triggers aggregate_mtf's hard veto/early-exit, but it still needs
-    # to cost something here so the confluence_threshold bar isn't cheapened
-    # -- a heavier penalty than the internal/EMA disagreement above, since a
-    # cross-timeframe directional conflict is a stronger caution signal.
     if mtf.soft_conflict:
         r_raw *= 0.70
     cat["risk"] = min(100.0, r_raw)
@@ -2021,15 +1880,6 @@ def score_confluence(
 
     total = sum(cat[k] * weights[k] / 100.0 for k in cat)
 
-    # RECONCILE (restored): internal_vs_trend_conflict used to discount only
-    # the risk category's own sub-score, so the other six categories could
-    # fully offset a genuine structure-vs-EMA/ADX disagreement and the setup
-    # could still clear threshold. Under SMC methodology structure should
-    # lead indicator-trend, so a real conflict between the two is treated as
-    # a composite-level caution, not a single-category one. (The soft_conflict
-    # penalty just above stays at the risk-category level -- that one is a
-    # cross-timeframe read disagreement, a different and narrower concern
-    # than this same-timeframe structure-vs-indicator conflict.)
     if internal_vs_trend_conflict:
         total *= 0.85
 
@@ -2062,13 +1912,7 @@ class SignalDecision:
     confidence: float
     grade: str
     reasons: List[str]
-    # AUDIT-L8 fix: was `List[str] = None`, an invalid annotation (the
-    # declared type didn't include None even though the default was None).
     fired_features: Optional[List[str]] = None
-    # FREQ2: "signal" = clears confluence_threshold, a real trade candidate.
-    # "watch" = clears watch_tier_threshold but not confluence_threshold --
-    # informational only, never a trade. "none" = below watch_tier_threshold
-    # or no directional edge.
     tier: str = "none"
 
 def _entry_engine(
@@ -2154,10 +1998,6 @@ def build_signal_decision(
     threshold = PRODUCTION_PARAMS["confluence_threshold"]
     watch_threshold = PRODUCTION_PARAMS["watch_tier_threshold"]
     direction = confluence.direction
-    # FREQ2: below watch_tier_threshold (or no directional edge at all) is
-    # still a hard no -- this floor is unchanged in spirit from v1.1.1's
-    # single threshold, just renamed to reflect that it's now the floor for
-    # the lower of two tiers rather than the only tier.
     if confluence.total_score < watch_threshold or direction == "WAIT":
         return SignalDecision(
             "WAIT", None, None, None, None, None, None, "-", 0.0,
@@ -2177,13 +2017,6 @@ def build_signal_decision(
     risk = abs(entry - stop)
     reward = abs(tp1 - entry)
     rr = round(reward / risk, 2) if risk else None
-    # RECONCILE: the AUDIT/FREQ branch this file was based on had silently
-    # lowered this floor from 1.5 to 1.2, with no AUDIT-/FREQ- tag and no
-    # comment anywhere near it -- the only unexplained numeric change in an
-    # otherwise fully-documented patch. Reverted to the original, deliberate
-    # 1.5 floor pending an explicit, documented rationale for loosening it:
-    # at 1.5 the system needs ~40% win rate to break even; at 1.2 it needs
-    # ~45.5%, a real edge reduction that shouldn't ship without sign-off.
     if rr is None or rr < 1.5:
         return SignalDecision(
             "WAIT", None, None, None, None, None, None, "-", 0.0,
@@ -2195,10 +2028,6 @@ def build_signal_decision(
     win_prob = _win_probability_estimate(confluence.total_score, calibration)
     grade = score_to_grade(confluence.total_score)
     holding_time = _holding_time_estimate(regime.market_regime, volatility)
-    # FREQ2: confluence_threshold (80) remains the only bar a REAL trade
-    # signal must clear -- unchanged from v1.1.1. A score in
-    # [watch_threshold, threshold) now produces a "watch" tier decision
-    # instead of being silently discarded as WAIT.
     tier = "signal" if confluence.total_score >= threshold else "watch"
 
     reasons: List[str] = []
@@ -2218,25 +2047,8 @@ def build_signal_decision(
         fired_features=list(confluence.fired_features), tier=tier,
     )
 
-# AUDIT-M3 fix: 20 bars (~5 hours on 15M) gives a Pearson estimate with a
-# standard error of ~0.24 -- a measured 0.80 could genuinely be anywhere from
-# ~0.55 to 1.0. The 900-bar 15M cache already holds far more history than
-# this used, so widening costs no extra data fetching. 60 bars (~15 hours)
-# roughly halves the standard error to ~0.13 while still reacting to
-# regime-relevant recent correlation rather than averaging over weeks.
 CORRELATION_MIN_OVERLAP_BARS = 60
 
-# AUDIT-M4 fix: the v1.1.1 fallback treated all 23 non-BTC/ETH watchlist
-# assets as one undifferentiated "alts" bucket, so e.g. a same-direction
-# signal on a payments token would veto a same-direction signal on an
-# unrelated AI-infra token purely because neither is BTC/ETH -- bluntest
-# during cache warm-up but recurring after any fetch gap. Sector buckets are
-# only ever consulted as the FALLBACK when there isn't enough overlapping
-# cached history for a real Pearson calculation (see
-# evaluate_correlation_risk_gate); the real correlation check is unaffected
-# and remains primary. Any watchlist symbol not explicitly listed falls back
-# to its own single-symbol bucket (i.e. no fallback-only veto against it),
-# which is strictly safer than silently lumping it into "alts".
 CORRELATION_SECTOR_BUCKETS: Dict[str, str] = {
     "BTC": "majors", "ETH": "majors",
     "SOL": "l1_smart_contract", "NEAR": "l1_smart_contract", "SUI": "l1_smart_contract",
@@ -2343,12 +2155,6 @@ class PositionSizeResult:
     position_size_units: Optional[float]
     risk_amount: Optional[float]
     notes: List[str]
-    # AUDIT-M5: the actual fraction of account_equity this trade risks, as a
-    # percentage -- equal to risk_per_trade_pct under fixed sizing, but can
-    # diverge under Kelly sizing (capped at kelly_fraction_cap). Recorded so
-    # _check_portfolio_guardrails can compute real, sizing-mode-independent
-    # daily-loss/drawdown percentages instead of assuming every trade used
-    # the flat risk_per_trade_pct.
     risk_pct_of_equity: Optional[float] = None
 
 def _check_portfolio_guardrails(state: Dict[str, Any], open_positions: List[Dict[str, Any]],
@@ -2360,18 +2166,6 @@ def _check_portfolio_guardrails(state: Dict[str, Any], open_positions: List[Dict
     if len(open_positions) >= p["max_concurrent_positions"]:
         return f"Max concurrent positions reached ({len(open_positions)}/{p['max_concurrent_positions']})."
 
-    # AUDIT-M5 fix: both guardrails below previously multiplied a sum of
-    # R-multiples by the flat `risk_per_trade_pct`, which silently assumes
-    # every trade was sized at exactly that percentage. That's exact under
-    # fixed-risk sizing but wrong under Kelly sizing (`kelly_mode_enabled`),
-    # where actual risk per trade varies with the Kelly fraction (capped at
-    # `kelly_fraction_cap`) and can diverge materially from the flat
-    # assumption -- silently under- or over-estimating real drawdown. Both
-    # now multiply each trade's R-multiple by that SAME trade's actual
-    # recorded `risk_pct_of_equity` (AUDIT-M5, see compute_position_size /
-    # monitor_active_signals), falling back to the flat pct only for
-    # legacy records that predate this field. This is correct under either
-    # sizing mode without needing to gate Kelly mode off.
     today = _utcnow().strftime("%Y-%m-%d")
     day_bucket = state.get("daily_stats", {}).get(today, {})
     rr_list = day_bucket.get("rr_list", [])
@@ -2457,10 +2251,6 @@ def compute_position_size(
         size_units *= p["portfolio_exposure_cap_pct"] / exposure_pct
         notes.append("Position trimmed to respect portfolio exposure cap.")
 
-    # AUDIT-M5: risk_amount reflects the actual sizing method used above
-    # (fixed-risk-% or Kelly), so deriving risk_pct_of_equity from it here
-    # keeps the guardrail math correct under either mode without duplicating
-    # the Kelly-fraction logic.
     risk_pct_of_equity = round(risk_amount / account_equity * 100.0, 4) if account_equity else None
 
     return PositionSizeResult(method, round(size_units, 6), round(risk_amount, 2), notes, risk_pct_of_equity)
@@ -2599,8 +2389,6 @@ def update_feature_stats_from_closed_signals(state: Dict[str, Any]) -> List[str]
     for feature in CANDIDATE_FEATURES:
         relevant = [c for c in closed if feature in c.get("fired_features", [])]
         if not relevant:
-            # Backward-compatibility fallback for signals recorded before this
-            # fix, which only have free-text `reasons` and no `fired_features`.
             relevant = [c for c in closed if not c.get("fired_features") and any(
                 feature.replace("_", " ") in r.lower() or feature in r.lower()
                 for r in c.get("reasons", []))]
@@ -2719,10 +2507,6 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
     if disabled:
         warnings.append(f"Features currently disabled due to sustained underperformance: {', '.join(disabled)}")
 
-    # L1 fix: surface how much (if any) real filtering the "Activated"
-    # status is doing. Entry = the exact close of the generation candle, so
-    # near-immediate activation is expected -- but this makes it a visible,
-    # measured fact rather than a silent assumption baked into the design.
     timing = state.get("self_monitoring", {}).get("activation_timing", {})
     immediate = timing.get("immediate_1_bar", 0)
     delayed = timing.get("delayed_gt_1_bar", 0)
@@ -2812,9 +2596,6 @@ class TelegramNotifier:
                     if data.get("ok"):
                         log.info("Telegram %s dispatch: sent", method)
                         return data.get("result")
-                    # H8 fix: a 200-level response with ok=false (e.g. Telegram's
-                    # in-body 429 rate-limit signal) must back off and retry,
-                    # not drop the message on the first soft failure.
                     params = data.get("parameters") or {}
                     retry_after = params.get("retry_after")
                     if retry_after is not None and attempt < 2:
@@ -3009,10 +2790,6 @@ def _max_holding_bars_15m(holding_time_label: str) -> int:
         "2-12 hours": 12, "4-18 hours": 18, "6-24 hours": 24, "12-48 hours": 48,
     }
     if holding_time_label not in hours_map:
-        # L2 fix: this silently defaulted to 24h with no visibility at all --
-        # log it so a label drifting out of sync with _holding_time_estimate()
-        # (e.g. after a future edit to one but not the other) is noticed
-        # immediately instead of quietly changing every signal's max-hold rule.
         log.warning("Unrecognized holding_time label %r -- defaulting max-hold to 24h.", holding_time_label)
     return int(hours_map.get(holding_time_label, 24) * 4)
 
@@ -3033,10 +2810,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
             continue
         fs = fs_map[EXECUTION_TF]
 
-        # C6 fix: resolve against every candle closed since the last time this
-        # signal was checked (a per-signal watermark), not just the single
-        # most-recently-fetched bar. This correctly catches missed runs where
-        # fetch_symbol_mtf's incremental merge picked up multiple new candles.
         watermark = record.get("last_checked_candle_t")
         candles = fs.candles
         if watermark is None:
@@ -3065,10 +2838,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
             if touched:
                 record["activated"] = True
                 record["bars_to_activate"] = bars_to_touch
-                # L1 instrumentation: entry = the generation candle's own
-                # close, so activation is expected to fire almost
-                # immediately in most cases -- track the real distribution
-                # instead of leaving that a silent, unmeasured assumption.
                 timing = state.setdefault("self_monitoring", {}).setdefault(
                     "activation_timing", {"immediate_1_bar": 0, "delayed_gt_1_bar": 0})
                 if bars_to_touch <= 1:
@@ -3090,8 +2859,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 log.info("Signal %s (%s) expired unfilled.", sig_id, symbol)
             continue
 
-        # Walk every new candle in chronological order; resolve on the first
-        # one that hits SL or TP1 rather than only checking the latest.
         resolved_status = None
         for i in new_indices:
             hit_tp1 = (direction == "LONG" and fs.highs[i] >= tp1) or (direction == "SHORT" and fs.lows[i] <= tp1)
@@ -3121,12 +2888,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
             asset_stats = state["per_asset_stats"].setdefault(symbol, {"signals": 0, "wins": 0, "losses": 0})
             regime_stats = state["per_regime_stats"].setdefault(record.get("market_regime", "Sideways"),
                                                                    {"signals": 0, "wins": 0, "losses": 0})
-            # AUDIT-M5: record this trade's actual risk (% of equity at entry)
-            # alongside its R-multiple outcome, so _check_portfolio_guardrails
-            # can multiply the two together per-trade instead of assuming
-            # every trade was sized at the flat risk_per_trade_pct -- correct
-            # under Kelly sizing as well as fixed-risk sizing. Falls back to
-            # the flat pct for older records that predate this field.
             trade_risk_pct = (record.get("position_sizing") or {}).get("risk_pct_of_equity")
             if trade_risk_pct is None:
                 trade_risk_pct = PRODUCTION_PARAMS["risk_per_trade_pct"]
@@ -3144,8 +2905,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 day_bucket["rr_list"].append(-1.0)
                 day_bucket["risk_pct_list"].append(trade_risk_pct)
             elif resolved_status == "Closed":
-                # H5 fix: mark-to-market the timeout against the last known
-                # price so it isn't silently dropped from every stats path.
                 asset_stats.setdefault("timeouts", 0)
                 asset_stats["timeouts"] += 1
                 regime_stats.setdefault("timeouts", 0)
@@ -3225,11 +2984,6 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         log.info("%s: score %.1f (%s) -- no trade this run.", symbol, confluence.total_score, decision.grade)
         return mtf_features, None
 
-    # FREQ2: a watch-tier decision never enters the trade pipeline below --
-    # no dedup/guardrail/correlation gating, no position sizing, and no
-    # active_signals/per_asset_stats/day_bucket bookkeeping, since it isn't a
-    # position. It's returned tagged so run_scan can route it to a distinct,
-    # clearly-labeled notification instead of a real signal dispatch.
     if decision.tier == "watch":
         watch_json = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size=None)
         watch_json["_tier"] = "watch"
@@ -3239,15 +2993,10 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
 
     open_positions = list(state.get("active_signals", {}).values())
 
-    # C2 fix: suppress re-firing a new signal for a symbol that already has
-    # an open position, rather than only comparing against *other* symbols.
     if any(pos.get("symbol") == symbol for pos in open_positions):
         log.info("%s: signal suppressed -- symbol already has an open active signal.", symbol)
         return mtf_features, None
 
-    # C1 fix: enforce the documented portfolio guardrails (max concurrent
-    # positions, daily loss kill-switch, drawdown circuit breaker) before a
-    # signal is finalized, instead of leaving compute_position_size() dead.
     guardrail_veto = _check_portfolio_guardrails(state, open_positions)
     if guardrail_veto:
         log.info("%s: signal vetoed by portfolio guardrail -- %s", symbol, guardrail_veto)
@@ -3258,12 +3007,6 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         log.info("%s: signal vetoed by correlation risk gate -- %s", symbol, "; ".join(corr_veto))
         return mtf_features, None
 
-    # M4 fix: compute_position_size() was fully implemented (Kelly sizing,
-    # exposure cap, its own correlation re-check) but never called anywhere
-    # -- dead code from an operational standpoint. It's advisory-only (this
-    # engine places no orders) so it doesn't gate dispatch here, matching its
-    # own docstring; it's wired in so the sizing math actually reaches the
-    # signal JSON for downstream consumers instead of sitting unreachable.
     position_size = compute_position_size(
         account_equity=state.get("account_equity_reference", 10000.0),
         entry=decision.entry, stop=decision.stop_loss, atr_v=volatility.atr,
@@ -3362,12 +3105,6 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
         state["per_regime_stats"][sig["market_regime"]]["signals"] += 1
         day_bucket["signals"] += 1
 
-    # FREQ2: watch-tier alerts are fire-and-forget -- dispatched via a
-    # visually distinct notification and never written to active_signals,
-    # per_asset_stats, per_regime_stats, or day_bucket. They are not
-    # positions and must never be able to feed the win-rate/calibration or
-    # feature-weight evidence trail that only real, resolved trade signals
-    # should feed.
     for sig in new_watch_alerts:
         sig.pop("_tier", None)
         notifier.dispatch_watch_tier(sig)
@@ -3402,8 +3139,6 @@ def main() -> int:
 
     try:
         if args.mode == "validate":
-            # C3 fix: operate on a deep copy so validate mode can never mutate
-            # or persist live feature_weights, matching its documented contract.
             scratch_state = copy.deepcopy(store.state)
             lines = update_feature_stats_from_closed_signals(scratch_state)
             for line in lines:
