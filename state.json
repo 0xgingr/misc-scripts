@@ -1,1 +1,570 @@
-{}
+{
+  "account_equity_reference": 10000.0,
+  "active_signals": {},
+  "closed_signals": [],
+  "created_at": "2026-07-20T18:36:26.122388+00:00",
+  "daily_stats": {
+    "2026-07-20": {
+      "feature_adjustments": [],
+      "losses": 0,
+      "rr_list": [],
+      "signals": 0,
+      "wins": 0
+    }
+  },
+  "engine_name": "PRISM",
+  "engine_version": "1.1.4",
+  "feature_stats": {
+    "adx": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "atr_stop_quality": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "bollinger_bands": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "bos": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "breaker_block": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "choch": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "cmf": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "donchian_channels": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "ema_stack": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "equal_highs_lows": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "fair_value_gap": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "liquidity_sweep": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "macd": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "mitigation_block": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "obv": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "order_block": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "rsi": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "sma_trend": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    },
+    "vwap": {
+      "confidence": 0.5,
+      "consecutive_bad_windows": 0,
+      "consecutive_good_windows": 0,
+      "disabled": false,
+      "expectancy": null,
+      "last_adjusted_at": null,
+      "last_adjustment_reason": null,
+      "max_drawdown_contribution": null,
+      "predictive_score": 0.0,
+      "profit_factor": null,
+      "sample_size": 0,
+      "sharpe_contribution": null,
+      "weight": 0.05263157894736842,
+      "win_rate": null
+    }
+  },
+  "feature_weights": {
+    "adx": 0.05263157894736842,
+    "atr_stop_quality": 0.05263157894736842,
+    "bollinger_bands": 0.05263157894736842,
+    "bos": 0.05263157894736842,
+    "breaker_block": 0.05263157894736842,
+    "choch": 0.05263157894736842,
+    "cmf": 0.05263157894736842,
+    "donchian_channels": 0.05263157894736842,
+    "ema_stack": 0.05263157894736842,
+    "equal_highs_lows": 0.05263157894736842,
+    "fair_value_gap": 0.05263157894736842,
+    "liquidity_sweep": 0.05263157894736842,
+    "macd": 0.05263157894736842,
+    "mitigation_block": 0.05263157894736842,
+    "obv": 0.05263157894736842,
+    "order_block": 0.05263157894736842,
+    "rsi": 0.05263157894736842,
+    "sma_trend": 0.05263157894736842,
+    "vwap": 0.05263157894736842
+  },
+  "last_daily_summary_date": "2026-07-20",
+  "last_run_at": "2026-07-20T19:07:35.973651+00:00",
+  "pending_notifications": [],
+  "per_asset_stats": {
+    "AAVE": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "ADA": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "APT": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "AVAX": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "BCH": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "BNB": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "BTC": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "DOGE": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "DOT": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "ETH": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "HYPE": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "LINK": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "LTC": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "NEAR": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "ONDO": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "PENDLE": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "PENGU": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "SOL": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "SUI": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "TAO": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "TRX": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "UNI": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "XLM": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "XRP": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "ZEC": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    }
+  },
+  "per_regime_stats": {
+    "Breakout": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Compression": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Expansion": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "High Volatility": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Low Volatility": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Mean Reversion": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Pullback": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Range": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Sideways": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Strong Bear Trend": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Strong Bull Trend": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    },
+    "Weak Trend": {
+      "losses": 0,
+      "signals": 0,
+      "wins": 0
+    }
+  },
+  "schema_version": 4,
+  "self_monitoring": {
+    "confidence_calibration": {},
+    "overall_win_rate": null,
+    "rolling_30d_win_rate": null,
+    "warnings": []
+  },
+  "watchlist": [
+    "BTC",
+    "ETH",
+    "HYPE",
+    "ZEC",
+    "NEAR",
+    "ONDO",
+    "SUI",
+    "PENGU",
+    "BNB",
+    "SOL",
+    "TRX",
+    "BCH",
+    "DOGE",
+    "ADA",
+    "DOT",
+    "TAO",
+    "AVAX",
+    "LINK",
+    "AAVE",
+    "XRP",
+    "XLM",
+    "UNI",
+    "LTC",
+    "APT",
+    "PENDLE"
+  ]
+}
