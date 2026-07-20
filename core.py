@@ -16,6 +16,7 @@ import json
 import copy
 import math
 import time
+import fcntl
 import random
 import logging
 import argparse
@@ -50,6 +51,7 @@ if not TELEGRAM_ENABLED:
 
 STATE_PATH = os.environ.get("PRISM_STATE_PATH", "state.json")
 CANDLE_CACHE_PATH = os.environ.get("PRISM_CANDLE_CACHE_PATH", "candle_cache.json")
+LOCK_PATH = os.environ.get("PRISM_LOCK_PATH", "prism_engine.lock")
 
 HL_API_URL = os.environ.get("HL_API_URL", "https://api.hyperliquid.xyz/info")
 HL_MAX_WEIGHT_PER_MIN = 1150
@@ -3137,36 +3139,69 @@ def main() -> int:
     args = parser.parse_args()
 
     start = time.monotonic()
-    log.info("=== %s %s run starting (mode=%s) ===", ENGINE_NAME, ENGINE_VERSION, args.mode)
+    log.info("=== %s %s run starting (mode=%s, pid=%d) ===", ENGINE_NAME, ENGINE_VERSION, args.mode, os.getpid())
     log.info("Watchlist: %d assets.", len(WATCHLIST))
 
-    store = StateStore(STATE_PATH)
-    cache = CandleCacheStore(CANDLE_CACHE_PATH)
-    client = HyperliquidClient(HL_API_URL)
-    notifier = TelegramNotifier(TG_BOT_TOKEN, TG_CHAT_ID)
+    # Exclusive, non-blocking run lock (Section 2 fix): a scan can take
+    # significantly longer than the 15-min cron/Actions cadence (e.g. one
+    # observed run took ~31 min), so without mutual exclusion a fresh
+    # invocation can start while the previous one is still running. Both
+    # processes then load the same starting state.json, mutate independent
+    # in-memory copies, and whichever finishes last silently overwrites the
+    # other's saved progress -- state.json/candle_cache.json each look
+    # "successfully written" every run yet never actually accumulate
+    # anything. Bail out immediately (not an error -- just skip this cycle)
+    # rather than let a second run proceed. Do NOT take this same lock again
+    # anywhere else (e.g. inside StateStore.save()/CandleCacheStore.save()):
+    # flock is per open-file-description, so a second fd on LOCK_PATH from
+    # this same process would block on the fd held below for the entire
+    # process lifetime and self-deadlock instead of erroring.
+    lock_f = open(LOCK_PATH, "a+")
+    try:
+        fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        log.warning("Another run is already in progress (lock held on %s) -- exiting.", os.path.abspath(LOCK_PATH))
+        lock_f.close()
+        return 0
 
     try:
-        if args.mode == "validate":
-            scratch_state = copy.deepcopy(store.state)
-            lines = update_feature_stats_from_closed_signals(scratch_state)
-            for line in lines:
-                log.info(line)
-            run_self_monitoring(scratch_state)
-        else:
-            run_scan(client, cache, store, notifier)
-    except Exception:
-        log.exception("Unhandled exception at top level of main() -- run aborted, state will still be saved.")
+        log.info("Resolved state path: %s (cwd=%s)", os.path.abspath(STATE_PATH), os.getcwd())
+        log.info("Resolved candle cache path: %s", os.path.abspath(CANDLE_CACHE_PATH))
+        store = StateStore(STATE_PATH)
+        cache = CandleCacheStore(CANDLE_CACHE_PATH)
+        client = HyperliquidClient(HL_API_URL)
+        notifier = TelegramNotifier(TG_BOT_TOKEN, TG_CHAT_ID)
+
+        try:
+            if args.mode == "validate":
+                scratch_state = copy.deepcopy(store.state)
+                lines = update_feature_stats_from_closed_signals(scratch_state)
+                for line in lines:
+                    log.info(line)
+                run_self_monitoring(scratch_state)
+            else:
+                run_scan(client, cache, store, notifier)
+        except Exception:
+            log.exception("Unhandled exception at top level of main() -- run aborted, state will still be saved.")
+            if args.mode != "validate":
+                store.save()
+                cache.save()
+            return 1
+
         if args.mode != "validate":
             store.save()
             cache.save()
-        return 1
-
-    if args.mode != "validate":
-        store.save()
-        cache.save()
-    duration = time.monotonic() - start
-    log.info("=== %s %s run finished in %.1fs ===", ENGINE_NAME, ENGINE_VERSION, duration)
-    return 0
+            for p in (STATE_PATH, CANDLE_CACHE_PATH):
+                try:
+                    log.info("Persisted %s (%d bytes)", os.path.abspath(p), os.path.getsize(p))
+                except OSError:
+                    log.error("Post-save check failed -- %s does not exist on disk.", os.path.abspath(p))
+        duration = time.monotonic() - start
+        log.info("=== %s %s run finished in %.1fs ===", ENGINE_NAME, ENGINE_VERSION, duration)
+        return 0
+    finally:
+        fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
+        lock_f.close()
 
 if __name__ == "__main__":
     sys.exit(main())
