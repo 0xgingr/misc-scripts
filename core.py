@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""PRISM -- Hyperliquid perpetuals signal engine. Fuses trend, market structure/SMC, volume, momentum, volatility, and multi-timeframe confluence into a 0-100 score; above a confidence threshold it emits a LONG/SHORT signal with entry/stop/targets to Telegram. Read-only decision support -- never places or amends orders. Runs every 15 min (cron/GitHub Actions); state persisted in state.json."""
+"""PRISM -- Hyperliquid perpetuals signal engine.
+
+Fuses trend, market structure/SMC, volume, momentum, volatility, and
+multi-timeframe confluence into a 0-100 score; above a confidence
+threshold it emits a LONG/SHORT signal with entry/stop/targets to
+Telegram. Read-only decision support -- never places or amends orders.
+Runs every 15 min (cron/GitHub Actions); state persisted in state.json.
+"""
 
 from __future__ import annotations
 
