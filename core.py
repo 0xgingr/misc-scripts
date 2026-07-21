@@ -3167,6 +3167,30 @@ def _prune_state(state: Dict[str, Any]) -> List[str]:
             )
     return log_lines
 
+def _log_closed_signals_range(state: Dict[str, Any]) -> None:
+    """Visibility into how much history CLOSED_SIGNALS_MAX currently
+    represents. This cap feeds run_self_monitoring's overall/rolling win
+    rate and per-grade confidence_calibration -- which in turn feeds
+    _win_probability_estimate's blended probability and, downstream,
+    position sizing -- so whether to raise or lower it should be a
+    data-backed call, not a guess. Cheap: just scans resolved_at
+    timestamps already in memory. Logged every run."""
+    closed = state.get("closed_signals", [])
+    dates = [c["resolved_at"] for c in closed if c.get("resolved_at")]
+    if not dates:
+        log.info("closed_signals: %d/%d records on file (no resolved_at timestamps yet).",
+                  len(closed), CLOSED_SIGNALS_MAX)
+        return
+    oldest_s, newest_s = min(dates), max(dates)
+    span_note = ""
+    try:
+        span_days = (datetime.fromisoformat(newest_s) - datetime.fromisoformat(oldest_s)).total_seconds() / 86400.0
+        span_note = f" (~{span_days:.0f} days of history)"
+    except ValueError:
+        pass
+    log.info("closed_signals: %d/%d records on file, spanning %s -> %s%s.",
+              len(closed), CLOSED_SIGNALS_MAX, oldest_s, newest_s, span_note)
+
 def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateStore,
              notifier: TelegramNotifier) -> None:
     state = store.state
@@ -3247,6 +3271,7 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
 
     for line in _prune_state(state):
         log.info(line)
+    _log_closed_signals_range(state)
 
     hour = _utcnow().hour
     if hour >= PRODUCTION_PARAMS["daily_summary_hour_utc"] and state.get("last_daily_summary_date") != today:
