@@ -653,11 +653,24 @@ def cmf(highs, lows, closes, vols, period: int = 20) -> List[Optional[float]]:
         out[i] = (sum(mfv[i - period + 1:i + 1]) / vol_sum) if vol_sum else 0.0
     return out
 
-def bollinger_bands(closes, period: int = 20, num_std: float = 2.0):
+def bollinger_bands(closes, period: int = 20, num_std: float = 2.0, tail: int = 150):
+    """Only fs.bb_upper/bb_lower/bb_mid[fs.last] (the latest bar) and the
+    trailing ~100-bar bb_width_hist window (classify_regime's compression/
+    expansion percentile) are ever read downstream -- nothing consumes
+    bb_* values further back. Recomputing statistics.pstdev (which does
+    exact Fraction/gcd arithmetic internally, not fast float math) for
+    every bar across the full multi-hundred-bar candle history was pure
+    wasted work: on a 900-bar 15M series this loop alone was ~80% of
+    build_feature_set's total time. Only the trailing `tail` bars (with a
+    comfortable margin over the ~100 actually consulted) are computed now;
+    every index that's actually read still gets an identical pstdev value
+    to before -- this is a scope reduction, not an algorithm change."""
     mid = sma(closes, period)
-    upper: List[Optional[float]] = [None] * len(closes)
-    lower: List[Optional[float]] = [None] * len(closes)
-    for i in range(period - 1, len(closes)):
+    n = len(closes)
+    upper: List[Optional[float]] = [None] * n
+    lower: List[Optional[float]] = [None] * n
+    start = max(period - 1, n - tail)
+    for i in range(start, n):
         window = closes[i - period + 1:i + 1]
         m = mid[i]
         if m is None:
