@@ -131,7 +131,14 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
     "liquidity_sweep_confirm_bars": 6,
     "watch_tier_threshold": 70,
     "mtf_veto_strength_floor": 40.0,
+    "daily_stats_retention_days": 90,
 }
+
+# closed_signals is a flat, ever-growing list appended to from two separate
+# exit paths in monitor_active_signals (resolved via TP1/SL/Closed, and
+# expired-unfilled). Bounded centrally in _prune_state rather than trimmed
+# ad hoc at each append site, so neither path can be missed.
+CLOSED_SIGNALS_MAX = 2000
 
 BASE_CATEGORY_WEIGHTS: Dict[str, float] = {
     "trend": 25.0, "structure": 20.0, "momentum": 15.0, "liquidity": 15.0,
@@ -2955,7 +2962,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 state.setdefault("pending_notifications", []).append({"signal_id": sig_id, "status": resolved_status})
             state["active_signals"].pop(sig_id, None)
             state["closed_signals"].append(record)
-            state["closed_signals"] = state["closed_signals"][-2000:]
 
             asset_stats = state["per_asset_stats"].setdefault(symbol, {"signals": 0, "wins": 0, "losses": 0})
             regime_stats = state["per_regime_stats"].setdefault(record.get("market_regime", "Sideways"),
@@ -3122,6 +3128,45 @@ def _retry_pending_notifications(state: Dict[str, Any], notifier: TelegramNotifi
             still_pending.append(item)
     state["pending_notifications"] = still_pending
 
+def _prune_state(state: Dict[str, Any]) -> List[str]:
+    """Bound state.json's two unbounded-growth collections. Run once per
+    scan, after all of this run's bookkeeping has landed in state, so
+    nothing this run just wrote gets pruned before it's used.
+
+    closed_signals: a flat list appended to from two separate exit paths
+    in monitor_active_signals (resolved via TP1/SL/Closed, and
+    expired-unfilled). Trimming it here -- once, centrally -- means both
+    paths stay bounded, instead of a per-append-site trim that's easy to
+    add at one call site and forget at the other.
+
+    daily_stats: keyed by calendar date, gains one new entry every day
+    forever with no cap. Nothing else in the engine reads a day's entry
+    after that day is over (daily summary only ever reads `today`), so
+    entries older than PRODUCTION_PARAMS['daily_stats_retention_days']
+    are pure dead weight and safe to drop.
+    """
+    log_lines: List[str] = []
+
+    closed = state.get("closed_signals")
+    if isinstance(closed, list) and len(closed) > CLOSED_SIGNALS_MAX:
+        dropped = len(closed) - CLOSED_SIGNALS_MAX
+        state["closed_signals"] = closed[-CLOSED_SIGNALS_MAX:]
+        log_lines.append(f"[Prune] closed_signals: dropped {dropped} oldest record(s), kept most recent {CLOSED_SIGNALS_MAX}.")
+
+    daily_stats = state.get("daily_stats")
+    if isinstance(daily_stats, dict):
+        retention_days = PRODUCTION_PARAMS["daily_stats_retention_days"]
+        cutoff_date = (_utcnow() - timedelta(days=retention_days)).strftime("%Y-%m-%d")
+        stale_days = [d for d in daily_stats if d < cutoff_date]
+        if stale_days:
+            for d in stale_days:
+                daily_stats.pop(d, None)
+            log_lines.append(
+                f"[Prune] daily_stats: dropped {len(stale_days)} day(s) older than "
+                f"{retention_days}d (before {cutoff_date})."
+            )
+    return log_lines
+
 def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateStore,
              notifier: TelegramNotifier) -> None:
     state = store.state
@@ -3199,6 +3244,9 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
         log.info(line)
         day_bucket["feature_adjustments"].append(line)
     run_self_monitoring(state)
+
+    for line in _prune_state(state):
+        log.info(line)
 
     hour = _utcnow().hour
     if hour >= PRODUCTION_PARAMS["daily_summary_hour_utc"] and state.get("last_daily_summary_date") != today:
