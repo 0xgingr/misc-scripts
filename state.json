@@ -3,7 +3,7 @@
   "active_signals": {
     "UNI-1784593954-2808": {
       "activated": false,
-      "bars_open": 18,
+      "bars_open": 19,
       "confidence": 81.48,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1784609100000,
+      "last_checked_candle_t": 1784610000000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -80,6 +80,85 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6648
+    },
+    "XRP-1784611046-2800": {
+      "activated": false,
+      "bars_open": 0,
+      "confidence": 80.51,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 1.1316,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-07-21T05:16:27.813326+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 2209.261223
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 1.1316 broke above prior swing high 1.1285 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Hidden bullish RSI divergence at last two swing pivots",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 6.67,
+        "risk": 3.01,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 6.02
+      },
+      "signal": "LONG",
+      "signal_id": "XRP-1784611046-2800",
+      "status": "Pending",
+      "stop_loss": 1.120589,
+      "symbol": "XRP",
+      "take_profit": [
+        1.148116,
+        1.159127,
+        1.175643
+      ],
+      "telegram_message_id": 4188,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.6551
     }
   },
   "closed_signals": [],
@@ -96,7 +175,7 @@
       "feature_adjustments": [],
       "losses": 0,
       "rr_list": [],
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     }
   },
@@ -430,7 +509,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-20",
-  "last_run_at": "2026-07-21T05:02:39.347073+00:00",
+  "last_run_at": "2026-07-21T05:17:27.707122+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -550,7 +629,7 @@
     },
     "XRP": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "ZEC": {
@@ -612,7 +691,7 @@
     },
     "Strong Bull Trend": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "Weak Trend": {
