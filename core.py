@@ -2926,10 +2926,26 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
         if not record.get("activated"):
             touched = False
             bars_to_touch = None
+            gapped_side = None  # "SL" or "TP1" -- price reached this zone
+                                 # without entry ever printing in-range first
             for i in new_indices:
                 if fs.lows[i] <= entry <= fs.highs[i]:
                     touched = True
                     bars_to_touch = bars_since - len(new_indices) + (new_indices.index(i) + 1)
+                    break
+                # Entry didn't print on this bar -- check whether price
+                # already ran through SL or TP without the pending order
+                # ever having been in range (e.g. a gap on the bar right
+                # after signal creation, since entry == the prior bar's
+                # close). Checked only once we know this bar didn't bracket
+                # entry: a bar that both brackets entry *and* reaches SL/TP
+                # is a genuine fill-then-stop/target case, handled by the
+                # normal activated-signal path below on a later run, not by
+                # this missed-entry path.
+                hit_sl_gap = (direction == "LONG" and fs.lows[i] <= stop) or (direction == "SHORT" and fs.highs[i] >= stop)
+                hit_tp1_gap = (direction == "LONG" and fs.highs[i] >= tp1) or (direction == "SHORT" and fs.lows[i] <= tp1)
+                if hit_sl_gap or hit_tp1_gap:
+                    gapped_side = "SL" if hit_sl_gap else "TP1"
                     break
             if touched:
                 record["activated"] = True
@@ -2944,6 +2960,21 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 if not ok:
                     state.setdefault("pending_notifications", []).append({"signal_id": sig_id, "status": "Activated"})
                 log.info("Signal %s (%s) activated (%d bar(s) to touch).", sig_id, symbol, bars_to_touch)
+            elif gapped_side is not None:
+                # Never filled -- price ran to SL or TP without entry ever
+                # printing in-range. Resolved so it doesn't sit "Pending"
+                # for the rest of the holding window, but deliberately not
+                # a win or a loss: no position was ever actually taken.
+                record["status"] = "Cancelled"
+                record["resolved_at"] = _utcnow().isoformat()
+                record["cancel_reason"] = f"gapped_to_{gapped_side.lower()}_unfilled"
+                ok = notifier.dispatch_status_update(record, "Cancelled")
+                if not ok:
+                    state.setdefault("pending_notifications", []).append({"signal_id": sig_id, "status": "Cancelled"})
+                state["active_signals"].pop(sig_id, None)
+                state["closed_signals"].append(record)
+                log.info("Signal %s (%s) cancelled -- reached %s zone before entry was ever filled.",
+                          sig_id, symbol, gapped_side)
             elif bars_since > _max_holding_bars_15m(record.get("holding_time", "6-24 hours")):
                 record["status"] = "Expired"
                 record["resolved_at"] = _utcnow().isoformat()
