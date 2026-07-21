@@ -129,7 +129,7 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
     "daily_summary_hour_utc": 8,
     "liquidity_sweep_lookback_bars": 12,
     "liquidity_sweep_confirm_bars": 6,
-    "watch_tier_threshold": 65,
+    "watch_tier_threshold": 70,
     "mtf_veto_strength_floor": 40.0,
 }
 
