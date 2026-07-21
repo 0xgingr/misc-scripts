@@ -3,7 +3,7 @@
   "active_signals": {
     "UNI-1784593954-2808": {
       "activated": false,
-      "bars_open": 56,
+      "bars_open": 57,
       "confidence": 81.48,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1784643300000,
+      "last_checked_candle_t": 1784644200000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -80,10 +80,12 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6648
-    },
-    "XRP-1784611046-2800": {
+    }
+  },
+  "closed_signals": [
+    {
       "activated": true,
-      "bars_open": 37,
+      "bars_open": 38,
       "bars_to_activate": 1,
       "confidence": 80.51,
       "engine_name": "PRISM",
@@ -112,7 +114,7 @@
       "grade": "B",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1784643300000,
+      "last_checked_candle_t": 1784644200000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -137,6 +139,7 @@
         "bullish breaker block supporting the setup",
         "bullish mitigation block reacted to price"
       ],
+      "resolved_at": "2026-07-21T14:45:37.958573+00:00",
       "risk_reward": 1.5,
       "scores": {
         "liquidity": 11.81,
@@ -149,7 +152,7 @@
       },
       "signal": "LONG",
       "signal_id": "XRP-1784611046-2800",
-      "status": "Pending",
+      "status": "TP1",
       "stop_loss": 1.120589,
       "symbol": "XRP",
       "take_profit": [
@@ -162,8 +165,7 @@
       "trend": "Bullish",
       "win_probability": 0.6551
     }
-  },
-  "closed_signals": [],
+  ],
   "created_at": "2026-07-20T18:36:26.122388+00:00",
   "daily_stats": {
     "2026-07-20": {
@@ -176,9 +178,14 @@
     "2026-07-21": {
       "feature_adjustments": [],
       "losses": 0,
-      "rr_list": [],
+      "risk_pct_list": [
+        1.0
+      ],
+      "rr_list": [
+        1.5
+      ],
       "signals": 2,
-      "wins": 0
+      "wins": 1
     }
   },
   "engine_name": "PRISM",
@@ -511,7 +518,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-21",
-  "last_run_at": "2026-07-21T14:30:48.378419+00:00",
+  "last_run_at": "2026-07-21T14:45:39.766748+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -632,7 +639,7 @@
     "XRP": {
       "losses": 0,
       "signals": 1,
-      "wins": 0
+      "wins": 1
     },
     "ZEC": {
       "losses": 0,
@@ -694,7 +701,7 @@
     "Strong Bull Trend": {
       "losses": 0,
       "signals": 2,
-      "wins": 0
+      "wins": 1
     },
     "Weak Trend": {
       "losses": 0,
@@ -708,9 +715,14 @@
       "delayed_gt_1_bar": 0,
       "immediate_1_bar": 1
     },
-    "confidence_calibration": {},
-    "overall_win_rate": null,
-    "rolling_30d_win_rate": null,
+    "confidence_calibration": {
+      "B": {
+        "realized_win_rate": 1.0,
+        "sample_size": 1
+      }
+    },
+    "overall_win_rate": 1.0,
+    "rolling_30d_win_rate": 1.0,
     "warnings": []
   },
   "watchlist": [
