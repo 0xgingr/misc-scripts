@@ -1,88 +1,6 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {
-    "UNI-1784593954-2808": {
-      "activated": true,
-      "bars_open": 64,
-      "bars_to_activate": 59,
-      "confidence": 81.48,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.4",
-      "entry": 3.6433,
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "atr_stop_quality",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "donchian_channels",
-        "ema_stack",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "macd",
-        "mitigation_block",
-        "obv",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-07-21T00:32:32.834866+00:00",
-      "grade": "B",
-      "higher_timeframe_alignment": true,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1784650500000,
-      "market_regime": "Strong Bull Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 686.19109
-      },
-      "reasons": [
-        "EMA stack bullish (20>50>200)",
-        "SMA50 above SMA200",
-        "Price above session VWAP",
-        "50-bar linear regression slope positive",
-        "Structure printing higher-highs/higher-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 3.6433 broke above prior swing high 3.6424 (BOS, continuation)",
-        "MACD histogram momentum: accelerating",
-        "Hidden bullish RSI divergence at last two swing pivots",
-        "Fresh bullish order block supporting the setup",
-        "bullish breaker block supporting the setup",
-        "bullish mitigation block reacted to price"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 11.81,
-        "momentum": 10.83,
-        "risk": 4.63,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 6.3,
-        "volume": 2.78
-      },
-      "signal": "LONG",
-      "signal_id": "UNI-1784593954-2808",
-      "status": "Pending",
-      "stop_loss": 3.617798,
-      "symbol": "UNI",
-      "take_profit": [
-        3.681552,
-        3.707054,
-        3.745306
-      ],
-      "telegram_message_id": 4121,
-      "timeframe": "15M",
-      "trend": "Bullish",
-      "win_probability": 0.6648
-    }
-  },
+  "active_signals": {},
   "closed_signals": [
     {
       "activated": true,
@@ -165,6 +83,88 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6551
+    },
+    {
+      "activated": true,
+      "bars_open": 65,
+      "bars_to_activate": 59,
+      "confidence": 81.48,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 3.6433,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-07-21T00:32:32.834866+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1784651400000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 686.19109
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3.6433 broke above prior swing high 3.6424 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Hidden bullish RSI divergence at last two swing pivots",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price"
+      ],
+      "resolved_at": "2026-07-21T16:45:32.659818+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 10.83,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 6.3,
+        "volume": 2.78
+      },
+      "signal": "LONG",
+      "signal_id": "UNI-1784593954-2808",
+      "status": "TP1",
+      "stop_loss": 3.617798,
+      "symbol": "UNI",
+      "take_profit": [
+        3.681552,
+        3.707054,
+        3.745306
+      ],
+      "telegram_message_id": 4121,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.6648
     }
   ],
   "created_at": "2026-07-20T18:36:26.122388+00:00",
@@ -180,13 +180,15 @@
       "feature_adjustments": [],
       "losses": 0,
       "risk_pct_list": [
+        1.0,
         1.0
       ],
       "rr_list": [
+        1.5,
         1.5
       ],
       "signals": 2,
-      "wins": 1
+      "wins": 2
     }
   },
   "engine_name": "PRISM",
@@ -519,7 +521,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-21",
-  "last_run_at": "2026-07-21T16:30:43.451421+00:00",
+  "last_run_at": "2026-07-21T16:45:33.437164+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -630,7 +632,7 @@
     "UNI": {
       "losses": 0,
       "signals": 1,
-      "wins": 0
+      "wins": 1
     },
     "XLM": {
       "losses": 0,
@@ -702,7 +704,7 @@
     "Strong Bull Trend": {
       "losses": 0,
       "signals": 2,
-      "wins": 1
+      "wins": 2
     },
     "Weak Trend": {
       "losses": 0,
@@ -719,7 +721,7 @@
     "confidence_calibration": {
       "B": {
         "realized_win_rate": 1.0,
-        "sample_size": 1
+        "sample_size": 2
       }
     },
     "overall_win_rate": 1.0,
