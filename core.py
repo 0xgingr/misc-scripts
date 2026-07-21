@@ -39,7 +39,7 @@ logging.Formatter.converter = time.gmtime
 log = logging.getLogger("PRISM")
 
 ENGINE_NAME = "PRISM"
-ENGINE_VERSION = "1.1.5"
+ENGINE_VERSION = "1.1.4"
 
 TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID", "")
@@ -64,11 +64,8 @@ HL_BACKOFF_BASE_SEC = 0.75
 # Hyperliquid HTTP calls). All threads share HyperliquidClient's single
 # _WeightRateLimiter, so raising this doesn't bypass the weight budget --
 # it just lets more symbols queue up waiting on the same pacer instead of
-# waiting on each other one at a time. fetch_symbol_mtf also fans each
-# symbol's own timeframes out concurrently, so a higher number here mostly
-# buys shorter queueing before a symbol's turn starts, not more weight
-# pressure. Override via env if needed.
-SCAN_WORKER_THREADS = int(os.environ.get("PRISM_SCAN_WORKERS", "10"))
+# waiting on each other one at a time. Override via env if needed.
+SCAN_WORKER_THREADS = int(os.environ.get("PRISM_SCAN_WORKERS", "6"))
 
 WATCHLIST: List[str] = [
     "BTC", "ETH", "HYPE", "ZEC", "NEAR", "ONDO", "SUI", "PENGU", "BNB", "SOL",
@@ -419,74 +416,58 @@ def _drop_unclosed_candles(candles: List[Dict[str, Any]], step_ms: int, now_ms: 
         candles = candles[:-1]
     return candles
 
-def _fetch_one_timeframe(client: HyperliquidClient, cache: CandleCacheStore, symbol: str,
-                          tf: str, now_ms: int) -> Tuple[str, Optional[List[Dict[str, Any]]]]:
-    """Body of one TIMEFRAMES iteration for `symbol`, factored out so
-    fetch_symbol_mtf can run all of a symbol's timeframes concurrently
-    (Section 22 cont'd): reads/writes only the (symbol, tf) cache slot and
-    the shared, thread-safe client/pacer, so it's safe to call for every tf
-    of a symbol in parallel -- same reasoning already used to run symbols
-    themselves concurrently in run_scan."""
-    interval = HL_INTERVAL_MAP[tf]
-    step_ms = _interval_ms(tf)
-    lookback = CANDLE_LOOKBACK[tf]
-    cached = cache.get(symbol, tf)
-
-    stale = False
-    if cached:
-        last_t = cached[-1]["t"]
-        age_sec = (now_ms - last_t) / 1000.0
-        if age_sec > CANDLE_STALE_AFTER_SEC[tf] * 3:
-            stale = True
-            log.warning("Cache for %s/%s stale beyond threshold -- full re-fetch.", symbol, tf)
-
-    if not cached or stale:
-        start_ms = now_ms - step_ms * lookback
-        fresh = client.candles(symbol, interval, start_ms, now_ms)
-        if fresh is None:
-            log.error("Fetch failed for %s/%s -- skipping this timeframe.", symbol, tf)
-            return tf, (cached if cached else None)
-        fresh = _drop_unclosed_candles(fresh, step_ms, now_ms)
-        cache.put(symbol, tf, fresh)
-        return tf, cache.get(symbol, tf)
-
-    last_cached_t = cached[-1]["t"]
-    if last_cached_t + step_ms > now_ms:
-        return tf, cached
-    overlap_bars = CANDLE_REFETCH_OVERLAP_BARS.get(tf, 1)
-    start_ms = max(cached[0]["t"], last_cached_t - overlap_bars * step_ms)
-    fresh = client.candles(symbol, interval, start_ms, now_ms)
-    if fresh is None:
-        log.error("Incremental fetch failed for %s/%s -- using stale cache.", symbol, tf)
-        return tf, cached
-    fresh = _drop_unclosed_candles(fresh, step_ms, now_ms)
-    fresh_ts = {c["t"] for c in fresh}
-    merged = [c for c in cached if c["t"] not in fresh_ts] + fresh
-    merged.sort(key=lambda r: r["t"])
-    cache.put(symbol, tf, merged)
-    return tf, cache.get(symbol, tf)
-
 def fetch_symbol_mtf(client: HyperliquidClient, cache: CandleCacheStore, symbol: str,
                       now_ms: int) -> Optional[Dict[str, List[Dict[str, Any]]]]:
     """Fetch/refresh every timeframe in TIMEFRAMES for one symbol, merging with
     the persistent cache (only newly-closed candles are requested), pruning to
     the bounded lookback, and falling back to a full re-fetch for a single
-    timeframe if its cache entry is missing/corrupt/stale (Section 22).
-
-    The 5 timeframes are fetched concurrently rather than one after another:
-    previously a single slow/retried request (HL_MAX_RETRIES backoff can run
-    to tens of seconds) serialized in front of that symbol's remaining
-    timeframes; now the other timeframes' requests are already in flight
-    while it retries. Nothing downstream depends on TIMEFRAMES' iteration
-    order -- every consumer (aggregate_mtf, evaluate_liquidity, etc.) looks
-    results up by timeframe name -- so out-of-order completion is safe."""
+    timeframe if its cache entry is missing/corrupt/stale (Section 22)."""
     out: Dict[str, List[Dict[str, Any]]] = {}
-    with ThreadPoolExecutor(max_workers=len(TIMEFRAMES)) as pool:
-        futures = [pool.submit(_fetch_one_timeframe, client, cache, symbol, tf, now_ms) for tf in TIMEFRAMES]
-        for fut in futures:
-            tf, candles = fut.result()
-            if candles:
-                out[tf] = candles
+    for tf in TIMEFRAMES:
+        interval = HL_INTERVAL_MAP[tf]
+        step_ms = _interval_ms(tf)
+        lookback = CANDLE_LOOKBACK[tf]
+        cached = cache.get(symbol, tf)
+
+        stale = False
+        if cached:
+            last_t = cached[-1]["t"]
+            age_sec = (now_ms - last_t) / 1000.0
+            if age_sec > CANDLE_STALE_AFTER_SEC[tf] * 3:
+                stale = True
+                log.warning("Cache for %s/%s stale beyond threshold -- full re-fetch.", symbol, tf)
+
+        if not cached or stale:
+            start_ms = now_ms - step_ms * lookback
+            fresh = client.candles(symbol, interval, start_ms, now_ms)
+            if fresh is None:
+                log.error("Fetch failed for %s/%s -- skipping this timeframe.", symbol, tf)
+                if cached:
+                    out[tf] = cached
+                continue
+            fresh = _drop_unclosed_candles(fresh, step_ms, now_ms)
+            cache.put(symbol, tf, fresh)
+            out[tf] = cache.get(symbol, tf)
+            continue
+
+        last_cached_t = cached[-1]["t"]
+        current_bar_open_ms = (now_ms // step_ms) * step_ms
+        if current_bar_open_ms <= last_cached_t + step_ms:
+            out[tf] = cached
+            continue
+        overlap_bars = CANDLE_REFETCH_OVERLAP_BARS.get(tf, 1)
+        start_ms = max(cached[0]["t"], last_cached_t - overlap_bars * step_ms)
+        fresh = client.candles(symbol, interval, start_ms, now_ms)
+        if fresh is None:
+            log.error("Incremental fetch failed for %s/%s -- using stale cache.", symbol, tf)
+            out[tf] = cached
+            continue
+        fresh = _drop_unclosed_candles(fresh, step_ms, now_ms)
+        fresh_ts = {c["t"] for c in fresh}
+        merged = [c for c in cached if c["t"] not in fresh_ts] + fresh
+        merged.sort(key=lambda r: r["t"])
+        cache.put(symbol, tf, merged)
+        out[tf] = cache.get(symbol, tf)
 
     if not out.get(EXECUTION_TF):
         log.error("No %s data available for %s -- cannot evaluate this run.", EXECUTION_TF, symbol)
@@ -2434,6 +2415,8 @@ class StateStore:
             self.state = default_state()
         for s in WATCHLIST:
             self.state["per_asset_stats"].setdefault(s, {"signals": 0, "wins": 0, "losses": 0})
+        for r in REGIMES:
+            self.state["per_regime_stats"].setdefault(r, {"signals": 0, "wins": 0, "losses": 0})
         for f in CANDIDATE_FEATURES:
             self.state["feature_weights"].setdefault(f, DEFAULT_FEATURE_WEIGHT)
             self.state["feature_stats"].setdefault(f, default_state()["feature_stats"][f])
