@@ -3,7 +3,7 @@
   "active_signals": {
     "UNI-1784593954-2808": {
       "activated": false,
-      "bars_open": 19,
+      "bars_open": 20,
       "confidence": 81.48,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1784610000000,
+      "last_checked_candle_t": 1784610900000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,8 +82,9 @@
       "win_probability": 0.6648
     },
     "XRP-1784611046-2800": {
-      "activated": false,
-      "bars_open": 0,
+      "activated": true,
+      "bars_open": 1,
+      "bars_to_activate": 1,
       "confidence": 80.51,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -111,6 +112,7 @@
       "grade": "B",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1784610900000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -509,7 +511,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-20",
-  "last_run_at": "2026-07-21T05:17:27.707122+00:00",
+  "last_run_at": "2026-07-21T05:32:33.771025+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -702,6 +704,10 @@
   },
   "schema_version": 4,
   "self_monitoring": {
+    "activation_timing": {
+      "delayed_gt_1_bar": 0,
+      "immediate_1_bar": 1
+    },
     "confidence_calibration": {},
     "overall_win_rate": null,
     "rolling_30d_win_rate": null,
