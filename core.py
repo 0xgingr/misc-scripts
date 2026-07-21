@@ -130,6 +130,13 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
     "liquidity_sweep_lookback_bars": 12,
     "liquidity_sweep_confirm_bars": 6,
     "watch_tier_threshold": 70,
+    # Minimum spacing between two watch-tier Telegram alerts for the *same*
+    # symbol *and* direction. Prevents a setup that lingers in the 70-79
+    # composite-score band for hours (common at 15M-execution cadence) from
+    # re-alerting every single 15-min scan. A direction flip (WATCH LONG ->
+    # WATCH SHORT or vice versa) always bypasses this and alerts immediately,
+    # since that's a materially different setup, not a repeat of the same one.
+    "watch_tier_cooldown_hours": 4,
     "mtf_veto_strength_floor": 40.0,
     "daily_stats_retention_days": 90,
 }
@@ -2396,6 +2403,12 @@ def default_state() -> Dict[str, Any]:
         "last_daily_summary_date": None,
         "account_equity_reference": 10000.0,
         "pending_notifications": [],
+        # Per-symbol cooldown tracker for watch-tier alerts (Section: watch
+        # tier cooldown). Keyed by symbol -> {"last_alert_at_ms": int,
+        # "direction": "LONG"/"SHORT"}. Deliberately small/bounded (at most
+        # len(WATCHLIST) entries) so it needs no pruning, unlike
+        # closed_signals/daily_stats.
+        "watch_tier_alerts": {},
     }
 
 class StateStore:
@@ -2420,6 +2433,7 @@ class StateStore:
         for f in CANDIDATE_FEATURES:
             self.state["feature_weights"].setdefault(f, DEFAULT_FEATURE_WEIGHT)
             self.state["feature_stats"].setdefault(f, default_state()["feature_stats"][f])
+        self.state.setdefault("watch_tier_alerts", {})
 
     def save(self) -> None:
         self.state["last_run_at"] = _utcnow().isoformat()
@@ -3068,6 +3082,23 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
     if decision.tier == "watch":
         watch_json = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size=None)
         watch_json["_tier"] = "watch"
+
+        # Cooldown check (read-only -- safe here on the worker thread, same
+        # as the active_signals dedup check below). The actual state *write*
+        # (recording that this alert fired) happens back on the main thread
+        # in run_scan, once all symbols' results are in, matching the
+        # existing read-here/mutate-there split for this function.
+        cooldown_hours = PRODUCTION_PARAMS["watch_tier_cooldown_hours"]
+        last_alert = state.get("watch_tier_alerts", {}).get(symbol)
+        if last_alert is not None and last_alert.get("direction") == decision.direction:
+            elapsed_hours = (now_ms - last_alert["last_alert_at_ms"]) / 3_600_000.0
+            if elapsed_hours < cooldown_hours:
+                log.info(
+                    "%s: WATCH %s suppressed -- %.1fh into a %dh cooldown since the last %s watch alert.",
+                    symbol, watch_json["signal"], elapsed_hours, cooldown_hours, decision.direction,
+                )
+                return mtf_features, None
+
         log.info("%s: WATCH %s grade=%s confidence=%.1f (below signal threshold, above watch floor).",
                   symbol, watch_json["signal"], watch_json["grade"], watch_json["confidence"])
         return mtf_features, watch_json
@@ -3265,6 +3296,10 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     for sig in new_watch_alerts:
         sig.pop("_tier", None)
         notifier.dispatch_watch_tier(sig)
+        state.setdefault("watch_tier_alerts", {})[sig["symbol"]] = {
+            "last_alert_at_ms": now_ms,
+            "direction": sig["signal"],
+        }
 
     adjustment_lines = update_feature_stats_from_closed_signals(state)
     for line in adjustment_lines:
