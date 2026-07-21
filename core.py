@@ -2739,9 +2739,24 @@ class TelegramNotifier:
 
     def format_watch_message(self, sig: Dict[str, Any]) -> str:
         """FREQ2: deliberately shorter and visually distinct from
-        format_signal_message -- no SL/TP/RR block, since a watch-tier alert
-        is not a trade and must never be mistaken for one at a glance."""
+        format_signal_message -- no TP/RR block, since a watch-tier alert
+        is not a trade and must never be mistaken for one at a glance.
+        Still surfaces price context (Section 19's _entry_engine already
+        computes this for every watch-tier candidate): PRISM's entry model
+        is market-on-close, so decision.entry *is* the price this would
+        trigger at if the composite matures into a real signal -- shown
+        here as "Possible entry" rather than as a separate number, since
+        the engine doesn't compute a distinct pullback/breakout trigger.
+        Also shows the structural invalidation level (protected high/low
+        or nearest order block edge) that would become the stop if that
+        happens -- labeled "Invalidation" rather than "SL" so it reads as
+        a level to watch, not a live order. Reasons list intentionally
+        omitted per user preference -- grade/composite/regime/trend plus
+        the two price levels are the signal, not the feature checklist."""
         e = _escape_markdown_v2
+        ec = _escape_markdown_v2_code
+        direction = sig.get("signal")
+        invalidation_note = "closes below" if direction == "LONG" else "closes above"
         lines = [
             f"_{e(ENGINE_NAME)} {e(ENGINE_VERSION)} \\-\\- Watch Tier \\(not a signal\\)_",
             f"{e(_clean_label(sig['symbol']))}  \\-\\-  {e(sig['signal'])} bias forming",
@@ -2749,12 +2764,13 @@ class TelegramNotifier:
             f"Grade: *{e(sig['grade'])}*   Composite: *{e(sig['confidence'])}*",
             f"Regime: {e(_clean_label(sig['market_regime']))}   Trend: {e(sig['trend'])}",
         ]
-        reasons = sig.get("reasons") or []
-        if reasons:
-            lines.append("")
-            lines.append("Why it's on watch:")
-            for r in reasons[:4]:
-                lines.append(f"\\- {e(r)}")
+        if sig.get("entry") is not None and sig.get("stop_loss") is not None:
+            lines += [
+                "",
+                f"Possible entry: `{ec(_fmt_num(sig['entry']))}`",
+                f"Invalidation \\(bias off if price {e(invalidation_note)}\\): "
+                f"`{ec(_fmt_num(sig['stop_loss']))}`",
+            ]
         return "\n".join(lines)
 
     def dispatch_watch_tier(self, sig: Dict[str, Any]) -> Optional[int]:
