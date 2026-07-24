@@ -542,7 +542,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-24",
-  "last_run_at": "2026-07-24T13:15:38.129267+00:00",
+  "last_run_at": "2026-07-24T13:30:46.205526+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -823,8 +823,8 @@
       "last_alert_at_ms": 1784819730222
     },
     "XRP": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1784734240692
+      "direction": "SHORT",
+      "last_alert_at_ms": 1784899840256
     },
     "ZEC": {
       "direction": "SHORT",
