@@ -1,89 +1,9 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
-    "DOT-1785145532-5594": {
-      "activated": true,
-      "bars_open": 3,
-      "bars_to_activate": 1,
-      "confidence": 80.23,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.4",
-      "entry": 0.81017,
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "atr_stop_quality",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "cmf",
-        "ema_stack",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "macd",
-        "mitigation_block",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-07-27T09:45:28.809843+00:00",
-      "grade": "B",
-      "higher_timeframe_alignment": true,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1785147300000,
-      "market_regime": "Strong Bear Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 3085.772122
-      },
-      "reasons": [
-        "EMA stack bearish (20<50<200)",
-        "SMA50 below SMA200",
-        "Price below session VWAP",
-        "50-bar linear regression slope negative",
-        "Structure printing lower-highs/lower-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 0.81017 broke below prior swing low 0.81379 (BOS, continuation)",
-        "MACD histogram momentum: accelerating",
-        "Regular bullish RSI divergence at last two swing pivots",
-        "Fresh bearish order block supporting the setup",
-        "bearish breaker block supporting the setup",
-        "bearish mitigation block reacted to price"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 11.81,
-        "momentum": 8.33,
-        "risk": 4.63,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 7.08,
-        "volume": 3.24
-      },
-      "signal": "SHORT",
-      "signal_id": "DOT-1785145532-5594",
-      "status": "Pending",
-      "stop_loss": 0.812467,
-      "symbol": "DOT",
-      "take_profit": [
-        0.806725,
-        0.804428,
-        0.800983
-      ],
-      "telegram_message_id": 4781,
-      "timeframe": "15M",
-      "trend": "Bearish",
-      "win_probability": 0.6523
-    },
     "ETH-1785132105-1224": {
       "activated": true,
-      "bars_open": 18,
+      "bars_open": 19,
       "bars_to_activate": 1,
       "confidence": 82.13,
       "engine_name": "PRISM",
@@ -112,7 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1785147300000,
+      "last_checked_candle_t": 1785148200000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -408,6 +328,87 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6509
+    },
+    {
+      "activated": true,
+      "bars_open": 4,
+      "bars_to_activate": 1,
+      "confidence": 80.23,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 0.81017,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-07-27T09:45:28.809843+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1785148200000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 3085.772122
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 0.81017 broke below prior swing low 0.81379 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price"
+      ],
+      "resolved_at": "2026-07-27T10:45:31.363242+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 3.24
+      },
+      "signal": "SHORT",
+      "signal_id": "DOT-1785145532-5594",
+      "status": "SL",
+      "stop_loss": 0.812467,
+      "symbol": "DOT",
+      "take_profit": [
+        0.806725,
+        0.804428,
+        0.800983
+      ],
+      "telegram_message_id": 4781,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.6523
     }
   ],
   "created_at": "2026-07-20T18:36:26.122388+00:00",
@@ -475,8 +476,13 @@
     },
     "2026-07-27": {
       "feature_adjustments": [],
-      "losses": 0,
-      "rr_list": [],
+      "losses": 1,
+      "risk_pct_list": [
+        1.0
+      ],
+      "rr_list": [
+        -1.0
+      ],
       "signals": 2,
       "wins": 0
     }
@@ -811,7 +817,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-27",
-  "last_run_at": "2026-07-27T10:30:41.950372+00:00",
+  "last_run_at": "2026-07-27T10:45:32.207963+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -855,7 +861,7 @@
       "wins": 0
     },
     "DOT": {
-      "losses": 0,
+      "losses": 1,
       "signals": 1,
       "wins": 0
     },
@@ -987,7 +993,7 @@
       "wins": 0
     },
     "Strong Bear Trend": {
-      "losses": 0,
+      "losses": 1,
       "signals": 1,
       "wins": 0
     },
@@ -1010,12 +1016,12 @@
     },
     "confidence_calibration": {
       "B": {
-        "realized_win_rate": 1.0,
-        "sample_size": 3
+        "realized_win_rate": 0.75,
+        "sample_size": 4
       }
     },
-    "overall_win_rate": 1.0,
-    "rolling_30d_win_rate": 1.0,
+    "overall_win_rate": 0.75,
+    "rolling_30d_win_rate": 0.75,
     "warnings": []
   },
   "watch_tier_alerts": {
