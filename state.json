@@ -310,6 +310,13 @@
       ],
       "signals": 1,
       "wins": 1
+    },
+    "2026-07-27": {
+      "feature_adjustments": [],
+      "losses": 0,
+      "rr_list": [],
+      "signals": 0,
+      "wins": 0
     }
   },
   "engine_name": "PRISM",
@@ -642,7 +649,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-26",
-  "last_run_at": "2026-07-26T23:45:33.012415+00:00",
+  "last_run_at": "2026-07-27T00:02:40.374672+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
