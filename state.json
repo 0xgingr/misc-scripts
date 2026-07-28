@@ -911,7 +911,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-28",
-  "last_run_at": "2026-07-28T13:30:45.621158+00:00",
+  "last_run_at": "2026-07-28T13:45:42.979866+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1157,7 +1157,7 @@
     },
     "ETH": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1785201323349
+      "last_alert_at_ms": 1785246335497
     },
     "HYPE": {
       "direction": "SHORT",
@@ -1181,7 +1181,7 @@
     },
     "PENDLE": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1785227441188
+      "last_alert_at_ms": 1785246335497
     },
     "PENGU": {
       "direction": "SHORT",
@@ -1209,7 +1209,7 @@
     },
     "XLM": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1784904326729
+      "last_alert_at_ms": 1785246335497
     },
     "XRP": {
       "direction": "SHORT",
