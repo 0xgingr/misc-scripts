@@ -1,6 +1,84 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "UNI-1785240940-4813": {
+      "activated": false,
+      "bars_open": 0,
+      "confidence": 80.23,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 3.8328,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "vwap"
+      ],
+      "generated_at": "2026-07-28T12:15:39.563889+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 652.264663
+      },
+      "reasons": [
+        "SMA50 below SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3.8328 broke above prior swing high 3.8207 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup",
+        "Asian High (3.75) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "UNI-1785240940-4813",
+      "status": "Pending",
+      "stop_loss": 3.77585,
+      "symbol": "UNI",
+      "take_profit": [
+        3.918224,
+        3.975174,
+        4.060598
+      ],
+      "telegram_message_id": 4885,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.6523
+    }
+  },
   "closed_signals": [
     {
       "activated": true,
@@ -492,7 +570,7 @@
       "feature_adjustments": [],
       "losses": 0,
       "rr_list": [],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -826,7 +904,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-28",
-  "last_run_at": "2026-07-28T12:01:58.243993+00:00",
+  "last_run_at": "2026-07-28T12:15:40.976063+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -936,7 +1014,7 @@
     },
     "UNI": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 1
     },
     "XLM": {
@@ -1008,7 +1086,7 @@
     },
     "Strong Bull Trend": {
       "losses": 1,
-      "signals": 3,
+      "signals": 4,
       "wins": 2
     },
     "Weak Trend": {
