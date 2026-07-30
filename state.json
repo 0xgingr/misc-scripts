@@ -925,7 +925,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-07-30",
-  "last_run_at": "2026-07-30T12:01:46.078168+00:00",
+  "last_run_at": "2026-07-30T12:15:37.523851+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1170,8 +1170,8 @@
       "last_alert_at_ms": 1785140128982
     },
     "ETH": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1785246335497
+      "direction": "LONG",
+      "last_alert_at_ms": 1785413730096
     },
     "HYPE": {
       "direction": "SHORT",
@@ -1191,7 +1191,7 @@
     },
     "ONDO": {
       "direction": "LONG",
-      "last_alert_at_ms": 1785255334446
+      "last_alert_at_ms": 1785413730096
     },
     "PENDLE": {
       "direction": "SHORT",
@@ -1210,8 +1210,8 @@
       "last_alert_at_ms": 1784919636614
     },
     "TAO": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1785193249984
+      "direction": "LONG",
+      "last_alert_at_ms": 1785413730096
     },
     "TRX": {
       "direction": "LONG",
