@@ -1,90 +1,6 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {
-    "ADA-1785672934-3621": {
-      "activated": true,
-      "bars_open": 6,
-      "bars_to_activate": 1,
-      "confidence": 84.58,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.4",
-      "entry": 0.18943,
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "atr_stop_quality",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "cmf",
-        "donchian_channels",
-        "ema_stack",
-        "equal_highs_lows",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "macd",
-        "mitigation_block",
-        "obv",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-08-02T12:15:30.980285+00:00",
-      "grade": "B",
-      "higher_timeframe_alignment": true,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1785677400000,
-      "market_regime": "Strong Bull Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 13197.487198
-      },
-      "reasons": [
-        "EMA stack bullish (20>50>200)",
-        "SMA50 above SMA200",
-        "Price above session VWAP",
-        "50-bar linear regression slope positive",
-        "Structure printing higher-highs/higher-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 0.18943 broke above prior swing high 0.18885 (BOS, continuation)",
-        "MACD histogram momentum: accelerating",
-        "Regular bearish RSI divergence at last two swing pivots",
-        "Hidden bullish RSI divergence at last two swing pivots",
-        "Fresh bullish order block supporting the setup",
-        "bullish breaker block supporting the setup"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 11.81,
-        "momentum": 10.83,
-        "risk": 2.92,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 7.87,
-        "volume": 6.02
-      },
-      "signal": "LONG",
-      "signal_id": "ADA-1785672934-3621",
-      "status": "Pending",
-      "stop_loss": 0.186743,
-      "symbol": "ADA",
-      "take_profit": [
-        0.193461,
-        0.196148,
-        0.200179
-      ],
-      "telegram_message_id": 5178,
-      "timeframe": "15M",
-      "trend": "Bullish",
-      "win_probability": 0.6958
-    }
-  },
+  "active_signals": {},
   "closed_signals": [
     {
       "activated": true,
@@ -573,6 +489,90 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6523
+    },
+    {
+      "activated": true,
+      "bars_open": 7,
+      "bars_to_activate": 1,
+      "confidence": 84.58,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 0.18943,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-08-02T12:15:30.980285+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1785678300000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 13197.487198
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 0.18943 broke above prior swing high 0.18885 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bearish RSI divergence at last two swing pivots",
+        "Hidden bullish RSI divergence at last two swing pivots",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup"
+      ],
+      "resolved_at": "2026-08-02T14:01:45.002161+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 10.83,
+        "risk": 2.92,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 6.02
+      },
+      "signal": "LONG",
+      "signal_id": "ADA-1785672934-3621",
+      "status": "SL",
+      "stop_loss": 0.186743,
+      "symbol": "ADA",
+      "take_profit": [
+        0.193461,
+        0.196148,
+        0.200179
+      ],
+      "telegram_message_id": 5178,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.6958
     }
   ],
   "created_at": "2026-07-20T18:36:26.122388+00:00",
@@ -694,8 +694,13 @@
     },
     "2026-08-02": {
       "feature_adjustments": [],
-      "losses": 0,
-      "rr_list": [],
+      "losses": 1,
+      "risk_pct_list": [
+        1.0
+      ],
+      "rr_list": [
+        -1.0
+      ],
       "signals": 1,
       "wins": 0
     }
@@ -1030,7 +1035,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-02",
-  "last_run_at": "2026-08-02T13:45:32.225649+00:00",
+  "last_run_at": "2026-08-02T14:01:46.538947+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1039,7 +1044,7 @@
       "wins": 0
     },
     "ADA": {
-      "losses": 0,
+      "losses": 1,
       "signals": 1,
       "wins": 0
     },
@@ -1211,7 +1216,7 @@
       "wins": 0
     },
     "Strong Bull Trend": {
-      "losses": 1,
+      "losses": 2,
       "signals": 5,
       "wins": 3
     },
@@ -1233,8 +1238,8 @@
         "sample_size": 6
       }
     },
-    "overall_win_rate": 0.6667,
-    "rolling_30d_win_rate": 0.6667,
+    "overall_win_rate": 0.5714,
+    "rolling_30d_win_rate": 0.5714,
     "warnings": []
   },
   "watch_tier_alerts": {
@@ -1300,7 +1305,7 @@
     },
     "PENDLE": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1785594634091
+      "last_alert_at_ms": 1785679242763
     },
     "PENGU": {
       "direction": "SHORT",
