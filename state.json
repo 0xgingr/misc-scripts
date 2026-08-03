@@ -2,8 +2,9 @@
   "account_equity_reference": 10000.0,
   "active_signals": {
     "BTC-1785747710-7546": {
-      "activated": false,
-      "bars_open": 0,
+      "activated": true,
+      "bars_open": 1,
+      "bars_to_activate": 1,
       "confidence": 80.23,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,6 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1785747600000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1122,7 +1124,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-03",
-  "last_run_at": "2026-08-03T09:01:50.368184+00:00",
+  "last_run_at": "2026-08-03T09:15:41.379616+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1317,7 +1319,7 @@
   "self_monitoring": {
     "activation_timing": {
       "delayed_gt_1_bar": 1,
-      "immediate_1_bar": 6
+      "immediate_1_bar": 7
     },
     "confidence_calibration": {
       "B": {
