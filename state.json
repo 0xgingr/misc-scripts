@@ -1,6 +1,86 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "BTC-1785747710-7546": {
+      "activated": false,
+      "bars_open": 0,
+      "confidence": 80.23,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 62518.0,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-08-03T09:00:47.363200+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.039988
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 62518 broke below prior swing low 62720 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 3.24
+      },
+      "signal": "SHORT",
+      "signal_id": "BTC-1785747710-7546",
+      "status": "Pending",
+      "stop_loss": 62672.74588,
+      "symbol": "BTC",
+      "take_profit": [
+        62285.881181,
+        62131.135301,
+        61899.016481
+      ],
+      "telegram_message_id": 5244,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.6523
+    }
+  },
   "closed_signals": [
     {
       "activated": true,
@@ -708,7 +788,7 @@
       "feature_adjustments": [],
       "losses": 0,
       "rr_list": [],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -1042,7 +1122,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-03",
-  "last_run_at": "2026-08-03T08:46:22.465727+00:00",
+  "last_run_at": "2026-08-03T09:01:50.368184+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1077,7 +1157,7 @@
     },
     "BTC": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "DOGE": {
@@ -1219,7 +1299,7 @@
     },
     "Strong Bear Trend": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "Strong Bull Trend": {
