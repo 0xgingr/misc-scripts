@@ -1129,7 +1129,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-03",
-  "last_run_at": "2026-08-03T22:15:31.960647+00:00",
+  "last_run_at": "2026-08-03T22:30:48.441561+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1347,7 +1347,7 @@
     },
     "APT": {
       "direction": "LONG",
-      "last_alert_at_ms": 1785781834825
+      "last_alert_at_ms": 1785796241052
     },
     "AVAX": {
       "direction": "LONG",
