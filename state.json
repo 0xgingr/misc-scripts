@@ -1129,7 +1129,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-03",
-  "last_run_at": "2026-08-03T14:15:30.728783+00:00",
+  "last_run_at": "2026-08-03T14:30:45.087632+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1378,8 +1378,8 @@
       "last_alert_at_ms": 1785745867245
     },
     "HYPE": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1785667533321
+      "direction": "LONG",
+      "last_alert_at_ms": 1785767438628
     },
     "LINK": {
       "direction": "SHORT",
@@ -1434,8 +1434,8 @@
       "last_alert_at_ms": 1785501932413
     },
     "ZEC": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1785744973406
+      "direction": "LONG",
+      "last_alert_at_ms": 1785767438628
     }
   },
   "watchlist": [
