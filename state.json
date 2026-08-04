@@ -1136,7 +1136,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-04",
-  "last_run_at": "2026-08-04T18:15:36.656643+00:00",
+  "last_run_at": "2026-08-04T18:30:41.621349+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1442,7 +1442,7 @@
     },
     "ZEC": {
       "direction": "LONG",
-      "last_alert_at_ms": 1785767438628
+      "last_alert_at_ms": 1785868234194
     }
   },
   "watchlist": [
