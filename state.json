@@ -1249,7 +1249,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-08",
-  "last_run_at": "2026-08-08T14:15:31.607901+00:00",
+  "last_run_at": "2026-08-08T14:30:46.718297+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1466,8 +1466,8 @@
       "last_alert_at_ms": 1786024842985
     },
     "APT": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786148132306
+      "direction": "LONG",
+      "last_alert_at_ms": 1786199438528
     },
     "AVAX": {
       "direction": "LONG",
@@ -1519,7 +1519,7 @@
     },
     "PENDLE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1785959128740
+      "last_alert_at_ms": 1786199438528
     },
     "PENGU": {
       "direction": "LONG",
