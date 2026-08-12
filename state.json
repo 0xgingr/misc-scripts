@@ -1363,7 +1363,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-12",
-  "last_run_at": "2026-08-12T11:15:35.944460+00:00",
+  "last_run_at": "2026-08-12T11:30:45.074307+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1617,7 +1617,7 @@
     },
     "LINK": {
       "direction": "LONG",
-      "last_alert_at_ms": 1786436137583
+      "last_alert_at_ms": 1786534237232
     },
     "LTC": {
       "direction": "SHORT",
