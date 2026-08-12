@@ -1363,7 +1363,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-12",
-  "last_run_at": "2026-08-12T08:30:47.125657+00:00",
+  "last_run_at": "2026-08-12T08:45:32.952599+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1605,7 +1605,7 @@
     },
     "DOT": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1786254329525
+      "last_alert_at_ms": 1786524326765
     },
     "ETH": {
       "direction": "LONG",
