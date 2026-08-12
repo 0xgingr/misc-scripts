@@ -1363,7 +1363,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-11",
-  "last_run_at": "2026-08-12T00:45:33.999038+00:00",
+  "last_run_at": "2026-08-12T01:01:48.286644+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1588,8 +1588,8 @@
       "last_alert_at_ms": 1786401932102
     },
     "BCH": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786462237872
+      "direction": "LONG",
+      "last_alert_at_ms": 1786496445240
     },
     "BNB": {
       "direction": "LONG",
@@ -1648,8 +1648,8 @@
       "last_alert_at_ms": 1786081528060
     },
     "TAO": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786475728501
+      "direction": "LONG",
+      "last_alert_at_ms": 1786496445240
     },
     "TRX": {
       "direction": "LONG",
