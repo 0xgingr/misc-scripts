@@ -3,7 +3,7 @@
   "active_signals": {
     "HYPE-1786614337-3410": {
       "activated": true,
-      "bars_open": 23,
+      "bars_open": 24,
       "bars_to_activate": 1,
       "confidence": 81.83,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1786634100000,
+      "last_checked_candle_t": 1786635000000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1452,7 +1452,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-13",
-  "last_run_at": "2026-08-13T15:30:44.597274+00:00",
+  "last_run_at": "2026-08-13T15:45:38.314480+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1677,8 +1677,8 @@
       "last_alert_at_ms": 1786401932102
     },
     "BCH": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1786496445240
+      "direction": "SHORT",
+      "last_alert_at_ms": 1786635932259
     },
     "BNB": {
       "direction": "LONG",
