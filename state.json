@@ -1,88 +1,6 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {
-    "HYPE-1786614337-3410": {
-      "activated": true,
-      "bars_open": 69,
-      "bars_to_activate": 1,
-      "confidence": 81.83,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.4",
-      "entry": 57.544,
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "atr_stop_quality",
-        "bos",
-        "breaker_block",
-        "cmf",
-        "donchian_channels",
-        "ema_stack",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "macd",
-        "mitigation_block",
-        "obv",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-08-13T09:45:31.725666+00:00",
-      "grade": "B",
-      "higher_timeframe_alignment": true,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1786675500000,
-      "market_regime": "Strong Bull Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 43.445016
-      },
-      "reasons": [
-        "EMA stack bullish (20>50>200)",
-        "SMA50 above SMA200",
-        "Price above session VWAP",
-        "50-bar linear regression slope positive",
-        "Structure printing higher-highs/higher-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 57.544 broke above prior swing high 57.476 (BOS, continuation)",
-        "MACD histogram momentum: accelerating",
-        "Regular bearish RSI divergence at last two swing pivots",
-        "Hidden bullish RSI divergence at last two swing pivots",
-        "Fresh bullish order block supporting the setup",
-        "bullish breaker block supporting the setup"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 11.81,
-        "momentum": 10.83,
-        "risk": 2.92,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 5.12,
-        "volume": 6.02
-      },
-      "signal": "LONG",
-      "signal_id": "HYPE-1786614337-3410",
-      "status": "Pending",
-      "stop_loss": 56.816271,
-      "symbol": "HYPE",
-      "take_profit": [
-        58.635593,
-        59.363322,
-        60.454915
-      ],
-      "telegram_message_id": 5874,
-      "timeframe": "15M",
-      "trend": "Bullish",
-      "win_probability": 0.6683
-    }
-  },
+  "active_signals": {},
   "closed_signals": [
     {
       "activated": true,
@@ -898,6 +816,88 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.6528
+    },
+    {
+      "activated": true,
+      "bars_open": 70,
+      "bars_to_activate": 1,
+      "confidence": 81.83,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.4",
+      "entry": 57.544,
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-08-13T09:45:31.725666+00:00",
+      "grade": "B",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1786676400000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 43.445016
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 57.544 broke above prior swing high 57.476 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bearish RSI divergence at last two swing pivots",
+        "Hidden bullish RSI divergence at last two swing pivots",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup"
+      ],
+      "resolved_at": "2026-08-14T03:15:31.471263+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 10.83,
+        "risk": 2.92,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 5.12,
+        "volume": 6.02
+      },
+      "signal": "LONG",
+      "signal_id": "HYPE-1786614337-3410",
+      "status": "SL",
+      "stop_loss": 56.816271,
+      "symbol": "HYPE",
+      "take_profit": [
+        58.635593,
+        59.363322,
+        60.454915
+      ],
+      "telegram_message_id": 5874,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.6683
     }
   ],
   "created_at": "2026-07-20T18:36:26.122388+00:00",
@@ -1123,8 +1123,13 @@
     },
     "2026-08-14": {
       "feature_adjustments": [],
-      "losses": 0,
-      "rr_list": [],
+      "losses": 1,
+      "risk_pct_list": [
+        1.0
+      ],
+      "rr_list": [
+        -1.0
+      ],
       "signals": 0,
       "wins": 0
     }
@@ -1459,7 +1464,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-13",
-  "last_run_at": "2026-08-14T03:01:51.400728+00:00",
+  "last_run_at": "2026-08-14T03:15:32.198046+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1513,7 +1518,7 @@
       "wins": 0
     },
     "HYPE": {
-      "losses": 0,
+      "losses": 1,
       "signals": 1,
       "wins": 0
     },
@@ -1640,7 +1645,7 @@
       "wins": 0
     },
     "Strong Bull Trend": {
-      "losses": 4,
+      "losses": 5,
       "signals": 8,
       "wins": 3
     },
@@ -1658,12 +1663,12 @@
     },
     "confidence_calibration": {
       "B": {
-        "realized_win_rate": 0.4444,
-        "sample_size": 9
+        "realized_win_rate": 0.4,
+        "sample_size": 10
       }
     },
-    "overall_win_rate": 0.4,
-    "rolling_30d_win_rate": 0.4,
+    "overall_win_rate": 0.3636,
+    "rolling_30d_win_rate": 0.3636,
     "warnings": []
   },
   "watch_tier_alerts": {
