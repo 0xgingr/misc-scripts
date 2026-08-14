@@ -3,7 +3,7 @@
   "active_signals": {
     "APT-1786697136-2821": {
       "activated": true,
-      "bars_open": 1,
+      "bars_open": 2,
       "bars_to_activate": 1,
       "confidence": 82.73,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1786697100000,
+      "last_checked_candle_t": 1786698000000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1545,7 +1545,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-14",
-  "last_run_at": "2026-08-14T09:01:49.124432+00:00",
+  "last_run_at": "2026-08-14T09:15:33.825024+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
