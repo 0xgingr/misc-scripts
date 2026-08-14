@@ -1547,7 +1547,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-14",
-  "last_run_at": "2026-08-14T14:01:46.673160+00:00",
+  "last_run_at": "2026-08-14T14:15:39.516619+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1773,7 +1773,7 @@
     },
     "BCH": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1786702531326
+      "last_alert_at_ms": 1786716931399
     },
     "BNB": {
       "direction": "LONG",
@@ -1796,8 +1796,8 @@
       "last_alert_at_ms": 1786696242187
     },
     "HYPE": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1786628729379
+      "direction": "SHORT",
+      "last_alert_at_ms": 1786716931399
     },
     "LINK": {
       "direction": "LONG",
@@ -1832,8 +1832,8 @@
       "last_alert_at_ms": 1786707038044
     },
     "TAO": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1786496445240
+      "direction": "SHORT",
+      "last_alert_at_ms": 1786716931399
     },
     "TRX": {
       "direction": "LONG",
