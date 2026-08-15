@@ -1215,6 +1215,13 @@
       ],
       "signals": 1,
       "wins": 0
+    },
+    "2026-08-15": {
+      "feature_adjustments": [],
+      "losses": 0,
+      "rr_list": [],
+      "signals": 0,
+      "wins": 0
     }
   },
   "engine_name": "PRISM",
@@ -1547,7 +1554,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-14",
-  "last_run_at": "2026-08-14T23:45:35.497423+00:00",
+  "last_run_at": "2026-08-15T00:02:50.631415+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1808,8 +1815,8 @@
       "last_alert_at_ms": 1786737643072
     },
     "NEAR": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786693529948
+      "direction": "LONG",
+      "last_alert_at_ms": 1786752048376
     },
     "ONDO": {
       "direction": "SHORT",
