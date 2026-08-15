@@ -3,7 +3,7 @@
   "active_signals": {
     "DOT-1786824935-9764": {
       "activated": true,
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 6,
       "confidence": 81.44,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1786831200000,
+      "last_checked_candle_t": 1786832100000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1636,7 +1636,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-15",
-  "last_run_at": "2026-08-15T22:15:35.878718+00:00",
+  "last_run_at": "2026-08-15T22:30:39.504654+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
