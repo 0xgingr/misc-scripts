@@ -2,8 +2,9 @@
   "account_equity_reference": 10000.0,
   "active_signals": {
     "PENDLE-1787000507-5689": {
-      "activated": false,
-      "bars_open": 0,
+      "activated": true,
+      "bars_open": 1,
+      "bars_to_activate": 1,
       "confidence": 81.17,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -30,6 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": false,
       "holding_time": "12-48 hours",
+      "last_checked_candle_t": 1787000400000,
       "market_regime": "Compression",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1821,7 +1823,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-17",
-  "last_run_at": "2026-08-17T21:01:47.851660+00:00",
+  "last_run_at": "2026-08-17T21:15:36.431038+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2016,7 +2018,7 @@
   "self_monitoring": {
     "activation_timing": {
       "delayed_gt_1_bar": 2,
-      "immediate_1_bar": 12
+      "immediate_1_bar": 13
     },
     "confidence_calibration": {
       "B": {
@@ -2031,7 +2033,7 @@
   "watch_tier_alerts": {
     "AAVE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1786981529025
+      "last_alert_at_ms": 1787001328804
     },
     "ADA": {
       "direction": "SHORT",
@@ -2090,8 +2092,8 @@
       "last_alert_at_ms": 1786967131578
     },
     "PENDLE": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786915834521
+      "direction": "LONG",
+      "last_alert_at_ms": 1787001328804
     },
     "PENGU": {
       "direction": "SHORT",
