@@ -3,7 +3,7 @@
   "active_signals": {
     "PENDLE-1787000507-5689": {
       "activated": true,
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 1,
       "confidence": 81.17,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": false,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1787006700000,
+      "last_checked_candle_t": 1787007600000,
       "market_regime": "Compression",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1823,7 +1823,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-17",
-  "last_run_at": "2026-08-17T23:01:43.901294+00:00",
+  "last_run_at": "2026-08-17T23:15:35.904817+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
