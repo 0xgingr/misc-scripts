@@ -1834,8 +1834,8 @@
     "sma_trend": 0.05263157894736842,
     "vwap": 0.05263157894736842
   },
-  "last_daily_summary_date": "2026-08-17",
-  "last_run_at": "2026-08-18T07:45:35.082750+00:00",
+  "last_daily_summary_date": "2026-08-18",
+  "last_run_at": "2026-08-18T08:01:47.720564+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
