@@ -1842,7 +1842,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-19",
-  "last_run_at": "2026-08-19T14:45:37.754562+00:00",
+  "last_run_at": "2026-08-19T15:01:44.925063+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2072,15 +2072,15 @@
     },
     "BNB": {
       "direction": "LONG",
-      "last_alert_at_ms": 1786489243653
+      "last_alert_at_ms": 1787151639632
     },
     "BTC": {
       "direction": "LONG",
       "last_alert_at_ms": 1787144440000
     },
     "DOGE": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786574725704
+      "direction": "LONG",
+      "last_alert_at_ms": 1787151639632
     },
     "DOT": {
       "direction": "LONG",
@@ -2088,11 +2088,11 @@
     },
     "ETH": {
       "direction": "LONG",
-      "last_alert_at_ms": 1786978843011
+      "last_alert_at_ms": 1787151639632
     },
     "HYPE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1786965331810
+      "last_alert_at_ms": 1787151639632
     },
     "LINK": {
       "direction": "LONG",
@@ -2143,8 +2143,8 @@
       "last_alert_at_ms": 1787147129514
     },
     "XRP": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786746635477
+      "direction": "LONG",
+      "last_alert_at_ms": 1787151639632
     },
     "ZEC": {
       "direction": "LONG",
