@@ -1842,7 +1842,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-19",
-  "last_run_at": "2026-08-19T20:45:35.308161+00:00",
+  "last_run_at": "2026-08-19T21:01:44.550538+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2052,7 +2052,7 @@
   "watch_tier_alerts": {
     "AAVE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787141732520
+      "last_alert_at_ms": 1787173240256
     },
     "ADA": {
       "direction": "SHORT",
@@ -2080,7 +2080,7 @@
     },
     "DOGE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787151639632
+      "last_alert_at_ms": 1787173240256
     },
     "DOT": {
       "direction": "LONG",
@@ -2103,8 +2103,8 @@
       "last_alert_at_ms": 1786986040068
     },
     "NEAR": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1787092240003
+      "direction": "LONG",
+      "last_alert_at_ms": 1787173240256
     },
     "ONDO": {
       "direction": "LONG",
@@ -2120,7 +2120,7 @@
     },
     "SOL": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787144440000
+      "last_alert_at_ms": 1787173240256
     },
     "SUI": {
       "direction": "SHORT",
