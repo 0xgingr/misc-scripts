@@ -1849,7 +1849,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-20T11:30:44.422830+00:00",
+  "last_run_at": "2026-08-20T11:45:35.038330+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2063,7 +2063,7 @@
     },
     "ADA": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787174126950
+      "last_alert_at_ms": 1787226327790
     },
     "APT": {
       "direction": "LONG",
@@ -2151,7 +2151,7 @@
     },
     "XRP": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787172330448
+      "last_alert_at_ms": 1787226327790
     },
     "ZEC": {
       "direction": "LONG",
