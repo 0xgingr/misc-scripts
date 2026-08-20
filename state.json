@@ -1849,7 +1849,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-20T23:01:45.640785+00:00",
+  "last_run_at": "2026-08-20T23:15:32.919023+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2079,7 +2079,7 @@
     },
     "BNB": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787242531749
+      "last_alert_at_ms": 1787267725763
     },
     "BTC": {
       "direction": "LONG",
@@ -2134,8 +2134,8 @@
       "last_alert_at_ms": 1787221836353
     },
     "TAO": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786716931399
+      "direction": "LONG",
+      "last_alert_at_ms": 1787267725763
     },
     "TRX": {
       "direction": "LONG",
