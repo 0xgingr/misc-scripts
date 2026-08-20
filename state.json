@@ -1849,7 +1849,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-20T16:30:44.215562+00:00",
+  "last_run_at": "2026-08-20T16:45:37.950544+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2053,7 +2053,7 @@
       }
     },
     "overall_win_rate": 0.3333,
-    "rolling_30d_win_rate": 0.2857,
+    "rolling_30d_win_rate": 0.2308,
     "warnings": []
   },
   "watch_tier_alerts": {
@@ -2139,7 +2139,7 @@
     },
     "TRX": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787223643172
+      "last_alert_at_ms": 1787244331345
     },
     "UNI": {
       "direction": "SHORT",
