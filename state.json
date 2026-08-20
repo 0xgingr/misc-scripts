@@ -1849,7 +1849,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-20T14:45:37.391170+00:00",
+  "last_run_at": "2026-08-20T15:01:47.358433+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2053,7 +2053,7 @@
       }
     },
     "overall_win_rate": 0.3333,
-    "rolling_30d_win_rate": 0.3333,
+    "rolling_30d_win_rate": 0.2857,
     "warnings": []
   },
   "watch_tier_alerts": {
