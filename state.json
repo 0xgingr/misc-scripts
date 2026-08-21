@@ -1856,7 +1856,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-21T00:02:51.438443+00:00",
+  "last_run_at": "2026-08-21T00:15:32.112242+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2134,7 +2134,7 @@
     },
     "SOL": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787173240256
+      "last_alert_at_ms": 1787271325581
     },
     "SUI": {
       "direction": "LONG",
@@ -2149,8 +2149,8 @@
       "last_alert_at_ms": 1787244331345
     },
     "UNI": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1786465843038
+      "direction": "LONG",
+      "last_alert_at_ms": 1787271325581
     },
     "XLM": {
       "direction": "LONG",
