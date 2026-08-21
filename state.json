@@ -3,7 +3,7 @@
   "active_signals": {
     "ZEC-1787329844-3760": {
       "activated": true,
-      "bars_open": 7,
+      "bars_open": 8,
       "bars_to_activate": 1,
       "confidence": 82.13,
       "engine_name": "PRISM",
@@ -33,7 +33,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1787335200000,
+      "last_checked_candle_t": 1787336100000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1937,7 +1937,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-21",
-  "last_run_at": "2026-08-21T18:15:31.910731+00:00",
+  "last_run_at": "2026-08-21T18:30:41.636117+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
