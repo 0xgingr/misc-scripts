@@ -1856,7 +1856,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-21",
-  "last_run_at": "2026-08-21T13:01:44.107064+00:00",
+  "last_run_at": "2026-08-21T13:15:36.108361+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2074,7 +2074,7 @@
     },
     "APT": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787292041036
+      "last_alert_at_ms": 1787318129201
     },
     "AVAX": {
       "direction": "LONG",
@@ -2142,7 +2142,7 @@
     },
     "TAO": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787302843979
+      "last_alert_at_ms": 1787318129201
     },
     "TRX": {
       "direction": "LONG",
