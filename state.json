@@ -1856,7 +1856,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-21T07:01:43.575747+00:00",
+  "last_run_at": "2026-08-21T07:15:33.453342+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2090,7 +2090,7 @@
     },
     "BTC": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787214636894
+      "last_alert_at_ms": 1787296525602
     },
     "DOGE": {
       "direction": "LONG",
@@ -2098,11 +2098,11 @@
     },
     "DOT": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787245240894
+      "last_alert_at_ms": 1787296525602
     },
     "ETH": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787217332237
+      "last_alert_at_ms": 1787296525602
     },
     "HYPE": {
       "direction": "LONG",
