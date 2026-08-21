@@ -1856,7 +1856,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-20",
-  "last_run_at": "2026-08-21T02:30:42.919923+00:00",
+  "last_run_at": "2026-08-21T02:45:34.968776+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2066,7 +2066,7 @@
   "watch_tier_alerts": {
     "AAVE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787173240256
+      "last_alert_at_ms": 1787280328786
     },
     "ADA": {
       "direction": "LONG",
