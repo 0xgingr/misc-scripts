@@ -1949,7 +1949,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-21",
-  "last_run_at": "2026-08-22T02:30:39.110243+00:00",
+  "last_run_at": "2026-08-22T02:45:34.955349+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2181,7 +2181,7 @@
     },
     "BNB": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787325330605
+      "last_alert_at_ms": 1787366728181
     },
     "BTC": {
       "direction": "LONG",
@@ -2229,7 +2229,7 @@
     },
     "SOL": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787271325581
+      "last_alert_at_ms": 1787366728181
     },
     "SUI": {
       "direction": "LONG",
@@ -2237,11 +2237,11 @@
     },
     "TAO": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787318129201
+      "last_alert_at_ms": 1787366728181
     },
     "TRX": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787244331345
+      "last_alert_at_ms": 1787366728181
     },
     "UNI": {
       "direction": "LONG",
