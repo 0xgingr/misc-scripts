@@ -2043,7 +2043,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-23",
-  "last_run_at": "2026-08-23T13:01:44.697174+00:00",
+  "last_run_at": "2026-08-23T13:15:33.804078+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2295,7 +2295,7 @@
     },
     "HYPE": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787429730380
+      "last_alert_at_ms": 1787490926990
     },
     "LINK": {
       "direction": "LONG",
@@ -2339,7 +2339,7 @@
     },
     "UNI": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787360439076
+      "last_alert_at_ms": 1787490926990
     },
     "XLM": {
       "direction": "LONG",
