@@ -3,7 +3,7 @@
   "active_signals": {
     "BTC-1787575538-5189": {
       "activated": true,
-      "bars_open": 2,
+      "bars_open": 3,
       "bars_to_activate": 1,
       "confidence": 81.44,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1787576400000,
+      "last_checked_candle_t": 1787577300000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2219,7 +2219,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-24",
-  "last_run_at": "2026-08-24T13:15:35.562821+00:00",
+  "last_run_at": "2026-08-24T13:30:49.707577+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
