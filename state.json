@@ -2,8 +2,9 @@
   "account_equity_reference": 10000.0,
   "active_signals": {
     "BTC-1787575538-5189": {
-      "activated": false,
-      "bars_open": 0,
+      "activated": true,
+      "bars_open": 1,
+      "bars_to_activate": 1,
       "confidence": 81.44,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,6 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1787575500000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2217,7 +2219,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-24",
-  "last_run_at": "2026-08-24T12:45:39.128057+00:00",
+  "last_run_at": "2026-08-24T13:01:46.617955+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2412,7 +2414,7 @@
   "self_monitoring": {
     "activation_timing": {
       "delayed_gt_1_bar": 2,
-      "immediate_1_bar": 16
+      "immediate_1_bar": 17
     },
     "confidence_calibration": {
       "B": {
@@ -2505,7 +2507,7 @@
     },
     "TAO": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787366728181
+      "last_alert_at_ms": 1787576443203
     },
     "TRX": {
       "direction": "LONG",
@@ -2525,7 +2527,7 @@
     },
     "ZEC": {
       "direction": "LONG",
-      "last_alert_at_ms": 1787491841700
+      "last_alert_at_ms": 1787576443203
     }
   },
   "watchlist": [
