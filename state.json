@@ -2,8 +2,9 @@
   "account_equity_reference": 10000.0,
   "active_signals": {
     "BTC-1787582738-1046": {
-      "activated": false,
-      "bars_open": 0,
+      "activated": true,
+      "bars_open": 1,
+      "bars_to_activate": 1,
       "confidence": 80.21,
       "engine_name": "PRISM",
       "engine_version": "1.1.4",
@@ -31,6 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1787582700000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2304,7 +2306,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-08-24",
-  "last_run_at": "2026-08-24T14:45:38.809622+00:00",
+  "last_run_at": "2026-08-24T15:01:57.009516+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2499,8 +2501,9 @@
   "self_monitoring": {
     "activation_timing": {
       "delayed_gt_1_bar": 2,
-      "immediate_1_bar": 17
+      "immediate_1_bar": 18
     },
+    "activation_timing_immediate_pct": 0.9,
     "confidence_calibration": {
       "B": {
         "realized_win_rate": 0.3889,
@@ -2510,7 +2513,8 @@
     "overall_win_rate": 0.3684,
     "rolling_30d_win_rate": 0.2941,
     "warnings": [
-      "Confidence calibration drift for grade B: implied ~80%, realized 39% over 18 signals."
+      "Confidence calibration drift for grade B: implied ~80%, realized 39% over 18 signals.",
+      "'Activated' status is providing little discriminative signal: 90% of 20 activations happened within 1 bar of signal generation. Entry is set to the generation candle's own close, so this is expected, but it means the Activated gate rarely filters anything in practice."
     ]
   },
   "watch_tier_alerts": {
