@@ -39,10 +39,12 @@ logging.Formatter.converter = time.gmtime
 log = logging.getLogger("PRISM")
 
 ENGINE_NAME = "PRISM"
-ENGINE_VERSION = "1.1.5"
+ENGINE_VERSION = "1.1.6"
 # State-file schema. v5 = feature-validator window gating + shadow recovery,
-# realized_r on closed records, compacted daily_stats (see _migrate_state).
-STATE_SCHEMA_VERSION = 5
+# realized_r on closed records, compacted daily_stats. v6 = never-pruned
+# compact trade_archive, breaker + starvation state, daily_stats_archive
+# (see _migrate_state).
+STATE_SCHEMA_VERSION = 6
 
 TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID", "")
@@ -182,6 +184,39 @@ CALIBRATION_PRIOR_WIN_RATE = 0.40
 # than this, once the bucket has CALIBRATION_DRIFT_MIN_SAMPLE trades.
 CALIBRATION_DRIFT_TOLERANCE = 0.20
 CALIBRATION_DRIFT_MIN_SAMPLE = 15
+
+# --- Audit hardening (v1.1.6) --------------------------------------------
+# Starvation detection: if no tier="signal" candidate has been produced for
+# this long (and for at least STARVATION_MIN_SCANS scans, so a stalled cron
+# is not mistaken for starvation), adaptive state (disabled/decayed feature
+# weights) is relieved back to defaults. Purely time/scan driven, so it works
+# when live signal flow is zero.
+STARVATION_MIN_HOURS = 72
+STARVATION_MIN_SCANS = 200
+# Minimum spacing between two relief actions.
+STARVATION_RELIEF_COOLDOWN_HOURS = 72
+# Drawdown circuit breaker auto-recovery: after this many hours tripped, the
+# drawdown baseline is re-set (peak := current equity curve point). Without
+# it, a tripped breaker suppresses all signals, so no new trades can ever
+# close to repair the drawdown -> permanent lockout.
+BREAKER_COOLDOWN_HOURS = 48
+# What a tripped breaker (drawdown breaker or daily-loss kill-switch) does to
+# NEW signals. "suppress" (default, previous behaviour): no alert, nothing
+# tracked. "watch_only": sent as an untracked watch-tier alert carrying a
+# BREAKER note. "dispatch": sent and tracked like a normal signal, with the
+# BREAKER note leading its reasons. The engine never places orders either way.
+BREAKER_DISPATCH_MODE = os.environ.get("PRISM_BREAKER_DISPATCH", "suppress")
+BREAKER_DISPATCH_MODES = ("suppress", "watch_only", "dispatch")
+if BREAKER_DISPATCH_MODE not in BREAKER_DISPATCH_MODES:
+    log.warning("Unknown PRISM_BREAKER_DISPATCH %r -- falling back to suppress.", BREAKER_DISPATCH_MODE)
+    BREAKER_DISPATCH_MODE = "suppress"
+# Active signals older than this (wall clock since generated_at) are force-
+# resolved: candle history since generation is replayed for a missed TP1/SL,
+# otherwise the trade is closed mark-to-market. Longer than the longest
+# holding-time bucket (48h) plus slack for outages.
+STALE_SIGNAL_MAX_AGE_HOURS = 72
+# Minimum resolved trades before the win-rate/expectancy health warning fires.
+SELF_MONITOR_MIN_SAMPLE = 20
 
 # --- Entry / exit model flags -------------------------------------------
 # Entry model. "market" (default): entry = generation-candle close, treated
@@ -2304,15 +2339,47 @@ class PositionSizeResult:
     notes: List[str]
     risk_pct_of_equity: Optional[float] = None
 
-def _check_portfolio_guardrails(state: Dict[str, Any], open_positions: List[Dict[str, Any]],
-                                 p: Dict[str, Any] = PRODUCTION_PARAMS) -> Optional[str]:
-    """C1 fix: actually enforce the portfolio guardrails PRODUCTION_PARAMS
-    documents as active (max concurrent positions, daily realized-loss
-    kill-switch, rolling-drawdown circuit breaker). Returns a veto reason
-    string if a signal should be blocked, else None."""
-    if len(open_positions) >= p["max_concurrent_positions"]:
-        return f"Max concurrent positions reached ({len(open_positions)}/{p['max_concurrent_positions']})."
+def _update_breaker_state(state: Dict[str, Any], p: Dict[str, Any] = PRODUCTION_PARAMS) -> List[str]:
+    """Main-thread (before the scan fan-out) evaluation of the drawdown
+    circuit breaker over the never-pruned trade history, measured from the
+    last re-baseline. Trips at max_drawdown_circuit_breaker_pct and
+    auto-recovers after BREAKER_COOLDOWN_HOURS by re-baselining the equity
+    peak, so a tripped breaker cannot lock the engine out forever (it blocks
+    the very signals whose trades would repair the drawdown)."""
+    lines: List[str] = []
+    br = state.setdefault("breaker", {"status": "ok", "reason": None, "tripped_at": None,
+                                      "rebaselined_at": None, "trip_count": 0})
+    since = br.get("rebaselined_at") or ""
+    running = peak = 0.0
+    for c in _resolved_history(state):
+        if (c.get("resolved_at") or "") < since:
+            continue
+        rp = (c.get("position_sizing") or {}).get("risk_pct_of_equity")
+        running += _resolved_pnl_r(c) * (rp if rp is not None else p["risk_per_trade_pct"])
+        peak = max(peak, running)
+    drawdown_pct = peak - running
+    limit = abs(p["max_drawdown_circuit_breaker_pct"])
+    now = _utcnow()
+    if br["status"] == "ok":
+        if drawdown_pct >= limit:
+            br.update(status="tripped", tripped_at=now.isoformat(), trip_count=br.get("trip_count", 0) + 1,
+                      reason=f"Drawdown circuit breaker triggered: {drawdown_pct:.2f}% (limit {limit:.2f}%).")
+            lines.append(f"[Breaker] TRIPPED -- {br['reason']} Dispatch mode: {BREAKER_DISPATCH_MODE}.")
+    else:
+        tripped_at = _parse_iso(br.get("tripped_at"))
+        if drawdown_pct < limit:
+            br.update(status="ok", reason=None, tripped_at=None)
+            lines.append("[Breaker] cleared (drawdown back under limit).")
+        elif tripped_at is None or (now - tripped_at) >= timedelta(hours=BREAKER_COOLDOWN_HOURS):
+            br.update(status="ok", reason=None, tripped_at=None, rebaselined_at=now.isoformat())
+            lines.append(f"[Breaker] auto-reset after {BREAKER_COOLDOWN_HOURS}h cooldown; drawdown baseline "
+                         "re-set (recovery independent of signal flow).")
+    return lines
 
+def _breaker_reason(state: Dict[str, Any], p: Dict[str, Any] = PRODUCTION_PARAMS) -> Optional[str]:
+    """Reason string if a breaker (drawdown breaker or daily-loss
+    kill-switch) is currently tripped, else None. Read-only (worker-thread
+    safe); the drawdown state itself is maintained by _update_breaker_state."""
     today = _utcnow().strftime("%Y-%m-%d")
     day_bucket = state.get("daily_stats", {}).get(today, {})
     rr_list = day_bucket.get("rr_list", [])
@@ -2325,25 +2392,23 @@ def _check_portfolio_guardrails(state: Dict[str, Any], open_positions: List[Dict
         if realized_pct <= -abs(p["max_daily_loss_pct"]):
             return (f"Daily loss kill-switch triggered: realized {realized_pct:.2f}% "
                     f"(limit -{p['max_daily_loss_pct']:.2f}%).")
-
-    closed = state.get("closed_signals", [])
-    if closed:
-        running_pct = 0.0
-        peak_pct = 0.0
-        for c in closed:
-            r = _resolved_pnl_r(c)
-            if r is None:
-                continue
-            trade_risk_pct = (c.get("position_sizing") or {}).get("risk_pct_of_equity")
-            if trade_risk_pct is None:
-                trade_risk_pct = p["risk_per_trade_pct"]
-            running_pct += r * trade_risk_pct
-            peak_pct = max(peak_pct, running_pct)
-        drawdown_pct = peak_pct - running_pct
-        if drawdown_pct >= abs(p["max_drawdown_circuit_breaker_pct"]):
-            return (f"Drawdown circuit breaker triggered: {drawdown_pct:.2f}% "
-                    f"(limit {p['max_drawdown_circuit_breaker_pct']:.2f}%).")
+    br = state.get("breaker", {})
+    if br.get("status") == "tripped":
+        return br.get("reason")
     return None
+
+def _check_portfolio_guardrails(state: Dict[str, Any], open_positions: List[Dict[str, Any]],
+                                 p: Dict[str, Any] = PRODUCTION_PARAMS,
+                                 include_breaker: bool = True) -> Optional[str]:
+    """C1 fix: actually enforce the portfolio guardrails PRODUCTION_PARAMS
+    documents as active (max concurrent positions, daily realized-loss
+    kill-switch, rolling-drawdown circuit breaker). Returns a veto reason
+    string if a signal should be blocked, else None. scan_symbol passes
+    include_breaker=False and handles breaker trips itself so their dispatch
+    behaviour follows BREAKER_DISPATCH_MODE."""
+    if len(open_positions) >= p["max_concurrent_positions"]:
+        return f"Max concurrent positions reached ({len(open_positions)}/{p['max_concurrent_positions']})."
+    return _breaker_reason(state, p) if include_breaker else None
 
 def compute_position_size(
     account_equity: float, entry: float, stop: float, atr_v: float,
@@ -2492,6 +2557,14 @@ def default_state() -> Dict[str, Any]:
         # len(WATCHLIST) entries) so it needs no pruning, unlike
         # closed_signals/daily_stats.
         "watch_tier_alerts": {},
+        # Compact never-pruned record of every resolved trade (see
+        # _archive_sync); the adaptive loops read this, not closed_signals.
+        "trade_archive": {"features": list(CANDIDATE_FEATURES), "rows": []},
+        # Roll-up of daily_stats days dropped by retention pruning.
+        "daily_stats_archive": {"signals": 0, "wins": 0, "losses": 0, "timeouts": 0, "pruned_days": 0},
+        "breaker": {"status": "ok", "reason": None, "tripped_at": None, "rebaselined_at": None, "trip_count": 0},
+        "starvation": {"last_signal_at": _utcnow().isoformat(), "scans_since_signal": 0,
+                       "last_relief_at": None, "relief_count": 0},
     }
 
 class StateStore:
@@ -2527,6 +2600,8 @@ class StateStore:
             for k, v in default_state()["feature_stats"][f].items():
                 self.state["feature_stats"][f].setdefault(k, v)
         self.state.setdefault("watch_tier_alerts", {})
+        for k in ("trade_archive", "daily_stats_archive", "breaker", "starvation"):
+            self.state.setdefault(k, default_state()[k])
 
     def save(self) -> None:
         self.state["last_run_at"] = _utcnow().isoformat()
@@ -2551,6 +2626,66 @@ def _record_feature_adjustment(day_bucket: Dict[str, Any], line: str) -> None:
     lines.append(line)
     if len(lines) > DAILY_FEATURE_ADJ_MAX_LINES:
         del lines[:len(lines) - DAILY_FEATURE_ADJ_MAX_LINES]
+
+def _parse_iso(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+# Archive row layout: [signal_id, resolved_at, symbol, signal, grade,
+# confidence, status, realized_r, win_probability, risk_pct, fired_mask].
+def _archive_sync(state: Dict[str, Any]) -> int:
+    """Append every resolved closed_signals record not yet archived. The
+    archive is compact (~100 B/trade, fired features as a bitmask over the
+    stored feature order) and is NEVER pruned, so the adaptive loops
+    (feature validator, calibration, drawdown breaker) keep their full
+    statistics even though closed_signals is capped at CLOSED_SIGNALS_MAX.
+    Idempotent (keyed by signal_id); called centrally before any prune."""
+    arch = state.setdefault("trade_archive", {"features": list(CANDIDATE_FEATURES), "rows": []})
+    order = arch["features"]
+    for f in CANDIDATE_FEATURES:
+        if f not in order:
+            order.append(f)  # append-only so existing masks keep their meaning
+    bit = {f: i for i, f in enumerate(order)}
+    seen = {row[0] for row in arch["rows"]}
+    added = 0
+    for c in state.get("closed_signals", []):
+        r = _resolved_pnl_r(c)
+        sid = c.get("signal_id")
+        if r is None or sid is None or sid in seen:
+            continue
+        fired = c.get("fired_features") or [f for f in CANDIDATE_FEATURES if _feature_fired(c, f)]
+        mask = 0
+        for f in fired:
+            if f in bit:
+                mask |= 1 << bit[f]
+        risk_pct = (c.get("position_sizing") or {}).get("risk_pct_of_equity")
+        arch["rows"].append([sid, c.get("resolved_at"), c.get("symbol"), c.get("signal"), _record_grade(c),
+                             c.get("confidence"), c.get("status"), round(r, 4), c.get("win_probability"),
+                             risk_pct, mask])
+        seen.add(sid)
+        added += 1
+    return added
+
+def _resolved_history(state: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Resolved trades (oldest -> newest) rebuilt from the never-pruned
+    archive as record-shaped dicts, so every stats helper works unchanged."""
+    _archive_sync(state)
+    arch = state["trade_archive"]
+    order = arch["features"]
+    out: List[Dict[str, Any]] = []
+    for sid, rat, sym, sig, grade, conf, status, r, wp, rp, mask in arch["rows"]:
+        out.append({
+            "signal_id": sid, "resolved_at": rat or "", "symbol": sym, "signal": sig, "grade": grade,
+            "confidence": conf, "status": status, "realized_r": r, "win_probability": wp,
+            "position_sizing": {"risk_pct_of_equity": rp},
+            "fired_features": [f for i, f in enumerate(order) if mask >> i & 1],
+        })
+    return out
 
 def _resolved_pnl_r(record: Dict[str, Any]) -> Optional[float]:
     """R-multiple outcome of a resolved signal record. Prefers the stored
@@ -2625,16 +2760,12 @@ def _shadow_good_streak(resolved: List[Dict[str, Any]], feature: str) -> int:
         streak += 1
     return streak
 
-def _migrate_state(state: Dict[str, Any]) -> List[str]:
-    """Idempotent schema migration to STATE_SCHEMA_VERSION (guarded by the
-    version stamp, so re-running on migrated state is a no-op).
-    v4 -> v5: reset feature weights/disabled flags/window counters that were
+def _migrate_v4_to_v5(state: Dict[str, Any]) -> List[str]:
+    """v4 -> v5: reset feature weights/disabled flags/window counters that were
     corrupted by per-scan window counting (closed_signals preserved), seed the
     window gate at the current resolved count, back-fill realized_r, and
     compact daily_stats."""
     lines: List[str] = []
-    if state.get("schema_version", 0) >= STATE_SCHEMA_VERSION:
-        return lines
     closed = state.get("closed_signals", [])
     resolved = _resolved_records(closed)
     last_id = resolved[-1].get("signal_id") if resolved else None
@@ -2674,8 +2805,39 @@ def _migrate_state(state: Dict[str, Any]) -> List[str]:
                 compacted += 1
     lines.append(f"[Migrate] daily_stats feature_adjustments compacted on {compacted} day(s).")
 
-    state["schema_version"] = STATE_SCHEMA_VERSION
-    state["engine_version"] = ENGINE_VERSION
+    state["schema_version"] = 5
+    return lines
+
+def _migrate_v5_to_v6(state: Dict[str, Any]) -> List[str]:
+    """v5 -> v6: add the never-pruned trade_archive (back-filled from
+    closed_signals), breaker/starvation state, daily_stats_archive."""
+    lines: List[str] = []
+    state.setdefault("trade_archive", {"features": list(CANDIDATE_FEATURES), "rows": []})
+    state.setdefault("daily_stats_archive", {"signals": 0, "wins": 0, "losses": 0, "timeouts": 0, "pruned_days": 0})
+    state.setdefault("breaker", {"status": "ok", "reason": None, "tripped_at": None,
+                                 "rebaselined_at": None, "trip_count": 0})
+    stamps = [c.get("generated_at") for c in state.get("closed_signals", []) if c.get("generated_at")]
+    stamps += [r.get("generated_at") for r in state.get("active_signals", {}).values() if r.get("generated_at")]
+    state.setdefault("starvation", {"last_signal_at": max(stamps) if stamps else _utcnow().isoformat(),
+                                    "scans_since_signal": 0, "last_relief_at": None, "relief_count": 0})
+    added = _archive_sync(state)
+    lines.append(f"[Migrate] trade_archive back-filled with {added} resolved trade(s).")
+    state["schema_version"] = 6
+    return lines
+
+def _migrate_state(state: Dict[str, Any]) -> List[str]:
+    """Idempotent, version-chained schema migration to STATE_SCHEMA_VERSION
+    (each step is guarded by the version stamp, so re-running on migrated
+    state is a no-op)."""
+    lines: List[str] = []
+    version = state.get("schema_version", 0)
+    if version < 5:
+        lines += _migrate_v4_to_v5(state)
+    if state.get("schema_version", 0) < 6:
+        lines += _migrate_v5_to_v6(state)
+    if version < STATE_SCHEMA_VERSION:
+        state["schema_version"] = STATE_SCHEMA_VERSION
+        state["engine_version"] = ENGINE_VERSION
     return lines
 
 def update_feature_stats_from_closed_signals(state: Dict[str, Any]) -> List[str]:
@@ -2693,11 +2855,11 @@ def update_feature_stats_from_closed_signals(state: Dict[str, Any]) -> List[str]
       closed_signals (see _shadow_good_streak), restoring to
       DEFAULT_FEATURE_WEIGHT * RESTORE_WEIGHT_FACTOR."""
     log_lines: List[str] = []
-    closed = state.get("closed_signals", [])
-    if len(closed) < RESEARCH_PARAMS["ablation_min_sample_size"]:
+    # Read from the never-pruned archive (not closed_signals) so pruning can
+    # never shrink the validator's own sample.
+    resolved_all = _resolved_history(state)
+    if len(resolved_all) < RESEARCH_PARAMS["ablation_min_sample_size"]:
         return log_lines
-
-    resolved_all = _resolved_records(closed)
     resolved_count = len(resolved_all)
     newest_id = resolved_all[-1].get("signal_id") if resolved_all else None
     window = resolved_all[-FEATURE_ROLLING_WINDOW:]
@@ -2833,7 +2995,7 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
     closed = state.get("closed_signals", [])
     # Win == positive realized R (Closed/mark-to-market and partial-exit
     # trades included) so every resolved trade is counted consistently.
-    resolved = _resolved_records(closed)
+    resolved = _resolved_history(state)  # never-pruned archive, not the capped closed_signals
     if resolved:
         wins = sum(1 for c in resolved if _resolved_is_win(c))
         overall_win_rate = wins / len(resolved)
@@ -2852,7 +3014,8 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
             bucket = [c for c in resolved if _record_grade(c) == grade][-CALIBRATION_ROLLING_WINDOW:]
             if bucket:
                 bw = sum(1 for c in bucket if _resolved_is_win(c)) / len(bucket)
-                calib[grade] = {"sample_size": len(bucket), "realized_win_rate": round(bw, 4)}
+                calib[grade] = {"sample_size": len(bucket), "realized_win_rate": round(bw, 4),
+                                "realized_expectancy_r": round(statistics.mean(_resolved_pnl_r(c) for c in bucket), 4)}
                 advertised = [c["win_probability"] for c in bucket if c.get("win_probability") is not None]
                 if advertised:
                     implied = statistics.mean(advertised)
@@ -2863,10 +3026,13 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
                             f"realized {bw:.0%} over last {len(bucket)} signals.")
         state["self_monitoring"]["confidence_calibration"] = calib
 
-        if overall_win_rate < 0.35 and len(resolved) >= 20:
+        # Health warning is expectancy-based: a fixed win-rate floor ignores the
+        # payoff ratio (40% WR is breakeven at 1.5R but a loser at 1R).
+        mean_r = statistics.mean(_resolved_pnl_r(c) for c in resolved)
+        if mean_r < 0 and len(resolved) >= SELF_MONITOR_MIN_SAMPLE:
             warnings.append(
-                f"Overall win rate {overall_win_rate:.0%} over {len(resolved)} resolved signals is "
-                "below a healthy floor -- recommend feature revalidation and parameter review."
+                f"Expectancy {mean_r:+.2f}R (win rate {overall_win_rate:.0%}) over {len(resolved)} resolved "
+                "signals is negative -- recommend feature revalidation and parameter review."
             )
 
     disabled = [f for f, s in state["feature_stats"].items() if s.get("disabled")]
@@ -3190,14 +3356,38 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
 
     for sig_id, record in list(active.items()):
         symbol = record["symbol"]
+        # Max-age resolution (stale-signal fix): a record whose TP1/SL was
+        # missed (data gap, symbol unscannable, watermark older than the
+        # candle window) used to sit active forever. Past
+        # STALE_SIGNAL_MAX_AGE_HOURS it is force-resolved below.
+        gen_dt = _parse_iso(record.get("generated_at"))
+        stale = gen_dt is not None and (_utcnow() - gen_dt) >= timedelta(hours=STALE_SIGNAL_MAX_AGE_HOURS)
         fs_map = mtf_features_by_symbol.get(symbol)
         if not fs_map or EXECUTION_TF not in fs_map:
+            if stale:
+                record["status"] = "Cancelled"
+                record["resolved_at"] = _utcnow().isoformat()
+                record["cancel_reason"] = "stale_no_price_data"
+                state["active_signals"].pop(sig_id, None)
+                state["closed_signals"].append(record)
+                log.warning("Signal %s (%s) stale >%dh with no price data -- cancelled (outcome unknown, "
+                            "excluded from stats).", sig_id, symbol, STALE_SIGNAL_MAX_AGE_HOURS)
             continue
         fs = fs_map[EXECUTION_TF]
 
         watermark = record.get("last_checked_candle_t")
         candles = fs.candles
-        if watermark is None:
+        if stale and not record.get("stale_replayed") and candles and gen_dt is not None:
+            # One-time replay of every cached candle since generation so a
+            # missed TP1/SL is still found; partial-exit state is reset so the
+            # replay is self-consistent.
+            gen_ms = int(gen_dt.timestamp() * 1000)
+            new_indices = [i for i, c in enumerate(candles) if c["t"] >= gen_ms] or [len(candles) - 1]
+            record["stale_replayed"] = True
+            for k in ("partial_taken", "trail_stop", "best_price"):
+                record.pop(k, None)
+            record["bars_open"] = 0
+        elif watermark is None:
             new_indices = [len(candles) - 1] if candles else []
         else:
             new_indices = [i for i, c in enumerate(candles) if c["t"] > watermark]
@@ -3264,7 +3454,7 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 state["closed_signals"].append(record)
                 log.info("Signal %s (%s) cancelled -- reached %s zone before entry was ever filled.",
                           sig_id, symbol, gapped_side)
-            elif bars_since > (min(_max_holding_bars_15m(record.get("holding_time", "6-24 hours")), RETEST_EXPIRY_BARS)
+            elif stale or bars_since > (min(_max_holding_bars_15m(record.get("holding_time", "6-24 hours")), RETEST_EXPIRY_BARS)
                                if record.get("entry_model") == "retest_limit"
                                else _max_holding_bars_15m(record.get("holding_time", "6-24 hours"))):
                 # retest_limit orders expire sooner than the max-hold window.
@@ -3342,7 +3532,7 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 exit_price = tp1
                 realized_r = float(record.get("risk_reward") or _signed_r(tp1))
 
-        if resolved_status is None and bars_since > max_hold:
+        if resolved_status is None and (bars_since > max_hold or stale):
             # Timeout: realized R is marked to market at the last close
             # (vs entry/SL distance), plus any already-banked partial, and is
             # stored on the record so the trade is counted in all stats.
@@ -3392,6 +3582,16 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
             day_bucket["risk_pct_list"].append(trade_risk_pct)
             log.info("Signal %s (%s) resolved: %s (realized %.2fR)", sig_id, symbol, resolved_status,
                       record["realized_r"] if record["realized_r"] is not None else 0.0)
+
+def _watch_cooldown_elapsed(state: Dict[str, Any], symbol: str, direction: str, now_ms: int) -> Optional[float]:
+    """Hours since the last same-direction watch alert if still inside the
+    cooldown (alert should be suppressed), else None."""
+    last_alert = state.get("watch_tier_alerts", {}).get(symbol)
+    if last_alert is not None and last_alert.get("direction") == direction:
+        elapsed_hours = (now_ms - last_alert["last_alert_at_ms"]) / 3_600_000.0
+        if elapsed_hours < PRODUCTION_PARAMS["watch_tier_cooldown_hours"]:
+            return elapsed_hours
+    return None
 
 def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[str, Any],
                  symbol: str, now_ms: int) -> Tuple[Optional[Dict[str, FeatureSet]], Optional[Dict[str, Any]]]:
@@ -3467,16 +3667,14 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         # (recording that this alert fired) happens back on the main thread
         # in run_scan, once all symbols' results are in, matching the
         # existing read-here/mutate-there split for this function.
-        cooldown_hours = PRODUCTION_PARAMS["watch_tier_cooldown_hours"]
-        last_alert = state.get("watch_tier_alerts", {}).get(symbol)
-        if last_alert is not None and last_alert.get("direction") == decision.direction:
-            elapsed_hours = (now_ms - last_alert["last_alert_at_ms"]) / 3_600_000.0
-            if elapsed_hours < cooldown_hours:
-                log.info(
-                    "%s: WATCH %s suppressed -- %.1fh into a %dh cooldown since the last %s watch alert.",
-                    symbol, watch_json["signal"], elapsed_hours, cooldown_hours, decision.direction,
-                )
-                return mtf_features, None
+        elapsed_hours = _watch_cooldown_elapsed(state, symbol, decision.direction, now_ms)
+        if elapsed_hours is not None:
+            log.info(
+                "%s: WATCH %s suppressed -- %.1fh into a %dh cooldown since the last %s watch alert.",
+                symbol, watch_json["signal"], elapsed_hours, PRODUCTION_PARAMS["watch_tier_cooldown_hours"],
+                decision.direction,
+            )
+            return mtf_features, None
 
         log.info("%s: WATCH %s grade=%s confidence=%.1f (below signal threshold, above watch floor).",
                   symbol, watch_json["signal"], watch_json["grade"], watch_json["confidence"])
@@ -3488,10 +3686,29 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         log.info("%s: signal suppressed -- symbol already has an open active signal.", symbol)
         return mtf_features, None
 
-    guardrail_veto = _check_portfolio_guardrails(state, open_positions)
+    guardrail_veto = _check_portfolio_guardrails(state, open_positions, include_breaker=False)
     if guardrail_veto:
         log.info("%s: signal vetoed by portfolio guardrail -- %s", symbol, guardrail_veto)
         return mtf_features, None
+
+    # Circuit-breaker dispatch policy is explicit (BREAKER_DISPATCH_MODE), not
+    # an implicit silent drop: suppress | watch_only | dispatch.
+    breaker_note: Optional[str] = None
+    breaker_reason = _breaker_reason(state)
+    if breaker_reason:
+        if BREAKER_DISPATCH_MODE == "suppress":
+            log.info("%s: signal suppressed by tripped breaker -- %s", symbol, breaker_reason)
+            return mtf_features, None
+        breaker_note = f"BREAKER: {breaker_reason} (dispatch mode: {BREAKER_DISPATCH_MODE})"
+        if BREAKER_DISPATCH_MODE == "watch_only":
+            watch_json = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size=None)
+            watch_json["_tier"] = "watch"
+            watch_json["reasons"] = [breaker_note] + list(watch_json.get("reasons") or [])
+            if _watch_cooldown_elapsed(state, symbol, decision.direction, now_ms) is not None:
+                return mtf_features, None
+            log.info("%s: breaker tripped -- sending as untracked WATCH alert.", symbol)
+            return mtf_features, watch_json
+        log.info("%s: breaker tripped -- dispatching and tracking signal anyway (mode=dispatch).", symbol)
 
     corr_passed, corr_veto = evaluate_correlation_risk_gate(symbol, decision.direction, open_positions, cache)
     if not corr_passed:
@@ -3509,6 +3726,8 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
     )
 
     sig = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size)
+    if breaker_note:
+        sig["reasons"] = [breaker_note] + list(sig.get("reasons") or [])
     sig["_tier"] = "signal"
     log.info("%s: SIGNAL %s grade=%s confidence=%.1f rr=%s", symbol, sig["signal"], sig["grade"],
               sig["confidence"], sig["risk_reward"])
@@ -3561,6 +3780,10 @@ def _prune_state(state: Dict[str, Any]) -> List[str]:
     """
     log_lines: List[str] = []
 
+    # Archive first: the compact never-pruned archive must hold every resolved
+    # trade before the full records are trimmed (adaptive loops read it).
+    _archive_sync(state)
+
     closed = state.get("closed_signals")
     if isinstance(closed, list) and len(closed) > CLOSED_SIGNALS_MAX:
         dropped = len(closed) - CLOSED_SIGNALS_MAX
@@ -3579,8 +3802,14 @@ def _prune_state(state: Dict[str, Any]) -> List[str]:
         cutoff_date = (_utcnow() - timedelta(days=retention_days)).strftime("%Y-%m-%d")
         stale_days = [d for d in daily_stats if d < cutoff_date]
         if stale_days:
+            roll = state.setdefault("daily_stats_archive", {"signals": 0, "wins": 0, "losses": 0,
+                                                            "timeouts": 0, "pruned_days": 0})
             for d in stale_days:
-                daily_stats.pop(d, None)
+                b = daily_stats.pop(d, None) or {}
+                # Keep lifetime counts of pruned days (per-day detail is dropped).
+                for k in ("signals", "wins", "losses", "timeouts"):
+                    roll[k] = roll.get(k, 0) + b.get(k, 0)
+                roll["pruned_days"] = roll.get("pruned_days", 0) + 1
             log_lines.append(
                 f"[Prune] daily_stats: dropped {len(stale_days)} day(s) older than "
                 f"{retention_days}d (before {cutoff_date})."
@@ -3611,6 +3840,56 @@ def _log_closed_signals_range(state: Dict[str, Any]) -> None:
     log.info("closed_signals: %d/%d records on file, spanning %s -> %s%s.",
               len(closed), CLOSED_SIGNALS_MAX, oldest_s, newest_s, span_note)
 
+def _starvation_check(state: Dict[str, Any], produced_signal: bool) -> List[str]:
+    """Starvation detection + relief. Adaptive weights (disabled/decayed
+    features) can leave too little score mass to ever clear the signal
+    threshold; with no signals there are no new trades for the validator or
+    its shadow replay to learn from. This watchdog is driven only by scan
+    count and wall-clock, so it recovers the engine without live signal flow:
+    after STARVATION_MIN_HOURS/STARVATION_MIN_SCANS with no signal it
+    restores every feature to its default weight (rate-limited by
+    STARVATION_RELIEF_COOLDOWN_HOURS). A tripped drawdown breaker has its own
+    recovery, so it is reported rather than treated as weight starvation."""
+    lines: List[str] = []
+    ss = state.setdefault("starvation", {"last_signal_at": _utcnow().isoformat(), "scans_since_signal": 0,
+                                         "last_relief_at": None, "relief_count": 0})
+    now = _utcnow()
+    if produced_signal:
+        ss["last_signal_at"] = now.isoformat()
+        ss["scans_since_signal"] = 0
+        return lines
+    ss["scans_since_signal"] = ss.get("scans_since_signal", 0) + 1
+    last_signal = _parse_iso(ss.get("last_signal_at")) or now
+    if (now - last_signal) < timedelta(hours=STARVATION_MIN_HOURS) or ss["scans_since_signal"] < STARVATION_MIN_SCANS:
+        return lines
+    last_relief = _parse_iso(ss.get("last_relief_at"))
+    if last_relief is not None and (now - last_relief) < timedelta(hours=STARVATION_RELIEF_COOLDOWN_HOURS):
+        return lines
+    if state.get("breaker", {}).get("status") == "tripped":
+        lines.append("[Starvation] no signals but the drawdown breaker is tripped -- breaker recovery applies, "
+                     "no weight relief.")
+        return lines
+    relieved = []
+    for f in CANDIDATE_FEATURES:
+        stats = state["feature_stats"][f]
+        if stats.get("disabled") or state["feature_weights"].get(f, DEFAULT_FEATURE_WEIGHT) < DEFAULT_FEATURE_WEIGHT:
+            state["feature_weights"][f] = DEFAULT_FEATURE_WEIGHT
+            stats.update(weight=DEFAULT_FEATURE_WEIGHT, disabled=False, consecutive_bad_windows=0,
+                         consecutive_good_windows=0, shadow_consecutive_good_windows=0,
+                         last_adjusted_at=now.isoformat(),
+                         last_adjustment_reason="Starvation relief: weight restored to default.")
+            relieved.append(f)
+    ss["last_relief_at"] = now.isoformat()
+    ss["relief_count"] = ss.get("relief_count", 0) + 1
+    if relieved:
+        lines.append(f"[Starvation] no signal for {(now - last_signal).total_seconds() / 3600:.0f}h / "
+                     f"{ss['scans_since_signal']} scans -- relief: restored {len(relieved)} feature(s) to default weight.")
+    else:
+        lines.append(f"[Starvation] no signal for {(now - last_signal).total_seconds() / 3600:.0f}h / "
+                     f"{ss['scans_since_signal']} scans with default weights -- not adaptation-induced "
+                     "(market/threshold driven); nothing to relieve.")
+    return lines
+
 def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateStore,
              notifier: TelegramNotifier) -> None:
     state = store.state
@@ -3624,6 +3903,8 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     day_bucket = _day_bucket(state, today)
 
     _retry_pending_notifications(state, notifier)
+    for line in _update_breaker_state(state):
+        log.info(line)
 
     def _scan_one(symbol: str) -> Tuple[str, Optional[Dict[str, FeatureSet]], Optional[Dict[str, Any]]]:
         # Runs on a worker thread. scan_symbol only *reads* state/cache during
@@ -3700,6 +3981,11 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
             "last_alert_at_ms": now_ms,
             "direction": sig["signal"],
         }
+
+    _archive_sync(state)
+    for line in _starvation_check(state, bool(new_signals)):
+        log.info(line)
+        _record_feature_adjustment(day_bucket, line)
 
     adjustment_lines = update_feature_stats_from_closed_signals(state)
     for line in adjustment_lines:
