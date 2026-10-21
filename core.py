@@ -39,7 +39,10 @@ logging.Formatter.converter = time.gmtime
 log = logging.getLogger("PRISM")
 
 ENGINE_NAME = "PRISM"
-ENGINE_VERSION = "1.1.4"
+ENGINE_VERSION = "1.1.5"
+# State-file schema. v5 = feature-validator window gating + shadow recovery,
+# realized_r on closed records, compacted daily_stats (see _migrate_state).
+STATE_SCHEMA_VERSION = 5
 
 TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
 TG_CHAT_ID = os.environ.get("TG_CHAT_ID", "")
@@ -147,6 +150,53 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
 # ad hoc at each append site, so neither path can be missed.
 CLOSED_SIGNALS_MAX = 2000
 
+# --- Feature-validator hardening (v1.1.5) -------------------------------
+# A feature is never adjusted/disabled on fewer than this many resolved
+# trades inside the rolling window (n~19 gave near-identical, non-
+# discriminative per-feature stats because features fire together).
+MIN_FEATURE_SAMPLE = 30
+# Validator/shadow statistics use only the most recent N resolved trades.
+FEATURE_ROLLING_WINDOW = 50
+# Max share of total (default-baseline) feature weight that may be disabled
+# at once; excess candidates are ranked by expectancy and only the worst
+# are disabled, the rest are held at the active-weight floor below.
+MAX_DISABLED_WEIGHT_SHARE = 0.5
+# Weight (x DEFAULT_FEATURE_WEIGHT) given to a feature restored from
+# disabled, and the floor for decayed-but-not-disabled features.
+RESTORE_WEIGHT_FACTOR = 0.2
+# Weight below which a decayed feature is considered disabled.
+DISABLE_WEIGHT_EPSILON = 0.01
+# Per-day cap on stored feature-adjustment log lines in daily_stats (the
+# running total is kept in `feature_adjustments_count`). This list was the
+# source of the ~9.75 MB daily_stats bloat (one line per feature per scan).
+DAILY_FEATURE_ADJ_MAX_LINES = 10
+# Rolling window (resolved trades per grade) and shrinkage for calibration.
+CALIBRATION_ROLLING_WINDOW = 50
+CALIBRATION_MIN_SAMPLE = 20
+# Prior strength (pseudo-trades) and prior win rate for win_probability.
+# 0.40 == breakeven WR at the fixed 1.5R target: claim no edge until
+# realized per-grade results demonstrate one.
+CALIBRATION_PRIOR_STRENGTH = 20
+CALIBRATION_PRIOR_WIN_RATE = 0.40
+# Warn when realized WR differs from the mean advertised probability by more
+# than this, once the bucket has CALIBRATION_DRIFT_MIN_SAMPLE trades.
+CALIBRATION_DRIFT_TOLERANCE = 0.20
+CALIBRATION_DRIFT_MIN_SAMPLE = 15
+
+# --- Entry / exit model flags -------------------------------------------
+# Entry model. "market" (default): entry = generation-candle close, treated
+# as filled immediately (the old Pending->Activated gate was a no-op: ~90% of
+# signals "activated" within 1 bar). "retest_limit" (default OFF): limit
+# order RETEST_ATR_FRACTION x ATR back from the close; stays Pending until
+# touched and expires after RETEST_EXPIRY_BARS 15M bars unfilled.
+ENTRY_MODEL = os.environ.get("PRISM_ENTRY_MODEL", "market")
+ENTRY_MODELS = ("market", "retest_limit")
+RETEST_ATR_FRACTION = 0.5
+RETEST_EXPIRY_BARS = 16
+# Exit model parameters for "partial_at_1R_then_trail" (see EXIT_MODEL).
+PARTIAL_AT_1R_FRACTION = 0.5   # share of position closed at +1R
+PARTIAL_TRAIL_R = 1.0          # trailing-stop distance (in R) behind best price
+
 BASE_CATEGORY_WEIGHTS: Dict[str, float] = {
     "trend": 25.0, "structure": 20.0, "momentum": 15.0, "liquidity": 15.0,
     "volume": 10.0, "volatility": 10.0, "risk": 5.0,
@@ -190,8 +240,27 @@ def score_to_grade(score: float) -> str:
     if score >= 80: return "B"
     return "No Trade"
 
-EXIT_MODEL = "full_exit_at_tp1"
-assert EXIT_MODEL == "full_exit_at_tp1"
+# Exit model (new signals only; open records keep the model they were created
+# with). Default "full_exit_at_tp1" = all-out at fixed TP1 (1.5R), which needs
+# a 40% win rate to break even (realized so far: ~37%).
+# "partial_at_1R_then_trail" (default OFF, enable via PRISM_EXIT_MODEL):
+# close PARTIAL_AT_1R_FRACTION at +1R, move stop to breakeven, trail the rest
+# PARTIAL_TRAIL_R behind the best price (final cap = TP3). Trade-off: +1R is
+# reached more often than +1.5R and the breakeven stop caps the downside once
+# the partial is banked, which lifts hit-rate and smooths the curve, but it
+# gives up some of the full 1.5R payoff on winners that run straight to TP1
+# and adds path dependence; only validate it on forward data, not on the n~20
+# sample that motivated it.
+EXIT_MODEL_FULL = "full_exit_at_tp1"
+EXIT_MODEL_PARTIAL = "partial_at_1R_then_trail"
+EXIT_MODELS = (EXIT_MODEL_FULL, EXIT_MODEL_PARTIAL)
+EXIT_MODEL = os.environ.get("PRISM_EXIT_MODEL", EXIT_MODEL_FULL)
+if EXIT_MODEL not in EXIT_MODELS:
+    log.warning("Unknown PRISM_EXIT_MODEL %r -- falling back to %s.", EXIT_MODEL, EXIT_MODEL_FULL)
+    EXIT_MODEL = EXIT_MODEL_FULL
+if ENTRY_MODEL not in ENTRY_MODELS:
+    log.warning("Unknown PRISM_ENTRY_MODEL %r -- falling back to market.", ENTRY_MODEL)
+    ENTRY_MODEL = "market"
 
 SIGNAL_STATUSES = ("Pending", "Activated", "TP1", "SL", "Expired", "Closed", "Cancelled")
 
@@ -2001,6 +2070,10 @@ def _entry_engine(
     entry = fs_15m.closes[fs_15m.last]
     atr_v = volatility.atr
     buffer = 0.25 * atr_v
+    if ENTRY_MODEL == "retest_limit" and direction in ("LONG", "SHORT"):
+        # Flag-gated (default off): limit entry a fraction of ATR back toward
+        # structure instead of chasing the close; stop/targets key off it.
+        entry = entry - RETEST_ATR_FRACTION * atr_v if direction == "LONG" else entry + RETEST_ATR_FRACTION * atr_v
 
     if direction == "LONG":
         struct_stop = structure.protected_low
@@ -2047,17 +2120,21 @@ def _holding_time_estimate(regime: str, volatility: VolatilityResult) -> str:
     return "4-18 hours"
 
 def _win_probability_estimate(confluence: float, feature_calibration: Optional[Dict[str, Any]]) -> float:
-    """Base estimate from a monotonic, deliberately-conservative mapping of
-    composite score -> probability, then nudged by observed confidence
-    calibration if state.json has enough history (Section 20: do X%-
-    confidence signals actually win ~X% of the time?)."""
-    base = 0.35 + (confluence - 50.0) / 100.0 if confluence >= 50 else 0.35
-    base = max(0.30, min(0.85, base))
-    if feature_calibration and feature_calibration.get("sample_size", 0) >= 20:
-        observed = feature_calibration.get("observed_win_rate")
-        if observed is not None:
-            base = round((base * 0.6 + observed * 0.4), 4)
-    return round(base, 4)
+    """Calibrated win probability for the signal's grade. Uses the rolling
+    realized win rate of the grade (feature_calibration, from
+    run_self_monitoring), shrunk toward CALIBRATION_PRIOR_WIN_RATE with
+    CALIBRATION_PRIOR_STRENGTH pseudo-trades, so a grade with no/little
+    history advertises the no-edge prior (not the old score-derived ~80%)
+    and converges to realized results as trades accrue. `confluence` is kept
+    for signature compatibility; the old score->probability map was the
+    source of the grade-B 80% vs 37% realized miscalibration."""
+    n = int((feature_calibration or {}).get("sample_size", 0) or 0)
+    observed = (feature_calibration or {}).get("observed_win_rate")
+    wins = (observed * n) if (observed is not None and n > 0) else 0.0
+    if observed is None:
+        n = 0
+    p = (wins + CALIBRATION_PRIOR_STRENGTH * CALIBRATION_PRIOR_WIN_RATE) / (n + CALIBRATION_PRIOR_STRENGTH)
+    return round(max(0.05, min(0.95, p)), 4)
 
 def build_signal_decision(
     fs_15m: FeatureSet, trend: TrendResult, structure: StructureResult, smc: SMCResult,
@@ -2375,7 +2452,7 @@ def build_signal_json(
 
 def default_state() -> Dict[str, Any]:
     return {
-        "schema_version": 4,
+        "schema_version": STATE_SCHEMA_VERSION,
         "engine_name": ENGINE_NAME,
         "engine_version": ENGINE_VERSION,
         "created_at": _utcnow().isoformat(),
@@ -2389,6 +2466,12 @@ def default_state() -> Dict[str, Any]:
                 "sharpe_contribution": None, "max_drawdown_contribution": None,
                 "sample_size": 0, "consecutive_bad_windows": 0, "consecutive_good_windows": 0,
                 "disabled": False, "last_adjusted_at": None, "last_adjustment_reason": None,
+                # Window gating (v5): a "window" is only counted when resolved
+                # trades were added since these were last recorded.
+                "last_evaluated_resolved_count": 0, "last_evaluated_resolved_id": None,
+                # Consecutive good rolling windows measured by shadow replay
+                # while disabled (recovery path independent of live signals).
+                "shadow_consecutive_good_windows": 0,
             } for f in CANDIDATE_FEATURES
         },
         "active_signals": {},
@@ -2420,8 +2503,15 @@ class StateStore:
     def __init__(self, path: str = STATE_PATH) -> None:
         self.path = path
         loaded = _safe_load_json(path, None)
-        if isinstance(loaded, dict) and loaded.get("schema_version") == default_state()["schema_version"]:
+        if isinstance(loaded, dict) and loaded.get("schema_version") == STATE_SCHEMA_VERSION:
             self.state = loaded
+        elif isinstance(loaded, dict) and isinstance(loaded.get("schema_version"), int) \
+                and 4 <= loaded["schema_version"] < STATE_SCHEMA_VERSION:
+            # Older compatible schema: migrate in place (idempotent) instead of
+            # discarding closed_signals history.
+            self.state = loaded
+            for line in _migrate_state(self.state):
+                log.info(line)
         else:
             if loaded is not None:
                 log.warning("state.json schema mismatch or unreadable -- initializing fresh state.")
@@ -2433,6 +2523,9 @@ class StateStore:
         for f in CANDIDATE_FEATURES:
             self.state["feature_weights"].setdefault(f, DEFAULT_FEATURE_WEIGHT)
             self.state["feature_stats"].setdefault(f, default_state()["feature_stats"][f])
+            # Back-fill any new per-feature keys on stats loaded from older files.
+            for k, v in default_state()["feature_stats"][f].items():
+                self.state["feature_stats"][f].setdefault(k, v)
         self.state.setdefault("watch_tier_alerts", {})
 
     def save(self) -> None:
@@ -2440,9 +2533,34 @@ class StateStore:
         if not _atomic_write_json(self.path, self.state):
             log.error("Failed to persist state.json -- next run will not see this run's updates.")
 
+def _new_day_bucket() -> Dict[str, Any]:
+    return {"signals": 0, "wins": 0, "losses": 0, "rr_list": [],
+            "feature_adjustments": [], "feature_adjustments_count": 0}
+
+def _day_bucket(state: Dict[str, Any], day: str) -> Dict[str, Any]:
+    bucket = state["daily_stats"].setdefault(day, _new_day_bucket())
+    bucket.setdefault("feature_adjustments", [])
+    bucket.setdefault("feature_adjustments_count", len(bucket["feature_adjustments"]))
+    return bucket
+
+def _record_feature_adjustment(day_bucket: Dict[str, Any], line: str) -> None:
+    """Count every adjustment but keep only the last DAILY_FEATURE_ADJ_MAX_LINES
+    lines -- the unbounded per-scan list is what bloated daily_stats."""
+    day_bucket["feature_adjustments_count"] = day_bucket.get("feature_adjustments_count", 0) + 1
+    lines = day_bucket.setdefault("feature_adjustments", [])
+    lines.append(line)
+    if len(lines) > DAILY_FEATURE_ADJ_MAX_LINES:
+        del lines[:len(lines) - DAILY_FEATURE_ADJ_MAX_LINES]
+
 def _resolved_pnl_r(record: Dict[str, Any]) -> Optional[float]:
-    """R-multiple outcome of a resolved signal record (win=+RR at TP1 under
-    the declared full-exit-at-TP1 model; loss=-1R; anything else unresolved)."""
+    """R-multiple outcome of a resolved signal record. Prefers the stored
+    `realized_r` (set for every TP1/SL/Closed resolution, including the
+    partial-exit model and mark-to-market timeouts); falls back to the legacy
+    derivation (TP1=+RR, SL=-1R, Closed=timeout_mtm_r) for older records."""
+    if record.get("status") not in ("TP1", "SL", "Closed"):
+        return None
+    if record.get("realized_r") is not None:
+        return float(record["realized_r"])
     status = record.get("status")
     rr = record.get("risk_reward")
     if status == "TP1" and rr:
@@ -2453,96 +2571,258 @@ def _resolved_pnl_r(record: Dict[str, Any]) -> Optional[float]:
         return float(record["timeout_mtm_r"])
     return None
 
+def _resolved_is_win(record: Dict[str, Any]) -> bool:
+    """Win == positive realized R (so a profitable timeout/partial counts and
+    a Closed trade is no longer silently scored as a loss in win-rate stats)."""
+    r = _resolved_pnl_r(record)
+    if r is None:
+        return record.get("status") == "TP1"
+    return r > 0
+
+def _resolved_records(closed: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Resolved trades with a defined R, oldest -> newest."""
+    return [c for c in closed if _resolved_pnl_r(c) is not None]
+
+def _record_grade(c: Dict[str, Any]) -> str:
+    return c.get("grade") or score_to_grade(float(c.get("confidence", 0) or 0))
+
+def _feature_fired(c: Dict[str, Any], feature: str) -> bool:
+    fired = c.get("fired_features")
+    if fired:
+        return feature in fired
+    # Legacy records without fired_features: fall back to reason-text match.
+    return any(feature.replace("_", " ") in r.lower() or feature in r.lower() for r in c.get("reasons", []))
+
+def _window_metrics(outcomes: List[float]) -> Tuple[float, float, float]:
+    """(win_rate, profit_factor, expectancy) for a list of R outcomes."""
+    wins = [o for o in outcomes if o > 0]
+    losses = [o for o in outcomes if o <= 0]
+    gross_profit = sum(wins)
+    gross_loss = abs(sum(losses))
+    pf = (gross_profit / gross_loss) if gross_loss > 0 else (float("inf") if gross_profit > 0 else 0.0)
+    return len(wins) / len(outcomes), pf, statistics.mean(outcomes)
+
+def _is_underperforming(expectancy: float, profit_factor: float) -> bool:
+    return expectancy < 0 or profit_factor < 1.0
+
+def _shadow_good_streak(resolved: List[Dict[str, Any]], feature: str) -> int:
+    """Shadow-score a (disabled) feature by replaying the closed-trade
+    history: at each trade k, take the trailing FEATURE_ROLLING_WINDOW trades
+    ending at k, keep those where the feature fired, and test the good-window
+    criteria (n >= MIN_FEATURE_SAMPLE, expectancy >= 0, PF >= 1). Returns the
+    number of consecutive good windows ending at the newest trade. Pure
+    function of closed_signals, so it needs no live signal flow from the
+    feature (disabled features are still recorded in fired_features)."""
+    streak = 0
+    for k in range(len(resolved) - 1, -1, -1):
+        window = resolved[max(0, k + 1 - FEATURE_ROLLING_WINDOW):k + 1]
+        outcomes = [_resolved_pnl_r(c) for c in window if _feature_fired(c, feature)]
+        if len(outcomes) < MIN_FEATURE_SAMPLE:
+            break
+        _, pf, exp = _window_metrics(outcomes)
+        if _is_underperforming(exp, pf):
+            break
+        streak += 1
+    return streak
+
+def _migrate_state(state: Dict[str, Any]) -> List[str]:
+    """Idempotent schema migration to STATE_SCHEMA_VERSION (guarded by the
+    version stamp, so re-running on migrated state is a no-op).
+    v4 -> v5: reset feature weights/disabled flags/window counters that were
+    corrupted by per-scan window counting (closed_signals preserved), seed the
+    window gate at the current resolved count, back-fill realized_r, and
+    compact daily_stats."""
+    lines: List[str] = []
+    if state.get("schema_version", 0) >= STATE_SCHEMA_VERSION:
+        return lines
+    closed = state.get("closed_signals", [])
+    resolved = _resolved_records(closed)
+    last_id = resolved[-1].get("signal_id") if resolved else None
+    now = _utcnow().isoformat()
+
+    state["feature_weights"] = {f: DEFAULT_FEATURE_WEIGHT for f in CANDIDATE_FEATURES}
+    stats_all = state.setdefault("feature_stats", {})
+    for f in CANDIDATE_FEATURES:
+        s = stats_all.setdefault(f, copy.deepcopy(default_state()["feature_stats"][f]))
+        s["weight"] = DEFAULT_FEATURE_WEIGHT
+        s["disabled"] = False
+        s["consecutive_bad_windows"] = 0
+        s["consecutive_good_windows"] = 0
+        s["last_evaluated_resolved_count"] = len(resolved)
+        s["last_evaluated_resolved_id"] = last_id
+        s["shadow_consecutive_good_windows"] = 0
+        s["last_adjusted_at"] = now
+        s["last_adjustment_reason"] = "Reset by schema v5 migration (v4 counters were incremented per scan on a static sample)."
+    lines.append(f"[Migrate] feature weights/stats reset; window gate seeded at {len(resolved)} resolved trade(s).")
+
+    backfilled = 0
+    for c in closed:
+        if c.get("status") in ("TP1", "SL", "Closed") and c.get("realized_r") is None:
+            r = _resolved_pnl_r(c)
+            if r is not None:
+                c["realized_r"] = round(r, 4)
+                backfilled += 1
+    lines.append(f"[Migrate] realized_r back-filled on {backfilled} closed record(s).")
+
+    compacted = 0
+    for day, bucket in state.get("daily_stats", {}).items():
+        adj = bucket.get("feature_adjustments")
+        if isinstance(adj, list):
+            bucket.setdefault("feature_adjustments_count", len(adj))
+            if len(adj) > DAILY_FEATURE_ADJ_MAX_LINES:
+                bucket["feature_adjustments"] = adj[-DAILY_FEATURE_ADJ_MAX_LINES:]
+                compacted += 1
+    lines.append(f"[Migrate] daily_stats feature_adjustments compacted on {compacted} day(s).")
+
+    state["schema_version"] = STATE_SCHEMA_VERSION
+    state["engine_version"] = ENGINE_VERSION
+    return lines
+
 def update_feature_stats_from_closed_signals(state: Dict[str, Any]) -> List[str]:
-    """Evidence-driven feature validation (Section 5 / 5.1): for every
-    feature, look at recently-closed signals whose `reasons` cited that
-    feature, compute rolling win rate / expectancy / profit factor, and
-    adjust weight proportionally to severity of under/over-performance.
-    Weight changes are logged with the evidence behind them (returned as a
-    list of human-readable log lines the caller writes at INFO)."""
+    """Evidence-driven feature validation (Section 5 / 5.1) over the rolling
+    window of the last FEATURE_ROLLING_WINDOW resolved trades.
+
+    * A "window" is counted only when new resolved trades arrived since the
+      feature's last evaluation (`last_evaluated_resolved_count`/`_id` in
+      feature_stats) -- re-scanning an unchanged sample never moves counters.
+    * No feature is adjusted/disabled with fewer than MIN_FEATURE_SAMPLE
+      trades in the window.
+    * At most MAX_DISABLED_WEIGHT_SHARE of total feature weight may be
+      disabled; excess candidates are ranked by expectancy (worst first).
+    * Disabled features are re-enabled only by shadow replay of
+      closed_signals (see _shadow_good_streak), restoring to
+      DEFAULT_FEATURE_WEIGHT * RESTORE_WEIGHT_FACTOR."""
     log_lines: List[str] = []
     closed = state.get("closed_signals", [])
     if len(closed) < RESEARCH_PARAMS["ablation_min_sample_size"]:
         return log_lines
 
+    resolved_all = _resolved_records(closed)
+    resolved_count = len(resolved_all)
+    newest_id = resolved_all[-1].get("signal_id") if resolved_all else None
+    window = resolved_all[-FEATURE_ROLLING_WINDOW:]
+    min_windows = RESEARCH_PARAMS["min_consecutive_windows_for_weight_change"]
+    restore_weight = DEFAULT_FEATURE_WEIGHT * RESTORE_WEIGHT_FACTOR
+    now = _utcnow().isoformat()
+
+    disable_candidates: List[Tuple[float, str, float, str]] = []  # (expectancy, feature, pf, reason)
+
     for feature in CANDIDATE_FEATURES:
-        relevant = [c for c in closed if feature in c.get("fired_features", [])]
-        if not relevant:
-            relevant = [c for c in closed if not c.get("fired_features") and any(
-                feature.replace("_", " ") in r.lower() or feature in r.lower()
-                for r in c.get("reasons", []))]
-        relevant = relevant[-200:]
-        if len(relevant) < 10:
-            continue
-        outcomes = [_resolved_pnl_r(c) for c in relevant]
-        outcomes = [o for o in outcomes if o is not None]
-        if len(outcomes) < 10:
-            continue
-        wins = [o for o in outcomes if o > 0]
-        losses = [o for o in outcomes if o <= 0]
-        win_rate = len(wins) / len(outcomes)
-        gross_profit = sum(wins) if wins else 0.0
-        gross_loss = abs(sum(losses)) if losses else 0.0
-        profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else (float("inf") if gross_profit > 0 else 0.0)
-        expectancy = statistics.mean(outcomes)
-
         stats = state["feature_stats"][feature]
-        stats["win_rate"] = round(win_rate, 4)
-        stats["profit_factor"] = round(profit_factor, 4) if profit_factor != float("inf") else 999.0
-        stats["expectancy"] = round(expectancy, 4)
-        stats["sample_size"] = len(outcomes)
-        if len(outcomes) >= 2:
-            stats["sharpe_contribution"] = round(expectancy / statistics.pstdev(outcomes), 4) if statistics.pstdev(outcomes) else 0.0
-        running = 0.0
-        peak = 0.0
-        max_dd = 0.0
-        for o in outcomes:
-            running += o
-            peak = max(peak, running)
-            max_dd = min(max_dd, running - peak)
-        stats["max_drawdown_contribution"] = round(max_dd, 4)
+        last_count = stats.get("last_evaluated_resolved_count", 0) or 0
+        last_id = stats.get("last_evaluated_resolved_id")
+        if resolved_count < last_count:
+            # History shrank (e.g. manual edit): re-baseline, count no window.
+            stats["last_evaluated_resolved_count"] = resolved_count
+            stats["last_evaluated_resolved_id"] = newest_id
+            continue
+        # newest_id check also covers CLOSED_SIGNALS_MAX pruning, where the
+        # count plateaus while new trades keep arriving.
+        if resolved_count == last_count and newest_id == last_id:
+            continue  # unchanged sample -> not a new window
+        stats["last_evaluated_resolved_count"] = resolved_count
+        stats["last_evaluated_resolved_id"] = newest_id
 
-        underperforming = expectancy < 0 or profit_factor < 1.0
+        outcomes = [_resolved_pnl_r(c) for c in window if _feature_fired(c, feature)]
+        if len(outcomes) >= 10:
+            win_rate, profit_factor, expectancy = _window_metrics(outcomes)
+            stats["win_rate"] = round(win_rate, 4)
+            stats["profit_factor"] = round(profit_factor, 4) if profit_factor != float("inf") else 999.0
+            stats["expectancy"] = round(expectancy, 4)
+            stats["sample_size"] = len(outcomes)
+            sd = statistics.pstdev(outcomes)
+            stats["sharpe_contribution"] = round(expectancy / sd, 4) if sd else 0.0
+            running = peak = max_dd = 0.0
+            for o in outcomes:
+                running += o
+                peak = max(peak, running)
+                max_dd = min(max_dd, running - peak)
+            stats["max_drawdown_contribution"] = round(max_dd, 4)
+        else:
+            stats["sample_size"] = len(outcomes)
+
+        if stats.get("disabled"):
+            # Recovery path: shadow-score on the closed-trade history; does not
+            # depend on this feature contributing to live signals.
+            streak = _shadow_good_streak(resolved_all, feature)
+            stats["shadow_consecutive_good_windows"] = streak
+            stats["consecutive_good_windows"] = streak
+            if streak >= min_windows:
+                state["feature_weights"][feature] = restore_weight
+                stats["weight"] = restore_weight
+                stats["disabled"] = False
+                stats["consecutive_bad_windows"] = 0
+                stats["consecutive_good_windows"] = 0
+                stats["shadow_consecutive_good_windows"] = 0
+                reason = (f"Shadow replay passed {streak} consecutive good windows "
+                          f"-> restored to weight {restore_weight:.4f}")
+                stats["last_adjusted_at"] = now
+                stats["last_adjustment_reason"] = reason
+                log_lines.append(f"[FeatureValidator] {feature}: {reason}")
+            continue
+
+        if len(outcomes) < MIN_FEATURE_SAMPLE:
+            continue  # too little evidence to adjust or disable
+
+        win_rate, profit_factor, expectancy = _window_metrics(outcomes)
         old_weight = state["feature_weights"][feature]
 
-        if underperforming:
+        if _is_underperforming(expectancy, profit_factor):
             stats["consecutive_bad_windows"] += 1
             stats["consecutive_good_windows"] = 0
-            if stats["consecutive_bad_windows"] >= RESEARCH_PARAMS["min_consecutive_windows_for_weight_change"]:
+            if stats["consecutive_bad_windows"] >= min_windows:
                 severity = min(1.0, abs(expectancy) / 1.0 + (1.0 - min(profit_factor, 1.0)))
                 new_weight = max(0.0, old_weight * (1.0 - 0.5 * severity))
-                if new_weight < 0.01:
-                    new_weight = 0.0
-                    stats["disabled"] = True
                 reason = (f"{stats['consecutive_bad_windows']} consecutive underperforming windows "
-                          f"(expectancy={expectancy:.3f}R, PF={profit_factor:.2f}) -> weight {old_weight:.4f} -> {new_weight:.4f}")
+                          f"(expectancy={expectancy:.3f}R, PF={profit_factor:.2f}, n={len(outcomes)})")
+                if new_weight < DISABLE_WEIGHT_EPSILON:
+                    # Defer: the disable cap is applied across all candidates below.
+                    disable_candidates.append((expectancy, feature, profit_factor, reason))
+                    continue
+                reason += f" -> weight {old_weight:.4f} -> {new_weight:.4f}"
                 state["feature_weights"][feature] = new_weight
                 stats["weight"] = new_weight
-                stats["last_adjusted_at"] = _utcnow().isoformat()
+                stats["last_adjusted_at"] = now
                 stats["last_adjustment_reason"] = reason
                 log_lines.append(f"[FeatureValidator] {feature}: {reason}")
         else:
             stats["consecutive_good_windows"] += 1
             stats["consecutive_bad_windows"] = 0
-            if stats["disabled"] and stats["consecutive_good_windows"] >= RESEARCH_PARAMS["min_consecutive_windows_for_weight_change"]:
-                new_weight = max(old_weight, DEFAULT_FEATURE_WEIGHT * 0.2)
-                stats["disabled"] = False
-                reason = (f"Renewed predictive value across {stats['consecutive_good_windows']} windows "
-                          f"(expectancy={expectancy:.3f}R, PF={profit_factor:.2f}) -> gradually restored to weight {new_weight:.4f}")
-                state["feature_weights"][feature] = new_weight
-                stats["weight"] = new_weight
-                stats["last_adjusted_at"] = _utcnow().isoformat()
-                stats["last_adjustment_reason"] = reason
-                log_lines.append(f"[FeatureValidator] {feature}: {reason}")
-            elif not stats["disabled"] and old_weight < DEFAULT_FEATURE_WEIGHT and stats["consecutive_good_windows"] >= RESEARCH_PARAMS["min_consecutive_windows_for_weight_change"]:
+            if old_weight < DEFAULT_FEATURE_WEIGHT and stats["consecutive_good_windows"] >= min_windows:
                 new_weight = min(DEFAULT_FEATURE_WEIGHT, old_weight * 1.15)
                 reason = (f"{stats['consecutive_good_windows']} consecutive good windows -> weight regrowth "
                           f"{old_weight:.4f} -> {new_weight:.4f}")
                 state["feature_weights"][feature] = new_weight
                 stats["weight"] = new_weight
-                stats["last_adjusted_at"] = _utcnow().isoformat()
+                stats["last_adjusted_at"] = now
                 stats["last_adjustment_reason"] = reason
                 log_lines.append(f"[FeatureValidator] {feature}: {reason}")
+
+    # Disable cap: share measured on default-baseline weight (every feature
+    # has the same baseline), i.e. max_disabled = floor(share * N features).
+    if disable_candidates:
+        max_disabled = int(MAX_DISABLED_WEIGHT_SHARE * len(CANDIDATE_FEATURES))
+        already = sum(1 for f in CANDIDATE_FEATURES if state["feature_stats"][f].get("disabled"))
+        allowed = max(0, max_disabled - already)
+        disable_candidates.sort(key=lambda t: t[0])  # worst expectancy first
+        for rank, (expectancy, feature, profit_factor, reason) in enumerate(disable_candidates):
+            stats = state["feature_stats"][feature]
+            old_weight = state["feature_weights"][feature]
+            if rank < allowed:
+                new_weight = 0.0
+                stats["disabled"] = True
+                stats["shadow_consecutive_good_windows"] = 0
+                reason += f" -> DISABLED (weight {old_weight:.4f} -> 0.0000)"
+            else:
+                # Cap reached: hold at the active floor rather than disabling.
+                new_weight = restore_weight
+                reason += (f" -> disable cap {MAX_DISABLED_WEIGHT_SHARE:.0%} reached, held at floor "
+                           f"{new_weight:.4f}")
+            state["feature_weights"][feature] = new_weight
+            stats["weight"] = new_weight
+            stats["last_adjusted_at"] = now
+            stats["last_adjustment_reason"] = reason
+            log_lines.append(f"[FeatureValidator] {feature}: {reason}")
     return log_lines
 
 def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
@@ -2551,29 +2831,36 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
     only FeatureValidator (evidence-driven, logged) adjusts weights."""
     warnings: List[str] = []
     closed = state.get("closed_signals", [])
-    resolved = [c for c in closed if c.get("status") in ("TP1", "SL", "Closed")]
+    # Win == positive realized R (Closed/mark-to-market and partial-exit
+    # trades included) so every resolved trade is counted consistently.
+    resolved = _resolved_records(closed)
     if resolved:
-        wins = sum(1 for c in resolved if c["status"] == "TP1")
+        wins = sum(1 for c in resolved if _resolved_is_win(c))
         overall_win_rate = wins / len(resolved)
         state["self_monitoring"]["overall_win_rate"] = round(overall_win_rate, 4)
 
         cutoff = (_utcnow() - timedelta(days=30)).isoformat()
         recent = [c for c in resolved if c.get("resolved_at", "") >= cutoff]
         if recent:
-            r_wins = sum(1 for c in recent if c["status"] == "TP1")
+            r_wins = sum(1 for c in recent if _resolved_is_win(c))
             state["self_monitoring"]["rolling_30d_win_rate"] = round(r_wins / len(recent), 4)
 
+        # Per-grade calibration over the last CALIBRATION_ROLLING_WINDOW
+        # resolved trades of each grade; feeds _win_probability_estimate.
         calib: Dict[str, Any] = {}
-        for grade, lo, hi in (("A+", 95, 100), ("A", 90, 94), ("B+", 85, 89), ("B", 80, 84)):
-            bucket = [c for c in resolved if lo <= c.get("confidence", 0) <= hi]
+        for grade in ("A+", "A", "B+", "B"):
+            bucket = [c for c in resolved if _record_grade(c) == grade][-CALIBRATION_ROLLING_WINDOW:]
             if bucket:
-                bw = sum(1 for c in bucket if c["status"] == "TP1") / len(bucket)
+                bw = sum(1 for c in bucket if _resolved_is_win(c)) / len(bucket)
                 calib[grade] = {"sample_size": len(bucket), "realized_win_rate": round(bw, 4)}
-                implied = lo / 100.0
-                if abs(bw - implied) > 0.20 and len(bucket) >= 15:
-                    w = (f"Confidence calibration drift for grade {grade}: implied ~{implied:.0%}, "
-                         f"realized {bw:.0%} over {len(bucket)} signals.")
-                    warnings.append(w)
+                advertised = [c["win_probability"] for c in bucket if c.get("win_probability") is not None]
+                if advertised:
+                    implied = statistics.mean(advertised)
+                    calib[grade]["mean_advertised_probability"] = round(implied, 4)
+                    if abs(bw - implied) > CALIBRATION_DRIFT_TOLERANCE and len(bucket) >= CALIBRATION_DRIFT_MIN_SAMPLE:
+                        warnings.append(
+                            f"Confidence calibration drift for grade {grade}: advertised ~{implied:.0%}, "
+                            f"realized {bw:.0%} over last {len(bucket)} signals.")
         state["self_monitoring"]["confidence_calibration"] = calib
 
         if overall_win_rate < 0.35 and len(resolved) >= 20:
@@ -2590,7 +2877,9 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
     immediate = timing.get("immediate_1_bar", 0)
     delayed = timing.get("delayed_gt_1_bar", 0)
     total_activations = immediate + delayed
-    if total_activations >= 20:
+    # Only meaningful for the retest_limit entry model; under "market" entries
+    # are filled immediately by construction and this gate is not used.
+    if ENTRY_MODEL != "market" and total_activations >= 20:
         immediate_frac = immediate / total_activations
         state["self_monitoring"]["activation_timing_immediate_pct"] = round(immediate_frac, 4)
         if immediate_frac >= 0.90:
@@ -2897,7 +3186,7 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
     an order -- this only updates state.json and posts Telegram replies."""
     active = state.get("active_signals", {})
     today = _utcnow().strftime("%Y-%m-%d")
-    day_bucket = state["daily_stats"].setdefault(today, {"signals": 0, "wins": 0, "losses": 0, "rr_list": [], "feature_adjustments": []})
+    day_bucket = _day_bucket(state, today)
 
     for sig_id, record in list(active.items()):
         symbol = record["symbol"]
@@ -2975,7 +3264,10 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 state["closed_signals"].append(record)
                 log.info("Signal %s (%s) cancelled -- reached %s zone before entry was ever filled.",
                           sig_id, symbol, gapped_side)
-            elif bars_since > _max_holding_bars_15m(record.get("holding_time", "6-24 hours")):
+            elif bars_since > (min(_max_holding_bars_15m(record.get("holding_time", "6-24 hours")), RETEST_EXPIRY_BARS)
+                               if record.get("entry_model") == "retest_limit"
+                               else _max_holding_bars_15m(record.get("holding_time", "6-24 hours"))):
+                # retest_limit orders expire sooner than the max-hold window.
                 record["status"] = "Expired"
                 record["resolved_at"] = _utcnow().isoformat()
                 ok = notifier.dispatch_status_update(record, "Expired")
@@ -2986,25 +3278,88 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 log.info("Signal %s (%s) expired unfilled.", sig_id, symbol)
             continue
 
+        model = record.get("exit_model", EXIT_MODEL_FULL)
+        is_long = direction == "LONG"
+        risk_per_unit = abs(entry - stop)
         resolved_status = None
-        for i in new_indices:
-            hit_tp1 = (direction == "LONG" and fs.highs[i] >= tp1) or (direction == "SHORT" and fs.lows[i] <= tp1)
-            hit_sl = (direction == "LONG" and fs.lows[i] <= stop) or (direction == "SHORT" and fs.highs[i] >= stop)
-            if hit_tp1 and hit_sl:
-                resolved_status = "SL"
-                break
-            elif hit_sl:
-                resolved_status = "SL"
-                break
-            elif hit_tp1:
-                resolved_status = "TP1"
-                break
-        if resolved_status is None and bars_since > _max_holding_bars_15m(record.get("holding_time", "6-24 hours")):
+        realized_r: Optional[float] = None
+        exit_price: Optional[float] = None
+        max_hold = _max_holding_bars_15m(record.get("holding_time", "6-24 hours"))
+
+        def _signed_r(price: float) -> float:
+            return ((price - entry) if is_long else (entry - price)) / risk_per_unit if risk_per_unit > 0 else 0.0
+
+        if model == EXIT_MODEL_PARTIAL and risk_per_unit > 0:
+            # Partial at +1R, stop -> breakeven, trail the remainder
+            # PARTIAL_TRAIL_R behind the best price; remainder capped at TP3.
+            # Intra-bar ordering is conservative: stop is checked before
+            # targets, and the bar that triggers the partial does not also
+            # test the (new) breakeven stop.
+            frac = PARTIAL_AT_1R_FRACTION
+            one_r = entry + risk_per_unit if is_long else entry - risk_per_unit
+            tp_far = record["take_profit"][2] if len(record["take_profit"]) > 2 and record["take_profit"][2] else None
+            for i in new_indices:
+                hi, lo = fs.highs[i], fs.lows[i]
+                if not record.get("partial_taken"):
+                    hit_sl = (lo <= stop) if is_long else (hi >= stop)
+                    hit_1r = (hi >= one_r) if is_long else (lo <= one_r)
+                    if hit_sl:
+                        resolved_status, realized_r, exit_price = "SL", -1.0, stop
+                        break
+                    if hit_1r:
+                        record["partial_taken"] = True
+                        record["trail_stop"] = entry
+                        record["best_price"] = hi if is_long else lo
+                    continue
+                trail = record["trail_stop"]
+                hit_trail = (lo <= trail) if is_long else (hi >= trail)
+                hit_far = tp_far is not None and ((hi >= tp_far) if is_long else (lo <= tp_far))
+                if hit_trail or hit_far:
+                    exit_price = trail if hit_trail else tp_far  # stop wins ties
+                    realized_r = frac * 1.0 + (1.0 - frac) * _signed_r(exit_price)
+                    resolved_status = "TP1"
+                    break
+                best = max(record["best_price"], hi) if is_long else min(record["best_price"], lo)
+                record["best_price"] = best
+                cand = best - PARTIAL_TRAIL_R * risk_per_unit if is_long else best + PARTIAL_TRAIL_R * risk_per_unit
+                record["trail_stop"] = max(trail, cand) if is_long else min(trail, cand)
+        else:
+            for i in new_indices:
+                hit_tp1 = (direction == "LONG" and fs.highs[i] >= tp1) or (direction == "SHORT" and fs.lows[i] <= tp1)
+                hit_sl = (direction == "LONG" and fs.lows[i] <= stop) or (direction == "SHORT" and fs.highs[i] >= stop)
+                if hit_tp1 and hit_sl:
+                    resolved_status = "SL"
+                    break
+                elif hit_sl:
+                    resolved_status = "SL"
+                    break
+                elif hit_tp1:
+                    resolved_status = "TP1"
+                    break
+            if resolved_status == "SL":
+                realized_r, exit_price = -1.0, stop
+            elif resolved_status == "TP1":
+                exit_price = tp1
+                realized_r = float(record.get("risk_reward") or _signed_r(tp1))
+
+        if resolved_status is None and bars_since > max_hold:
+            # Timeout: realized R is marked to market at the last close
+            # (vs entry/SL distance), plus any already-banked partial, and is
+            # stored on the record so the trade is counted in all stats.
             resolved_status = "Closed"
+            exit_price = fs.closes[new_indices[-1]]
+            mtm_r = _signed_r(exit_price)
+            if record.get("partial_taken"):
+                realized_r = PARTIAL_AT_1R_FRACTION * 1.0 + (1.0 - PARTIAL_AT_1R_FRACTION) * mtm_r
+            else:
+                realized_r = mtm_r
+            record["timeout_mtm_r"] = round(mtm_r, 4)  # legacy field, kept for compatibility
 
         if resolved_status:
             record["status"] = resolved_status
             record["resolved_at"] = _utcnow().isoformat()
+            record["realized_r"] = round(realized_r, 4) if realized_r is not None else None
+            record["exit_price"] = exit_price
             ok = notifier.dispatch_status_update(record, resolved_status)
             if not ok:
                 state.setdefault("pending_notifications", []).append({"signal_id": sig_id, "status": resolved_status})
@@ -3022,14 +3377,10 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 asset_stats["wins"] += 1
                 regime_stats["wins"] += 1
                 day_bucket["wins"] += 1
-                day_bucket["rr_list"].append(record.get("risk_reward", 0.0))
-                day_bucket["risk_pct_list"].append(trade_risk_pct)
             elif resolved_status == "SL":
                 asset_stats["losses"] += 1
                 regime_stats["losses"] += 1
                 day_bucket["losses"] += 1
-                day_bucket["rr_list"].append(-1.0)
-                day_bucket["risk_pct_list"].append(trade_risk_pct)
             elif resolved_status == "Closed":
                 asset_stats.setdefault("timeouts", 0)
                 asset_stats["timeouts"] += 1
@@ -3037,16 +3388,10 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
                 regime_stats["timeouts"] += 1
                 day_bucket.setdefault("timeouts", 0)
                 day_bucket["timeouts"] += 1
-                last_close = fs.closes[new_indices[-1]] if new_indices else entry
-                risk_per_unit = abs(entry - stop)
-                if risk_per_unit > 0:
-                    mtm_r = ((last_close - entry) if direction == "LONG" else (entry - last_close)) / risk_per_unit
-                else:
-                    mtm_r = 0.0
-                record["timeout_mtm_r"] = round(mtm_r, 4)
-                day_bucket["rr_list"].append(mtm_r)
-                day_bucket["risk_pct_list"].append(trade_risk_pct)
-            log.info("Signal %s (%s) resolved: %s", sig_id, symbol, resolved_status)
+            day_bucket["rr_list"].append(record["realized_r"])
+            day_bucket["risk_pct_list"].append(trade_risk_pct)
+            log.info("Signal %s (%s) resolved: %s (realized %.2fR)", sig_id, symbol, resolved_status,
+                      record["realized_r"] if record["realized_r"] is not None else 0.0)
 
 def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[str, Any],
                  symbol: str, now_ms: int) -> Tuple[Optional[Dict[str, FeatureSet]], Optional[Dict[str, Any]]]:
@@ -3099,6 +3444,9 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
     calib_by_grade = state.get("self_monitoring", {}).get("confidence_calibration", {})
     projected_grade = score_to_grade(confluence.total_score)
     if projected_grade in calib_by_grade:
+        # Passed through even for small samples: _win_probability_estimate
+        # shrinks toward the prior by sample size. Sizing (Kelly, off by
+        # default) additionally requires CALIBRATION_MIN_SAMPLE below.
         calibration = {
             "observed_win_rate": calib_by_grade[projected_grade]["realized_win_rate"],
             "sample_size": calib_by_grade[projected_grade]["sample_size"],
@@ -3154,7 +3502,8 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         account_equity=state.get("account_equity_reference", 10000.0),
         entry=decision.entry, stop=decision.stop_loss, atr_v=volatility.atr,
         open_positions=open_positions,
-        win_rate=calibration.get("observed_win_rate") if calibration else None,
+        win_rate=(calibration.get("observed_win_rate")
+                  if calibration and calibration.get("sample_size", 0) >= CALIBRATION_MIN_SAMPLE else None),
         avg_rr=decision.risk_reward,
         symbol=symbol, direction=decision.direction, cache=cache,
     )
@@ -3220,6 +3569,12 @@ def _prune_state(state: Dict[str, Any]) -> List[str]:
 
     daily_stats = state.get("daily_stats")
     if isinstance(daily_stats, dict):
+        # Safety net for the feature_adjustments bloat: keep counts, cap lines.
+        for bucket in daily_stats.values():
+            adj = bucket.get("feature_adjustments")
+            if isinstance(adj, list) and len(adj) > DAILY_FEATURE_ADJ_MAX_LINES:
+                bucket.setdefault("feature_adjustments_count", len(adj))
+                bucket["feature_adjustments"] = adj[-DAILY_FEATURE_ADJ_MAX_LINES:]
         retention_days = PRODUCTION_PARAMS["daily_stats_retention_days"]
         cutoff_date = (_utcnow() - timedelta(days=retention_days)).strftime("%Y-%m-%d")
         stale_days = [d for d in daily_stats if d < cutoff_date]
@@ -3266,7 +3621,7 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     new_watch_alerts: List[Dict[str, Any]] = []  # FREQ2: informational, never persisted to state
 
     today = _utcnow().strftime("%Y-%m-%d")
-    day_bucket = state["daily_stats"].setdefault(today, {"signals": 0, "wins": 0, "losses": 0, "rr_list": [], "feature_adjustments": []})
+    day_bucket = _day_bucket(state, today)
 
     _retry_pending_notifications(state, notifier)
 
@@ -3312,9 +3667,23 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
         record = dict(sig)
         record["signal_id"] = sig_id
         record["telegram_message_id"] = message_id
-        record["activated"] = False
         record["bars_open"] = 0
-        record["status"] = "Pending"
+        record["entry_model"] = ENTRY_MODEL
+        if ENTRY_MODEL == "market":
+            # Entry == generation-candle close, i.e. already filled: the old
+            # Pending->Activated gate never filtered anything (~90% within one
+            # bar), so the record starts live. The watermark is the signal
+            # candle so monitoring covers every candle after it (the previous
+            # None watermark only examined the single newest candle).
+            record["activated"] = True
+            record["bars_to_activate"] = 0
+            record["status"] = "Activated"
+            sig_fs = mtf_features_by_symbol.get(sig["symbol"], {}).get(EXECUTION_TF)
+            if sig_fs is not None and sig_fs.candles:
+                record["last_checked_candle_t"] = sig_fs.candles[-1]["t"]
+        else:
+            record["activated"] = False
+            record["status"] = "Pending"
         if message_id is None and notifier.enabled:
             state.setdefault("pending_notifications", []).append({"signal_id": sig_id, "status": "New"})
         state["active_signals"][sig_id] = record
@@ -3335,7 +3704,7 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     adjustment_lines = update_feature_stats_from_closed_signals(state)
     for line in adjustment_lines:
         log.info(line)
-        day_bucket["feature_adjustments"].append(line)
+        _record_feature_adjustment(day_bucket, line)
     run_self_monitoring(state)
 
     for line in _prune_state(state):
