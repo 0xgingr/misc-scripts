@@ -422,7 +422,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-22",
-  "last_run_at": "2026-10-22T15:01:51.579629+00:00",
+  "last_run_at": "2026-10-22T15:15:36.023711+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -624,7 +624,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
     "relief_count": 0,
-    "scans_since_signal": 81
+    "scans_since_signal": 82
   },
   "trade_archive": {
     "features": [
@@ -651,6 +651,10 @@
     "rows": []
   },
   "watch_tier_alerts": {
+    "AAVE": {
+      "direction": "SHORT",
+      "last_alert_at_ms": 1792682127808
+    },
     "ADA": {
       "direction": "SHORT",
       "last_alert_at_ms": 1792639836176
@@ -673,7 +677,7 @@
     },
     "HYPE": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792660530446
+      "last_alert_at_ms": 1792682127808
     },
     "NEAR": {
       "direction": "SHORT",
@@ -702,6 +706,10 @@
     "XRP": {
       "direction": "SHORT",
       "last_alert_at_ms": 1792653327279
+    },
+    "ZEC": {
+      "direction": "SHORT",
+      "last_alert_at_ms": 1792682127808
     }
   },
   "watchlist": [
