@@ -430,7 +430,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-23",
-  "last_run_at": "2026-10-23T22:45:37.282404+00:00",
+  "last_run_at": "2026-10-23T23:02:22.227788+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -632,7 +632,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
     "relief_count": 0,
-    "scans_since_signal": 207
+    "scans_since_signal": 208
   },
   "trade_archive": {
     "features": [
@@ -683,13 +683,17 @@
       "direction": "SHORT",
       "last_alert_at_ms": 1792794636828
     },
+    "ETH": {
+      "direction": "SHORT",
+      "last_alert_at_ms": 1792796478203
+    },
     "HYPE": {
       "direction": "SHORT",
       "last_alert_at_ms": 1792682127808
     },
     "LINK": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792762241502
+      "last_alert_at_ms": 1792796478203
     },
     "LTC": {
       "direction": "SHORT",
@@ -704,8 +708,8 @@
       "last_alert_at_ms": 1792674928764
     },
     "PENGU": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1792746046403
+      "direction": "SHORT",
+      "last_alert_at_ms": 1792796478203
     },
     "SUI": {
       "direction": "SHORT",
@@ -729,7 +733,7 @@
     },
     "XRP": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792689328161
+      "last_alert_at_ms": 1792796478203
     },
     "ZEC": {
       "direction": "SHORT",
