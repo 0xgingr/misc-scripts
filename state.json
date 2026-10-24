@@ -36,8 +36,10 @@
       "wins": 0
     },
     "2026-10-24": {
-      "feature_adjustments": [],
-      "feature_adjustments_count": 0,
+      "feature_adjustments": [
+        "[Starvation] no signal for 72h / 288 scans with default weights -- not adaptation-induced (market/threshold driven); nothing to relieve."
+      ],
+      "feature_adjustments_count": 1,
       "losses": 0,
       "rr_list": [],
       "signals": 0,
@@ -438,7 +440,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-24",
-  "last_run_at": "2026-10-24T18:45:33.828766+00:00",
+  "last_run_at": "2026-10-24T19:01:45.492459+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -637,10 +639,10 @@
     "warnings": []
   },
   "starvation": {
-    "last_relief_at": null,
+    "last_relief_at": "2026-10-24T19:01:45.472199+00:00",
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
-    "relief_count": 0,
-    "scans_since_signal": 287
+    "relief_count": 1,
+    "scans_since_signal": 288
   },
   "trade_archive": {
     "features": [
