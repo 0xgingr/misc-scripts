@@ -448,7 +448,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-25",
-  "last_run_at": "2026-10-25T09:01:44.486968+00:00",
+  "last_run_at": "2026-10-25T09:15:36.336085+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -650,7 +650,7 @@
     "last_relief_at": "2026-10-24T19:01:45.472199+00:00",
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
     "relief_count": 1,
-    "scans_since_signal": 344
+    "scans_since_signal": 345
   },
   "trade_archive": {
     "features": [
@@ -711,11 +711,11 @@
     },
     "DOT": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792858529371
+      "last_alert_at_ms": 1792919728739
     },
     "ETH": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792831527762
+      "last_alert_at_ms": 1792919728739
     },
     "HYPE": {
       "direction": "SHORT",
@@ -739,7 +739,7 @@
     },
     "PENGU": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792862129531
+      "last_alert_at_ms": 1792919728739
     },
     "SUI": {
       "direction": "SHORT",
