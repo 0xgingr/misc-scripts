@@ -456,7 +456,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-25",
-  "last_run_at": "2026-10-26T01:30:43.372292+00:00",
+  "last_run_at": "2026-10-26T01:45:37.941938+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -658,7 +658,7 @@
     "last_relief_at": "2026-10-24T19:01:45.472199+00:00",
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
     "relief_count": 1,
-    "scans_since_signal": 410
+    "scans_since_signal": 411
   },
   "trade_archive": {
     "features": [
@@ -691,7 +691,7 @@
     },
     "ADA": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792920637526
+      "last_alert_at_ms": 1792979128891
     },
     "APT": {
       "direction": "SHORT",
@@ -723,7 +723,7 @@
     },
     "ETH": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792919728739
+      "last_alert_at_ms": 1792979128891
     },
     "HYPE": {
       "direction": "SHORT",
@@ -743,7 +743,7 @@
     },
     "PENDLE": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792918840959
+      "last_alert_at_ms": 1792979128891
     },
     "PENGU": {
       "direction": "SHORT",
@@ -751,7 +751,7 @@
     },
     "SUI": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1792922441661
+      "last_alert_at_ms": 1792979128891
     },
     "TAO": {
       "direction": "SHORT",
