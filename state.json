@@ -466,7 +466,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-10-27",
-  "last_run_at": "2026-10-27T21:30:45.078053+00:00",
+  "last_run_at": "2026-10-27T21:45:33.787090+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -668,7 +668,7 @@
     "last_relief_at": "2026-10-27T19:02:56.216758+00:00",
     "last_signal_at": "2026-10-21T19:00:46.952554+00:00",
     "relief_count": 2,
-    "scans_since_signal": 586
+    "scans_since_signal": 587
   },
   "trade_archive": {
     "features": [
@@ -720,8 +720,8 @@
       "last_alert_at_ms": 1793115037266
     },
     "BTC": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1792980927043
+      "direction": "LONG",
+      "last_alert_at_ms": 1793137528236
     },
     "DOGE": {
       "direction": "SHORT",
@@ -748,8 +748,8 @@
       "last_alert_at_ms": 1792689328161
     },
     "NEAR": {
-      "direction": "SHORT",
-      "last_alert_at_ms": 1792828840721
+      "direction": "LONG",
+      "last_alert_at_ms": 1793137528236
     },
     "ONDO": {
       "direction": "LONG",
