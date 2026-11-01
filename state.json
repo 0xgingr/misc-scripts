@@ -3,7 +3,7 @@
   "active_signals": {
     "ETH-1793523706-4800": {
       "activated": true,
-      "bars_open": 3,
+      "bars_open": 4,
       "bars_to_activate": 0,
       "confidence": 80.74,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "B",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1793525400000,
+      "last_checked_candle_t": 1793526300000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -589,7 +589,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-01",
-  "last_run_at": "2026-11-01T09:45:36.587839+00:00",
+  "last_run_at": "2026-11-01T10:01:45.207200+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -791,7 +791,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-01T09:01:46.029636+00:00",
     "relief_count": 3,
-    "scans_since_signal": 3
+    "scans_since_signal": 4
   },
   "trade_archive": {
     "features": [
