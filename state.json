@@ -3,7 +3,7 @@
   "active_signals": {
     "NEAR-1793650535-4768": {
       "activated": true,
-      "bars_open": 21,
+      "bars_open": 22,
       "bars_to_activate": 0,
       "confidence": 81.02,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "B",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1793668500000,
+      "last_checked_candle_t": 1793669400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -695,7 +695,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-02",
-  "last_run_at": "2026-11-03T01:30:44.052998+00:00",
+  "last_run_at": "2026-11-03T01:45:37.683852+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -904,7 +904,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-02T20:15:35.988940+00:00",
     "relief_count": 3,
-    "scans_since_signal": 21
+    "scans_since_signal": 22
   },
   "trade_archive": {
     "features": [
