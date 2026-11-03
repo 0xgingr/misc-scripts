@@ -702,7 +702,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-02",
-  "last_run_at": "2026-11-03T06:01:41.815604+00:00",
+  "last_run_at": "2026-11-03T06:15:44.037608+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -911,7 +911,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-02T20:15:35.988940+00:00",
     "relief_count": 3,
-    "scans_since_signal": 39
+    "scans_since_signal": 40
   },
   "trade_archive": {
     "features": [
@@ -990,8 +990,8 @@
       "last_alert_at_ms": 1793635264031
     },
     "BTC": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793583933222
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793686537616
     },
     "DOGE": {
       "direction": "SHORT",
