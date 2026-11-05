@@ -718,7 +718,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-05",
-  "last_run_at": "2026-11-05T15:15:34.970276+00:00",
+  "last_run_at": "2026-11-05T15:30:46.858556+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -927,7 +927,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-02T20:15:35.988940+00:00",
     "relief_count": 3,
-    "scans_since_signal": 265
+    "scans_since_signal": 266
   },
   "trade_archive": {
     "features": [
@@ -1014,8 +1014,8 @@
       "last_alert_at_ms": 1793648730628
     },
     "DOT": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793789149558
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793892636624
     },
     "ETH": {
       "direction": "LONG",
@@ -1027,7 +1027,7 @@
     },
     "LINK": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793760328477
+      "last_alert_at_ms": 1793892636624
     },
     "LTC": {
       "direction": "SHORT",
@@ -1038,16 +1038,16 @@
       "last_alert_at_ms": 1793640639987
     },
     "ONDO": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793791836744
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793892636624
     },
     "PENDLE": {
       "direction": "SHORT",
       "last_alert_at_ms": 1793614533422
     },
     "PENGU": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793289648771
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793892636624
     },
     "SOL": {
       "direction": "SHORT",
@@ -1062,8 +1062,8 @@
       "last_alert_at_ms": 1793891728340
     },
     "TRX": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793629843315
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793892636624
     },
     "UNI": {
       "direction": "LONG",
