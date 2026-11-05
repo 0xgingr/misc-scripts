@@ -718,7 +718,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-05",
-  "last_run_at": "2026-11-05T15:02:04.825662+00:00",
+  "last_run_at": "2026-11-05T15:15:34.970276+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -927,7 +927,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-02T20:15:35.988940+00:00",
     "relief_count": 3,
-    "scans_since_signal": 264
+    "scans_since_signal": 265
   },
   "trade_archive": {
     "features": [
@@ -995,7 +995,7 @@
     },
     "AVAX": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793439928438
+      "last_alert_at_ms": 1793891728340
     },
     "BCH": {
       "direction": "SHORT",
@@ -1051,7 +1051,7 @@
     },
     "SOL": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793760328477
+      "last_alert_at_ms": 1793891728340
     },
     "SUI": {
       "direction": "SHORT",
@@ -1059,7 +1059,7 @@
     },
     "TAO": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793756731580
+      "last_alert_at_ms": 1793891728340
     },
     "TRX": {
       "direction": "LONG",
@@ -1071,7 +1071,7 @@
     },
     "XLM": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793751331659
+      "last_alert_at_ms": 1793891728340
     },
     "XRP": {
       "direction": "LONG",
