@@ -718,7 +718,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-05",
-  "last_run_at": "2026-11-05T13:30:42.118541+00:00",
+  "last_run_at": "2026-11-05T13:45:36.548188+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -927,7 +927,7 @@
     "last_relief_at": "2026-10-30T19:15:39.455309+00:00",
     "last_signal_at": "2026-11-02T20:15:35.988940+00:00",
     "relief_count": 3,
-    "scans_since_signal": 258
+    "scans_since_signal": 259
   },
   "trade_archive": {
     "features": [
@@ -1022,8 +1022,8 @@
       "last_alert_at_ms": 1793804453274
     },
     "HYPE": {
-      "direction": "LONG",
-      "last_alert_at_ms": 1793717129475
+      "direction": "SHORT",
+      "last_alert_at_ms": 1793886329155
     },
     "LINK": {
       "direction": "SHORT",
@@ -1031,7 +1031,7 @@
     },
     "LTC": {
       "direction": "SHORT",
-      "last_alert_at_ms": 1793760328477
+      "last_alert_at_ms": 1793886329155
     },
     "NEAR": {
       "direction": "SHORT",
