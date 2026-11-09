@@ -111,7 +111,7 @@ RESEARCH_PARAMS: Dict[str, Any] = {
     "ablation_min_sample_size": 20,
 }
 PRODUCTION_PARAMS: Dict[str, Any] = {
-    "confluence_threshold": 80,
+    "confluence_threshold": 70,  # signal floor (was 80); watch tier removed, this is the only gate
     "swing_lookback": 3,
     "atr_period": 14,
     "rsi_period": 14,
@@ -134,14 +134,6 @@ PRODUCTION_PARAMS: Dict[str, Any] = {
     "daily_summary_hour_utc": 8,
     "liquidity_sweep_lookback_bars": 12,
     "liquidity_sweep_confirm_bars": 6,
-    "watch_tier_threshold": 70,
-    # Minimum spacing between two watch-tier Telegram alerts for the *same*
-    # symbol *and* direction. Prevents a setup that lingers in the 70-79
-    # composite-score band for hours (common at 15M-execution cadence) from
-    # re-alerting every single 15-min scan. A direction flip (WATCH LONG ->
-    # WATCH SHORT or vice versa) always bypasses this and alerts immediately,
-    # since that's a materially different setup, not a repeat of the same one.
-    "watch_tier_cooldown_hours": 4,
     "mtf_veto_strength_floor": 40.0,
     "daily_stats_retention_days": 90,
 }
@@ -202,11 +194,10 @@ STARVATION_RELIEF_COOLDOWN_HOURS = 72
 BREAKER_COOLDOWN_HOURS = 48
 # What a tripped breaker (drawdown breaker or daily-loss kill-switch) does to
 # NEW signals. "suppress" (default, previous behaviour): no alert, nothing
-# tracked. "watch_only": sent as an untracked watch-tier alert carrying a
-# BREAKER note. "dispatch": sent and tracked like a normal signal, with the
+# tracked. ("watch_only" removed with the watch tier.) "dispatch": sent and tracked like a normal signal, with the
 # BREAKER note leading its reasons. The engine never places orders either way.
 BREAKER_DISPATCH_MODE = os.environ.get("PRISM_BREAKER_DISPATCH", "suppress")
-BREAKER_DISPATCH_MODES = ("suppress", "watch_only", "dispatch")
+BREAKER_DISPATCH_MODES = ("suppress", "dispatch")
 if BREAKER_DISPATCH_MODE not in BREAKER_DISPATCH_MODES:
     log.warning("Unknown PRISM_BREAKER_DISPATCH %r -- falling back to suppress.", BREAKER_DISPATCH_MODE)
     BREAKER_DISPATCH_MODE = "suppress"
@@ -273,6 +264,7 @@ def score_to_grade(score: float) -> str:
     if score >= 90: return "A"
     if score >= 85: return "B+"
     if score >= 80: return "B"
+    if score >= 70: return "C"  # new band: 70-79 now dispatches as a real signal
     return "No Trade"
 
 # Exit model (new signals only; open records keep the model they were created
@@ -2178,13 +2170,12 @@ def build_signal_decision(
     confluence: ConfluenceResult, calibration: Optional[Dict[str, Any]],
 ) -> SignalDecision:
     threshold = PRODUCTION_PARAMS["confluence_threshold"]
-    watch_threshold = PRODUCTION_PARAMS["watch_tier_threshold"]
     direction = confluence.direction
-    if confluence.total_score < watch_threshold or direction == "WAIT":
+    if confluence.total_score < threshold or direction == "WAIT":
         return SignalDecision(
             "WAIT", None, None, None, None, None, None, "-", 0.0,
             confluence.total_score, score_to_grade(confluence.total_score),
-            ["Composite score below watch threshold or no directional edge -- no trade."],
+            ["Composite score below signal threshold or no directional edge -- no trade."],
             fired_features=[],
         )
 
@@ -2210,23 +2201,15 @@ def build_signal_decision(
     win_prob = _win_probability_estimate(confluence.total_score, calibration)
     grade = score_to_grade(confluence.total_score)
     holding_time = _holding_time_estimate(regime.market_regime, volatility)
-    tier = "signal" if confluence.total_score >= threshold else "watch"
 
     reasons: List[str] = []
     for cat_reasons in confluence.reasons_by_category.values():
         reasons.extend(cat_reasons)
-    if tier == "watch":
-        reasons.insert(
-            0,
-            f"WATCH TIER: composite {confluence.total_score:.1f} clears the {watch_threshold}-point watch "
-            f"floor but not the {threshold}-point signal threshold -- developing setup, not a trade signal.",
-        )
-
     return SignalDecision(
         direction, round(entry, 6), round(stop, 6), round(tp1, 6),
         round(tp2, 6) if tp2 else None, round(tp3, 6) if tp3 else None,
         rr, holding_time, win_prob, confluence.total_score, grade, reasons,
-        fired_features=list(confluence.fired_features), tier=tier,
+        fired_features=list(confluence.fired_features), tier="signal",
     )
 
 CORRELATION_MIN_OVERLAP_BARS = 60
@@ -2551,12 +2534,6 @@ def default_state() -> Dict[str, Any]:
         "last_daily_summary_date": None,
         "account_equity_reference": 10000.0,
         "pending_notifications": [],
-        # Per-symbol cooldown tracker for watch-tier alerts (Section: watch
-        # tier cooldown). Keyed by symbol -> {"last_alert_at_ms": int,
-        # "direction": "LONG"/"SHORT"}. Deliberately small/bounded (at most
-        # len(WATCHLIST) entries) so it needs no pruning, unlike
-        # closed_signals/daily_stats.
-        "watch_tier_alerts": {},
         # Compact never-pruned record of every resolved trade (see
         # _archive_sync); the adaptive loops read this, not closed_signals.
         "trade_archive": {"features": list(CANDIDATE_FEATURES), "rows": []},
@@ -2599,7 +2576,7 @@ class StateStore:
             # Back-fill any new per-feature keys on stats loaded from older files.
             for k, v in default_state()["feature_stats"][f].items():
                 self.state["feature_stats"][f].setdefault(k, v)
-        self.state.setdefault("watch_tier_alerts", {})
+        self.state.pop("watch_tier_alerts", None)  # watch tier removed; drop stale key from older state files
         for k in ("trade_archive", "daily_stats_archive", "breaker", "starvation"):
             self.state.setdefault(k, default_state()[k])
 
@@ -3010,7 +2987,7 @@ def run_self_monitoring(state: Dict[str, Any]) -> List[str]:
         # Per-grade calibration over the last CALIBRATION_ROLLING_WINDOW
         # resolved trades of each grade; feeds _win_probability_estimate.
         calib: Dict[str, Any] = {}
-        for grade in ("A+", "A", "B+", "B"):
+        for grade in ("A+", "A", "B+", "B", "C"):
             bucket = [c for c in resolved if _record_grade(c) == grade][-CALIBRATION_ROLLING_WINDOW:]
             if bucket:
                 bw = sum(1 for c in bucket if _resolved_is_win(c)) / len(bucket)
@@ -3215,48 +3192,6 @@ class TelegramNotifier:
         if message_id is not None:
             self.send_reaction(message_id)
         return message_id
-
-    def format_watch_message(self, sig: Dict[str, Any]) -> str:
-        """FREQ2: deliberately shorter and visually distinct from
-        format_signal_message -- no TP/RR block, since a watch-tier alert
-        is not a trade and must never be mistaken for one at a glance.
-        Still surfaces price context (Section 19's _entry_engine already
-        computes this for every watch-tier candidate): PRISM's entry model
-        is market-on-close, so decision.entry *is* the price this would
-        trigger at if the composite matures into a real signal -- shown
-        here as "Possible entry" rather than as a separate number, since
-        the engine doesn't compute a distinct pullback/breakout trigger.
-        Also shows the structural invalidation level (protected high/low
-        or nearest order block edge) that would become the stop if that
-        happens -- labeled "Invalidation" rather than "SL" so it reads as
-        a level to watch, not a live order. Reasons list intentionally
-        omitted per user preference -- grade/composite/regime/trend plus
-        the two price levels are the signal, not the feature checklist."""
-        e = _escape_markdown_v2
-        ec = _escape_markdown_v2_code
-        direction = sig.get("signal")
-        invalidation_note = "closes below" if direction == "LONG" else "closes above"
-        lines = [
-            f"_{e(ENGINE_NAME)} {e(ENGINE_VERSION)} \\-\\- Watch Tier \\(not a signal\\)_",
-            f"{e(_clean_label(sig['symbol']))}  \\-\\-  {e(sig['signal'])} bias forming",
-            "",
-            f"Grade: *{e(sig['grade'])}*   Composite: *{e(sig['confidence'])}*",
-            f"Regime: {e(_clean_label(sig['market_regime']))}   Trend: {e(sig['trend'])}",
-        ]
-        if sig.get("entry") is not None and sig.get("stop_loss") is not None:
-            lines += [
-                "",
-                f"Possible entry: `{ec(_fmt_num(sig['entry']))}`",
-                f"Invalidation \\(bias off if price {e(invalidation_note)}\\): "
-                f"`{ec(_fmt_num(sig['stop_loss']))}`",
-            ]
-        return "\n".join(lines)
-
-    def dispatch_watch_tier(self, sig: Dict[str, Any]) -> Optional[int]:
-        """FREQ2: fire-and-forget -- no reaction, no reply-based status
-        lifecycle (there is no position to track the lifecycle of)."""
-        text = self.format_watch_message(sig)
-        return self.send_message(text)
 
     def dispatch_status_update(self, sig_record: Dict[str, Any], status: str) -> bool:
         if status not in SIGNAL_STATUSES:
@@ -3583,16 +3518,6 @@ def monitor_active_signals(state: Dict[str, Any], mtf_features_by_symbol: Dict[s
             log.info("Signal %s (%s) resolved: %s (realized %.2fR)", sig_id, symbol, resolved_status,
                       record["realized_r"] if record["realized_r"] is not None else 0.0)
 
-def _watch_cooldown_elapsed(state: Dict[str, Any], symbol: str, direction: str, now_ms: int) -> Optional[float]:
-    """Hours since the last same-direction watch alert if still inside the
-    cooldown (alert should be suppressed), else None."""
-    last_alert = state.get("watch_tier_alerts", {}).get(symbol)
-    if last_alert is not None and last_alert.get("direction") == direction:
-        elapsed_hours = (now_ms - last_alert["last_alert_at_ms"]) / 3_600_000.0
-        if elapsed_hours < PRODUCTION_PARAMS["watch_tier_cooldown_hours"]:
-            return elapsed_hours
-    return None
-
 def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[str, Any],
                  symbol: str, now_ms: int) -> Tuple[Optional[Dict[str, FeatureSet]], Optional[Dict[str, Any]]]:
     """Full per-symbol pipeline with early exits (Section 22): fetch MTF
@@ -3658,28 +3583,6 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         log.info("%s: score %.1f (%s) -- no trade this run.", symbol, confluence.total_score, decision.grade)
         return mtf_features, None
 
-    if decision.tier == "watch":
-        watch_json = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size=None)
-        watch_json["_tier"] = "watch"
-
-        # Cooldown check (read-only -- safe here on the worker thread, same
-        # as the active_signals dedup check below). The actual state *write*
-        # (recording that this alert fired) happens back on the main thread
-        # in run_scan, once all symbols' results are in, matching the
-        # existing read-here/mutate-there split for this function.
-        elapsed_hours = _watch_cooldown_elapsed(state, symbol, decision.direction, now_ms)
-        if elapsed_hours is not None:
-            log.info(
-                "%s: WATCH %s suppressed -- %.1fh into a %dh cooldown since the last %s watch alert.",
-                symbol, watch_json["signal"], elapsed_hours, PRODUCTION_PARAMS["watch_tier_cooldown_hours"],
-                decision.direction,
-            )
-            return mtf_features, None
-
-        log.info("%s: WATCH %s grade=%s confidence=%.1f (below signal threshold, above watch floor).",
-                  symbol, watch_json["signal"], watch_json["grade"], watch_json["confidence"])
-        return mtf_features, watch_json
-
     open_positions = list(state.get("active_signals", {}).values())
 
     if any(pos.get("symbol") == symbol for pos in open_positions):
@@ -3692,7 +3595,7 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
         return mtf_features, None
 
     # Circuit-breaker dispatch policy is explicit (BREAKER_DISPATCH_MODE), not
-    # an implicit silent drop: suppress | watch_only | dispatch.
+    # an implicit silent drop: suppress | dispatch.
     breaker_note: Optional[str] = None
     breaker_reason = _breaker_reason(state)
     if breaker_reason:
@@ -3700,14 +3603,6 @@ def scan_symbol(client: HyperliquidClient, cache: CandleCacheStore, state: Dict[
             log.info("%s: signal suppressed by tripped breaker -- %s", symbol, breaker_reason)
             return mtf_features, None
         breaker_note = f"BREAKER: {breaker_reason} (dispatch mode: {BREAKER_DISPATCH_MODE})"
-        if BREAKER_DISPATCH_MODE == "watch_only":
-            watch_json = build_signal_json(symbol, decision, regime, trend, mtf, confluence, position_size=None)
-            watch_json["_tier"] = "watch"
-            watch_json["reasons"] = [breaker_note] + list(watch_json.get("reasons") or [])
-            if _watch_cooldown_elapsed(state, symbol, decision.direction, now_ms) is not None:
-                return mtf_features, None
-            log.info("%s: breaker tripped -- sending as untracked WATCH alert.", symbol)
-            return mtf_features, watch_json
         log.info("%s: breaker tripped -- dispatching and tracking signal anyway (mode=dispatch).", symbol)
 
     corr_passed, corr_veto = evaluate_correlation_risk_gate(symbol, decision.direction, open_positions, cache)
@@ -3897,7 +3792,6 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     skipped: List[str] = []
     mtf_features_by_symbol: Dict[str, Dict[str, FeatureSet]] = {}
     new_signals: List[Dict[str, Any]] = []
-    new_watch_alerts: List[Dict[str, Any]] = []  # FREQ2: informational, never persisted to state
 
     today = _utcnow().strftime("%Y-%m-%d")
     day_bucket = _day_bucket(state, today)
@@ -3931,13 +3825,10 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
                 skipped.append(symbol)
                 continue
             if sig:
-                if sig.get("_tier") == "watch":
-                    new_watch_alerts.append(sig)
-                else:
-                    new_signals.append(sig)
+                new_signals.append(sig)
 
-    log.info("Scan complete: %d/%d assets evaluated, %d skipped, %d signals generated, %d watch-tier alerts.",
-              len(WATCHLIST) - len(skipped), len(WATCHLIST), len(skipped), len(new_signals), len(new_watch_alerts))
+    log.info("Scan complete: %d/%d assets evaluated, %d skipped, %d signals generated.",
+              len(WATCHLIST) - len(skipped), len(WATCHLIST), len(skipped), len(new_signals))
 
     monitor_active_signals(state, mtf_features_by_symbol, notifier)
 
@@ -3973,14 +3864,6 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
         state["per_regime_stats"].setdefault(sig["market_regime"], {"signals": 0, "wins": 0, "losses": 0})
         state["per_regime_stats"][sig["market_regime"]]["signals"] += 1
         day_bucket["signals"] += 1
-
-    for sig in new_watch_alerts:
-        sig.pop("_tier", None)
-        notifier.dispatch_watch_tier(sig)
-        state.setdefault("watch_tier_alerts", {})[sig["symbol"]] = {
-            "last_alert_at_ms": now_ms,
-            "direction": sig["signal"],
-        }
 
     _archive_sync(state)
     for line in _starvation_check(state, bool(new_signals)):
