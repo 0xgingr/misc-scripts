@@ -72,11 +72,61 @@ HL_BACKOFF_BASE_SEC = 0.75
 # waiting on each other one at a time. Override via env if needed.
 SCAN_WORKER_THREADS = int(os.environ.get("PRISM_SCAN_WORKERS", "6"))
 
-WATCHLIST: List[str] = [
-    "BTC", "ETH", "HYPE", "ZEC", "NEAR", "ONDO", "SUI", "PENGU", "BNB", "SOL",
-    "TRX", "BCH", "DOGE", "ADA", "DOT", "TAO", "AVAX", "LINK", "AAVE", "XRP",
-    "XLM", "UNI", "LTC", "APT", "PENDLE",
+# --- Instrument registry (watchlist update: crypto + indices + commodities) ---
+# Each row: (display name, internal symbol / Hyperliquid coin key, asset class).
+# The internal symbol is what the whole engine keys on (candle cache, state,
+# per_asset_stats, trade records), so crypto keeps its existing bare coin key
+# ("BTC", "ETH", ...) and all historical state stays valid. Non-crypto
+# instruments are Hyperliquid HIP-3 builder-deployed perps on the trade.xyz
+# ("xyz") dex: the coin name carries the "xyz:" prefix on candleSnapshot
+# (e.g. "xyz:GOLD"). They are NOT part of Hyperliquid's native crypto
+# universe, trade off a different oracle/underlying (index / futures / spot
+# metal), and have their own contract specs and leverage limits.
+ASSET_CLASS_CRYPTO = "crypto"
+ASSET_CLASS_INDEX = "index"
+ASSET_CLASS_PRECIOUS_METAL = "precious_metal"
+ASSET_CLASS_COMMODITY = "commodity"
+
+MAIN_INSTRUMENTS: List[Tuple[str, str, str]] = [
+    ("BTCUSD",   "BTC",         ASSET_CLASS_CRYPTO),
+    ("ETHUSD",   "ETH",         ASSET_CLASS_CRYPTO),
+    ("S&P500",   "xyz:SP500",   ASSET_CLASS_INDEX),
+    ("GOLD",     "xyz:GOLD",    ASSET_CLASS_PRECIOUS_METAL),
+    ("XYZ100",   "xyz:XYZ100",  ASSET_CLASS_INDEX),
+    ("SOLUSD",   "SOL",         ASSET_CLASS_CRYPTO),
+    ("XRPUSD",   "XRP",         ASSET_CLASS_CRYPTO),
+    ("ZECUSD",   "ZEC",         ASSET_CLASS_CRYPTO),
+    ("LINKUSD",  "LINK",        ASSET_CLASS_CRYPTO),
+    ("BNBUSD",   "BNB",         ASSET_CLASS_CRYPTO),
+    ("NEARUSD",  "NEAR",        ASSET_CLASS_CRYPTO),
+    ("HYPEUSD",  "HYPE",        ASSET_CLASS_CRYPTO),
 ]
+SECONDARY_INSTRUMENTS: List[Tuple[str, str, str]] = [
+    ("AVAXUSD",  "AVAX",        ASSET_CLASS_CRYPTO),
+    ("SILVER",   "xyz:SILVER",  ASSET_CLASS_PRECIOUS_METAL),
+    ("COPPER",   "xyz:COPPER",  ASSET_CLASS_COMMODITY),
+    ("BRENTOIL", "xyz:BRENTOIL", ASSET_CLASS_COMMODITY),
+    ("AAVEUSD",  "AAVE",        ASSET_CLASS_CRYPTO),
+    ("LTCUSD",   "LTC",         ASSET_CLASS_CRYPTO),
+    ("DOGEUSD",  "DOGE",        ASSET_CLASS_CRYPTO),
+    ("TAOUSD",   "TAO",         ASSET_CLASS_CRYPTO),
+]
+assert len(MAIN_INSTRUMENTS) == 12 and len(SECONDARY_INSTRUMENTS) == 8
+
+MAIN_WATCHLIST: List[str] = [sym for _, sym, _ in MAIN_INSTRUMENTS]
+SECONDARY_WATCHLIST: List[str] = [sym for _, sym, _ in SECONDARY_INSTRUMENTS]
+# Scan order == specified order: main watchlist first, then secondary.
+WATCHLIST: List[str] = MAIN_WATCHLIST + SECONDARY_WATCHLIST
+assert len(set(WATCHLIST)) == len(WATCHLIST) == 20
+
+INSTRUMENT_DISPLAY: Dict[str, str] = {sym: disp for disp, sym, _ in MAIN_INSTRUMENTS + SECONDARY_INSTRUMENTS}
+INSTRUMENT_CLASS: Dict[str, str] = {sym: cls for _, sym, cls in MAIN_INSTRUMENTS + SECONDARY_INSTRUMENTS}
+
+def _display_name(symbol: str) -> str:
+    """User-facing instrument name (e.g. 'xyz:SP500' -> 'S&P500'). Symbols not
+    in the current watchlist (history from removed instruments) fall back to
+    the raw symbol."""
+    return INSTRUMENT_DISPLAY.get(symbol, symbol)
 
 TIMEFRAMES: Dict[str, str] = {
     "1D": "Long-term institutional bias",
@@ -2226,6 +2276,12 @@ CORRELATION_SECTOR_BUCKETS: Dict[str, str] = {
     "LINK": "defi_infra", "AAVE": "defi_infra", "UNI": "defi_infra",
     "ONDO": "defi_infra", "PENDLE": "defi_infra",
     "HYPE": "perp_dex", "ZEC": "privacy", "PENGU": "meme",
+    # Non-crypto (HIP-3 xyz dex). Kept in their own buckets so, e.g., GOLD and
+    # SILVER (or SP500 and XYZ100) are treated as clustered by the fallback,
+    # but never as clustered with crypto.
+    "xyz:SP500": "equity_index", "xyz:XYZ100": "equity_index",
+    "xyz:GOLD": "precious_metals", "xyz:SILVER": "precious_metals",
+    "xyz:COPPER": "industrial_commodity", "xyz:BRENTOIL": "energy",
 }
 
 def _correlation_bucket(symbol: str) -> str:
@@ -2577,6 +2633,7 @@ class StateStore:
             for k, v in default_state()["feature_stats"][f].items():
                 self.state["feature_stats"][f].setdefault(k, v)
         self.state.pop("watch_tier_alerts", None)  # watch tier removed; drop stale key from older state files
+        self.state["watchlist"] = list(WATCHLIST)  # reflect the current 20-instrument watchlist (history untouched)
         for k in ("trade_archive", "daily_stats_archive", "breaker", "starvation"):
             self.state.setdefault(k, default_state()[k])
 
@@ -3159,7 +3216,7 @@ class TelegramNotifier:
         direction_emoji = {"LONG": "🟢", "SHORT": "🔴"}.get(sig["signal"], "")
         lines = [
             f"*{e(ENGINE_NAME)} {e(ENGINE_VERSION)}*",
-            f"{e(_clean_label(sig['symbol']))}  \\-\\-  {e(sig['signal'])} {direction_emoji}",
+            f"{e(_display_name(sig['symbol']))}  \\-\\-  {e(sig['signal'])} {direction_emoji}",
             "",
             f"Grade: *{e(sig['grade'])}*   Confidence: *{e(sig['confidence'])}*",
             f"Regime: {e(_clean_label(sig['market_regime']))}   Trend: {e(sig['trend'])}",
@@ -3199,7 +3256,7 @@ class TelegramNotifier:
             return False
         if status not in ("TP1", "SL"):
             return True
-        symbol = _escape_markdown_v2(_clean_label(sig_record["symbol"]))
+        symbol = _escape_markdown_v2(_display_name(sig_record["symbol"]))
         engine = _escape_markdown_v2(ENGINE_NAME)
         header_map = {
             "TP1": f"{engine} \\-\\- {symbol} TP1 Hit \\(Win\\)",
@@ -3247,7 +3304,7 @@ class TelegramNotifier:
         lines.append("By asset:")
         for asset, stats in state.get("per_asset_stats", {}).items():
             if stats.get("signals"):
-                lines.append(f"\\- {e(_clean_label(asset))}: {e(stats['signals'])} signals, {e(stats['wins'])}W/{e(stats['losses'])}L")
+                lines.append(f"\\- {e(_display_name(asset))}: {e(stats['signals'])} signals, {e(stats['wins'])}W/{e(stats['losses'])}L")
 
         calib = state.get("self_monitoring", {}).get("confidence_calibration", {})
         if calib:
@@ -3830,6 +3887,24 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     log.info("Scan complete: %d/%d assets evaluated, %d skipped, %d signals generated.",
               len(WATCHLIST) - len(skipped), len(WATCHLIST), len(skipped), len(new_signals))
 
+    # Watchlist change safety: open signals on instruments that are no longer
+    # in WATCHLIST must still be resolved against real price action (TP1/SL/
+    # timeout) rather than orphaned until the stale-age cancel. They are
+    # tracked here ONLY -- execution timeframe, no scoring, no new signals.
+    orphan_symbols = sorted({
+        r.get("symbol") for r in state.get("active_signals", {}).values()
+        if r.get("symbol") and r["symbol"] not in WATCHLIST and r["symbol"] not in mtf_features_by_symbol
+    })
+    for symbol in orphan_symbols:
+        try:
+            raw = fetch_symbol_mtf(client, cache, symbol, now_ms)
+            fs_exec = build_feature_set(raw[EXECUTION_TF]) if raw and raw.get(EXECUTION_TF) else None
+            if fs_exec is not None:
+                mtf_features_by_symbol[symbol] = {EXECUTION_TF: fs_exec}
+                log.info("%s: not on watchlist but has open signal(s) -- tracking only (no new signals).", symbol)
+        except Exception:
+            log.exception("Tracking-only fetch failed for off-watchlist symbol %s.", symbol)
+
     monitor_active_signals(state, mtf_features_by_symbol, notifier)
 
     for sig in new_signals:
@@ -3884,9 +3959,49 @@ def run_scan(client: HyperliquidClient, cache: CandleCacheStore, store: StateSto
     if hour >= PRODUCTION_PARAMS["daily_summary_hour_utc"] and state.get("last_daily_summary_date") != today:
         notifier.dispatch_daily_summary(state)
 
+def check_instruments(client: HyperliquidClient) -> Dict[str, str]:
+    """Read-only integration check for every configured instrument: confirms
+    the coin is listed (and not delisted) on its Hyperliquid dex and that the
+    exact candleSnapshot call the scanner uses returns closed candles for it.
+    Reports per-instrument status; NEVER substitutes another instrument.
+    Run with: python core.py --mode check-instruments"""
+    listed: Dict[str, bool] = {}   # coin -> delisted?
+    for dex_payload in ({"type": "meta"}, {"type": "meta", "dex": "xyz"}):
+        data = client._post(dex_payload)
+        if not isinstance(data, dict):
+            continue
+        prefix = "xyz:" if dex_payload.get("dex") == "xyz" else ""
+        for u in data.get("universe", []) or []:
+            name = str(u.get("name", ""))
+            if prefix and not name.startswith(prefix):
+                name = prefix + name
+            listed[name] = bool(u.get("isDelisted"))
+
+    now_ms = int(time.time() * 1000)
+    results: Dict[str, str] = {}
+    for display, sym, cls in MAIN_INSTRUMENTS + SECONDARY_INSTRUMENTS:
+        if listed and sym not in listed:
+            status = "UNSUPPORTED -- not listed in Hyperliquid meta"
+        elif listed.get(sym):
+            status = "UNSUPPORTED -- listed but flagged isDelisted"
+        else:
+            candles = client.candles(sym, HL_INTERVAL_MAP[EXECUTION_TF], now_ms - 6 * 3_600_000, now_ms)
+            if candles is None:
+                status = "UNSUPPORTED -- candleSnapshot request failed"
+            elif not candles:
+                status = "NO DATA -- listed but candleSnapshot returned no candles"
+            else:
+                status = f"OK ({len(candles)} x {EXECUTION_TF} candles)"
+        results[sym] = status
+        log.info("[InstrumentCheck] %-9s %-13s %-14s %s", display, sym, cls, status)
+    bad = [s for s, v in results.items() if not v.startswith("OK")]
+    log.info("[InstrumentCheck] %d/%d instruments OK; %d need attention%s.", len(results) - len(bad),
+             len(results), len(bad), (": " + ", ".join(bad)) if bad else "")
+    return results
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=f"{ENGINE_NAME} {ENGINE_VERSION} signal engine")
-    parser.add_argument("--mode", choices=["scan", "validate"], default="scan",
+    parser.add_argument("--mode", choices=["scan", "validate", "check-instruments"], default="scan",
                          help="'scan' runs a live watchlist scan (default). "
                               "'validate' runs offline feature-validation bookkeeping only, "
                               "using RESEARCH_PARAMS (Section 21) -- never affects live weights "
@@ -3895,7 +4010,12 @@ def main() -> int:
 
     start = time.monotonic()
     log.info("=== %s %s run starting (mode=%s, pid=%d) ===", ENGINE_NAME, ENGINE_VERSION, args.mode, os.getpid())
-    log.info("Watchlist: %d assets.", len(WATCHLIST))
+    log.info("Watchlist: %d assets (%d main, %d secondary).", len(WATCHLIST),
+             len(MAIN_WATCHLIST), len(SECONDARY_WATCHLIST))
+    if args.mode == "check-instruments":
+        # Read-only: no state/cache/lock touched.
+        res = check_instruments(HyperliquidClient(HL_API_URL))
+        return 0 if all(v.startswith("OK") for v in res.values()) else 2
 
     # Exclusive, non-blocking run lock (Section 2 fix): a scan can take
     # significantly longer than the 15-min cron/Actions cadence (e.g. one
