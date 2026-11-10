@@ -3,7 +3,7 @@
   "active_signals": {
     "AVAX-1794302133-5197": {
       "activated": true,
-      "bars_open": 10,
+      "bars_open": 11,
       "bars_to_activate": 0,
       "confidence": 73.29,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794310200000,
+      "last_checked_candle_t": 1794311100000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -83,7 +83,7 @@
     },
     "DOT-1794266131-7941": {
       "activated": true,
-      "bars_open": 50,
+      "bars_open": 51,
       "bars_to_activate": 0,
       "confidence": 73.68,
       "engine_name": "PRISM",
@@ -111,7 +111,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794310200000,
+      "last_checked_candle_t": 1794311100000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -163,7 +163,7 @@
     },
     "ETH-1794308503-3991": {
       "activated": true,
-      "bars_open": 3,
+      "bars_open": 4,
       "bars_to_activate": 0,
       "confidence": 70.51,
       "engine_name": "PRISM",
@@ -190,7 +190,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794310200000,
+      "last_checked_candle_t": 1794311100000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -242,7 +242,7 @@
     },
     "HYPE-1794311132-3002": {
       "activated": true,
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.11,
       "engine_name": "PRISM",
@@ -268,7 +268,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794310200000,
+      "last_checked_candle_t": 1794311100000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -320,7 +320,7 @@
     },
     "SOL-1794307532-7020": {
       "activated": true,
-      "bars_open": 4,
+      "bars_open": 5,
       "bars_to_activate": 0,
       "confidence": 70.3,
       "engine_name": "PRISM",
@@ -345,7 +345,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794310200000,
+      "last_checked_candle_t": 1794311100000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -990,7 +990,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-10",
-  "last_run_at": "2026-11-10T11:45:32.690156+00:00",
+  "last_run_at": "2026-11-10T12:01:42.250973+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1199,7 +1199,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-10T11:45:32.669151+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
