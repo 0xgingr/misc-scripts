@@ -128,6 +128,13 @@ def _display_name(symbol: str) -> str:
     the raw symbol."""
     return INSTRUMENT_DISPLAY.get(symbol, symbol)
 
+def _asset_class(symbol: str) -> str:
+    """Asset class of a symbol. Anything outside the current registry is a
+    legacy symbol from the old crypto-only watchlist, hence 'crypto'. The
+    never-pruned trade_archive keeps `symbol`, so older/archived trades can
+    be classified the same way at analysis time."""
+    return INSTRUMENT_CLASS.get(symbol, ASSET_CLASS_CRYPTO)
+
 TIMEFRAMES: Dict[str, str] = {
     "1D": "Long-term institutional bias",
     "4H": "Primary trend",
@@ -2515,6 +2522,7 @@ def build_signal_json(
     extended with a few extra fields useful for state-tracking / auditing."""
     result = {
         "symbol": symbol,
+        "asset_class": _asset_class(symbol),
         "signal": decision.direction,
         "confidence": decision.confidence,
         "grade": decision.grade,
