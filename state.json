@@ -3,7 +3,7 @@
   "active_signals": {
     "DOT-1794266131-7941": {
       "activated": true,
-      "bars_open": 24,
+      "bars_open": 25,
       "bars_to_activate": 0,
       "confidence": 73.68,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794286800000,
+      "last_checked_candle_t": 1794287700000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -83,7 +83,7 @@
     },
     "PENDLE-1794275137-9624": {
       "activated": true,
-      "bars_open": 14,
+      "bars_open": 15,
       "bars_to_activate": 0,
       "confidence": 72.14,
       "engine_name": "PRISM",
@@ -111,7 +111,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794286800000,
+      "last_checked_candle_t": 1794287700000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -583,7 +583,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-09",
-  "last_run_at": "2026-11-10T05:15:31.992947+00:00",
+  "last_run_at": "2026-11-10T05:30:36.497206+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -785,7 +785,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-10T01:45:37.663547+00:00",
     "relief_count": 0,
-    "scans_since_signal": 14
+    "scans_since_signal": 15
   },
   "trade_archive": {
     "features": [
