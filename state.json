@@ -3,7 +3,7 @@
   "active_signals": {
     "AVAX-1794302133-5197": {
       "activated": true,
-      "bars_open": 5,
+      "bars_open": 6,
       "bars_to_activate": 0,
       "confidence": 73.29,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794305700000,
+      "last_checked_candle_t": 1794306600000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -83,7 +83,7 @@
     },
     "DOT-1794266131-7941": {
       "activated": true,
-      "bars_open": 45,
+      "bars_open": 46,
       "bars_to_activate": 0,
       "confidence": 73.68,
       "engine_name": "PRISM",
@@ -111,7 +111,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794305700000,
+      "last_checked_candle_t": 1794306600000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -160,6 +160,83 @@
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.4
+    },
+    "SOL-1794307532-7020": {
+      "activated": true,
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.3,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 84.496,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-10T10:45:29.241132+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794306600000,
+      "market_regime": "Breakout",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 29.587199
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 84.496 broke below prior swing low 84.896 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 13.9,
+        "momentum": 2.29,
+        "risk": 4.43,
+        "structure": 13.01,
+        "trend": 26.59,
+        "volatility": 6.34,
+        "volume": 3.73
+      },
+      "signal": "SHORT",
+      "signal_id": "SOL-1794307532-7020",
+      "status": "Activated",
+      "stop_loss": 85.763224,
+      "symbol": "SOL",
+      "take_profit": [
+        82.595163,
+        81.327939,
+        79.427102
+      ],
+      "telegram_message_id": 9703,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.3636
     }
   },
   "breaker": {
@@ -358,7 +435,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 3,
+      "signals": 4,
       "wins": 0
     }
   },
@@ -756,7 +833,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-10",
-  "last_run_at": "2026-11-10T10:30:40.847530+00:00",
+  "last_run_at": "2026-11-10T10:45:32.622138+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -846,7 +923,7 @@
     },
     "SOL": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "SUI": {
@@ -888,7 +965,7 @@
   "per_regime_stats": {
     "Breakout": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "Compression": {
@@ -963,9 +1040,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-10T09:15:33.902112+00:00",
+    "last_signal_at": "2026-11-10T10:45:32.597583+00:00",
     "relief_count": 0,
-    "scans_since_signal": 5
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
