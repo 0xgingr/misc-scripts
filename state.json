@@ -4,7 +4,7 @@
     "xyz:GOLD-1794415533-7404": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 0,
       "confidence": 73.63,
       "engine_name": "PRISM",
@@ -33,7 +33,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794421800000,
+      "last_checked_candle_t": 1794422700000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -937,7 +937,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-11T18:45:31.640840+00:00",
+  "last_run_at": "2026-11-11T19:01:39.601039+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1121,7 +1121,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-11T16:45:33.969600+00:00",
     "relief_count": 0,
-    "scans_since_signal": 8
+    "scans_since_signal": 9
   },
   "trade_archive": {
     "features": [
