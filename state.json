@@ -1,87 +1,6 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {
-    "xyz:SP500-1794396639-3342": {
-      "activated": true,
-      "asset_class": "index",
-      "bars_open": 19,
-      "bars_to_activate": 0,
-      "confidence": 71.44,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.6",
-      "entry": 7588.3,
-      "entry_model": "market",
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "donchian_channels",
-        "ema_stack",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "macd",
-        "mitigation_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-11-11T11:30:34.193069+00:00",
-      "grade": "C",
-      "higher_timeframe_alignment": false,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794412800000,
-      "market_regime": "Strong Bull Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 0.329455
-      },
-      "reasons": [
-        "EMA stack bullish (20>50>200)",
-        "SMA50 above SMA200",
-        "Price above session VWAP",
-        "50-bar linear regression slope positive",
-        "Structure printing higher-highs/higher-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 7588.3 broke above prior swing high 7582 (BOS, continuation)",
-        "MACD histogram momentum: accelerating",
-        "Regular bearish RSI divergence at last two swing pivots",
-        "bullish breaker block supporting the setup",
-        "bullish mitigation block reacted to price",
-        "Aligned bullish fair value gap present"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 11.81,
-        "momentum": 8.33,
-        "risk": 3.01,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 3.15,
-        "volume": 0.0
-      },
-      "signal": "LONG",
-      "signal_id": "xyz:SP500-1794396639-3342",
-      "status": "Activated",
-      "stop_loss": 7570.252602,
-      "symbol": "xyz:SP500",
-      "take_profit": [
-        7615.371098,
-        7633.418496,
-        7660.489594
-      ],
-      "telegram_message_id": 9780,
-      "timeframe": "15M",
-      "trend": "Bullish",
-      "win_probability": 0.3636
-    }
-  },
+  "active_signals": {},
   "breaker": {
     "reason": null,
     "rebaselined_at": null,
@@ -424,6 +343,89 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.3636
+    },
+    {
+      "activated": true,
+      "asset_class": "index",
+      "bars_open": 20,
+      "bars_to_activate": 0,
+      "confidence": 71.44,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 7588.3,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "exit_price": 7615.371098,
+      "fired_features": [
+        "adx",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-11T11:30:34.193069+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794413700000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.329455
+      },
+      "realized_r": 1.5,
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 7588.3 broke above prior swing high 7582 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bearish RSI divergence at last two swing pivots",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present"
+      ],
+      "resolved_at": "2026-11-11T16:30:44.634523+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 3.01,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 3.15,
+        "volume": 0.0
+      },
+      "signal": "LONG",
+      "signal_id": "xyz:SP500-1794396639-3342",
+      "status": "TP1",
+      "stop_loss": 7570.252602,
+      "symbol": "xyz:SP500",
+      "take_profit": [
+        7615.371098,
+        7633.418496,
+        7660.489594
+      ],
+      "telegram_message_id": 9780,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.3636
     }
   ],
   "created_at": "2026-11-10T19:30:34.086847+00:00",
@@ -444,16 +446,18 @@
         1.0,
         1.0,
         1.0,
+        1.0,
         1.0
       ],
       "rr_list": [
         -1.0,
         -1.0,
         -1.0,
-        -1.0
+        -1.0,
+        1.5
       ],
       "signals": 5,
-      "wins": 0
+      "wins": 1
     }
   },
   "daily_stats_archive": {
@@ -850,7 +854,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-11T16:15:32.607957+00:00",
+  "last_run_at": "2026-11-11T16:30:45.185082+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -946,7 +950,7 @@
     "xyz:SP500": {
       "losses": 0,
       "signals": 1,
-      "wins": 0
+      "wins": 1
     },
     "xyz:XYZ100": {
       "losses": 2,
@@ -1008,7 +1012,7 @@
     "Strong Bull Trend": {
       "losses": 2,
       "signals": 3,
-      "wins": 0
+      "wins": 1
     },
     "Weak Trend": {
       "losses": 1,
@@ -1020,21 +1024,21 @@
   "self_monitoring": {
     "confidence_calibration": {
       "C": {
-        "mean_advertised_probability": 0.3814,
-        "realized_expectancy_r": -1.0,
-        "realized_win_rate": 0.0,
-        "sample_size": 4
+        "mean_advertised_probability": 0.3778,
+        "realized_expectancy_r": -0.5,
+        "realized_win_rate": 0.2,
+        "sample_size": 5
       }
     },
-    "overall_win_rate": 0.0,
-    "rolling_30d_win_rate": 0.0,
+    "overall_win_rate": 0.2,
+    "rolling_30d_win_rate": 0.2,
     "warnings": []
   },
   "starvation": {
     "last_relief_at": null,
     "last_signal_at": "2026-11-11T11:30:39.086477+00:00",
     "relief_count": 0,
-    "scans_since_signal": 19
+    "scans_since_signal": 20
   },
   "trade_archive": {
     "features": [
@@ -1110,6 +1114,19 @@
         0.3636,
         1.0,
         417789
+      ],
+      [
+        "xyz:SP500-1794396639-3342",
+        "2026-11-11T16:30:44.634523+00:00",
+        "xyz:SP500",
+        "LONG",
+        "C",
+        71.44,
+        "TP1",
+        1.5,
+        0.3636,
+        1.0,
+        417657
       ]
     ]
   },
