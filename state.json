@@ -4,7 +4,7 @@
     "AVAX-1794385839-9070": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 71.27,
       "engine_name": "PRISM",
@@ -29,7 +29,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794384900000,
+      "last_checked_candle_t": 1794385800000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -75,6 +75,88 @@
         9.120968
       ],
       "telegram_message_id": 9775,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.381
+    },
+    "xyz:XYZ100-1794386731-4411": {
+      "activated": true,
+      "asset_class": "index",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 77.18,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 28203.0,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-11T08:45:27.548478+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794385800000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.088643
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 28203 broke above prior swing high 28179 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Regular bearish RSI divergence at last two swing pivots",
+        "Hidden bullish RSI divergence at last two swing pivots",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 10.83,
+        "risk": 3.01,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 3.15,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "xyz:XYZ100-1794386731-4411",
+      "status": "Activated",
+      "stop_loss": 28143.665278,
+      "symbol": "xyz:XYZ100",
+      "take_profit": [
+        28292.002083,
+        28351.336805,
+        28440.338888
+      ],
+      "telegram_message_id": 9776,
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.381
@@ -193,7 +275,7 @@
       "rr_list": [
         -1.0
       ],
-      "signals": 2,
+      "signals": 3,
       "wins": 0
     }
   },
@@ -591,7 +673,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-11T08:30:39.443780+00:00",
+  "last_run_at": "2026-11-11T08:45:31.541907+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -691,7 +773,7 @@
     },
     "xyz:XYZ100": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -748,7 +830,7 @@
     },
     "Strong Bull Trend": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "Weak Trend": {
@@ -773,7 +855,7 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-11T08:30:39.427673+00:00",
+    "last_signal_at": "2026-11-11T08:45:31.525213+00:00",
     "relief_count": 0,
     "scans_since_signal": 0
   },
