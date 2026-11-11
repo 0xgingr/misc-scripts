@@ -4,7 +4,7 @@
     "AVAX-1794385839-9070": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 9,
+      "bars_open": 10,
       "bars_to_activate": 0,
       "confidence": 71.27,
       "engine_name": "PRISM",
@@ -29,7 +29,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794393000000,
+      "last_checked_candle_t": 1794393900000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,7 +82,7 @@
     "xyz:XYZ100-1794393937-8952": {
       "activated": true,
       "asset_class": "index",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 71.44,
       "engine_name": "PRISM",
@@ -111,7 +111,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794393000000,
+      "last_checked_candle_t": 1794393900000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -760,7 +760,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-11T10:45:37.125037+00:00",
+  "last_run_at": "2026-11-11T11:01:43.631421+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -944,7 +944,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-11T10:45:37.108205+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
