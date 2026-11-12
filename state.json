@@ -1,10 +1,90 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "NEAR-1794465932-9074": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.08,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 3.5119,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T06:45:29.404620+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "12-48 hours",
+      "last_checked_candle_t": 1794465000000,
+      "market_regime": "Low Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 711.865372
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3.5119 broke below prior swing low 3.5282 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "PDL (3.5282) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.85,
+        "momentum": 0.0,
+        "risk": 4.7,
+        "structure": 15.59,
+        "trend": 24.75,
+        "volatility": 8.71,
+        "volume": 3.47
+      },
+      "signal": "SHORT",
+      "signal_id": "NEAR-1794465932-9074",
+      "status": "Activated",
+      "stop_loss": 3.553142,
+      "symbol": "NEAR",
+      "take_profit": [
+        3.450037,
+        3.408794,
+        3.346931
+      ],
+      "telegram_message_id": 9815,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.3571
+    },
     "TAO-1794460533-8159": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 5,
+      "bars_open": 6,
       "bars_to_activate": 0,
       "confidence": 70.86,
       "engine_name": "PRISM",
@@ -33,7 +113,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794464100000,
+      "last_checked_candle_t": 1794465000000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -86,7 +166,7 @@
     "XRP-1794460531-4264": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 5,
+      "bars_open": 6,
       "bars_to_activate": 0,
       "confidence": 71.09,
       "engine_name": "PRISM",
@@ -113,7 +193,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794464100000,
+      "last_checked_candle_t": 1794465000000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -889,7 +969,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 4,
+      "signals": 5,
       "wins": 1
     }
   },
@@ -1287,7 +1367,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-12T06:30:38.809718+00:00",
+  "last_run_at": "2026-11-12T06:45:32.244986+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1337,7 +1417,7 @@
     },
     "NEAR": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "SOL": {
@@ -1414,7 +1494,7 @@
     },
     "Low Volatility": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "Mean Reversion": {
@@ -1469,9 +1549,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-12T06:01:41.616510+00:00",
+    "last_signal_at": "2026-11-12T06:45:32.227393+00:00",
     "relief_count": 0,
-    "scans_since_signal": 2
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
