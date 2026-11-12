@@ -4,7 +4,7 @@
     "BNB-1794466903-4995": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 74.62,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794465900000,
+      "last_checked_candle_t": 1794466800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "NEAR-1794465932-9074": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 1,
+      "bars_open": 2,
       "bars_to_activate": 0,
       "confidence": 72.08,
       "engine_name": "PRISM",
@@ -112,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794465900000,
+      "last_checked_candle_t": 1794466800000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -165,7 +165,7 @@
     "TAO-1794460533-8159": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 7,
+      "bars_open": 8,
       "bars_to_activate": 0,
       "confidence": 70.86,
       "engine_name": "PRISM",
@@ -194,7 +194,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794465900000,
+      "last_checked_candle_t": 1794466800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -247,7 +247,7 @@
     "XRP-1794460531-4264": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 7,
+      "bars_open": 8,
       "bars_to_activate": 0,
       "confidence": 71.09,
       "engine_name": "PRISM",
@@ -274,7 +274,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794465900000,
+      "last_checked_candle_t": 1794466800000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -323,6 +323,167 @@
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.3704
+    },
+    "xyz:GOLD-1794467731-9516": {
+      "activated": true,
+      "asset_class": "precious_metal",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 71.26,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 3961.3,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T07:15:27.648578+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1794466800000,
+      "market_regime": "High Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.631106
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3961.3 broke below prior swing low 3972.4 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 3.84,
+        "risk": 5.61,
+        "structure": 13.9,
+        "trend": 21.95,
+        "volatility": 11.32,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:GOLD-1794467731-9516",
+      "status": "Activated",
+      "stop_loss": 3983.409586,
+      "symbol": "xyz:GOLD",
+      "take_profit": [
+        3928.135621,
+        3906.026036,
+        3872.861657
+      ],
+      "telegram_message_id": 9819,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.3571
+    },
+    "xyz:SILVER-1794467732-2863": {
+      "activated": true,
+      "asset_class": "precious_metal",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 73.67,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 51.17,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "obv",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T07:15:29.406453+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1794466800000,
+      "market_regime": "High Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 48.856752
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 51.17 broke below prior swing low 51.263 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 5.41,
+        "risk": 5.61,
+        "structure": 12.3,
+        "trend": 21.47,
+        "volatility": 11.32,
+        "volume": 2.93
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:SILVER-1794467732-2863",
+      "status": "Activated",
+      "stop_loss": 51.695452,
+      "symbol": "xyz:SILVER",
+      "take_profit": [
+        50.381822,
+        49.85637,
+        49.068191
+      ],
+      "telegram_message_id": 9820,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.3571
     }
   },
   "breaker": {
@@ -1050,7 +1211,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 6,
+      "signals": 8,
       "wins": 1
     }
   },
@@ -1448,7 +1609,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-12T07:01:43.101913+00:00",
+  "last_run_at": "2026-11-12T07:15:32.611789+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1533,12 +1694,12 @@
     },
     "xyz:GOLD": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 1
     },
     "xyz:SILVER": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "xyz:SP500": {
@@ -1570,7 +1731,7 @@
     },
     "High Volatility": {
       "losses": 0,
-      "signals": 0,
+      "signals": 2,
       "wins": 0
     },
     "Low Volatility": {
@@ -1630,7 +1791,7 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-12T07:01:43.084404+00:00",
+    "last_signal_at": "2026-11-12T07:15:32.594435+00:00",
     "relief_count": 0,
     "scans_since_signal": 0
   },
