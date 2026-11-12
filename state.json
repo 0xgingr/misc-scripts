@@ -4,7 +4,7 @@
     "NEAR-1794484903-6753": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 26,
+      "bars_open": 27,
       "bars_to_activate": 0,
       "confidence": 72.77,
       "engine_name": "PRISM",
@@ -30,7 +30,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794507300000,
+      "last_checked_candle_t": 1794508200000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -80,10 +80,89 @@
       "trend": "Bearish",
       "win_probability": 0.3939
     },
+    "ZEC-1794509130-5338": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.11,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 939.71,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T18:45:27.629832+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1794508200000,
+      "market_regime": "Weak Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 2.660395
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 939.71 broke below prior swing low 942.06 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.53,
+        "momentum": 6.1,
+        "risk": 3.05,
+        "structure": 14.53,
+        "trend": 26.63,
+        "volatility": 3.87,
+        "volume": 3.39
+      },
+      "signal": "SHORT",
+      "signal_id": "ZEC-1794509130-5338",
+      "status": "Activated",
+      "stop_loss": 949.177584,
+      "symbol": "ZEC",
+      "take_profit": [
+        925.508624,
+        916.04104,
+        901.839664
+      ],
+      "telegram_message_id": 9867,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.421
+    },
     "xyz:GOLD-1794493840-6679": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 16,
+      "bars_open": 17,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -110,7 +189,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794507300000,
+      "last_checked_candle_t": 1794508200000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1742,7 +1821,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 14,
+      "signals": 15,
       "wins": 7
     }
   },
@@ -2140,7 +2219,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-12",
-  "last_run_at": "2026-11-12T18:30:43.123781+00:00",
+  "last_run_at": "2026-11-12T18:45:30.187134+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2210,7 +2289,7 @@
     },
     "ZEC": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     },
     "xyz:BRENTOIL": {
@@ -2302,7 +2381,7 @@
     },
     "Weak Trend": {
       "losses": 1,
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     }
   },
@@ -2322,9 +2401,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-12T15:45:31.021901+00:00",
+    "last_signal_at": "2026-11-12T18:45:30.173707+00:00",
     "relief_count": 0,
-    "scans_since_signal": 11
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
