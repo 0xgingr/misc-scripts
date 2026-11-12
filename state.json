@@ -4,7 +4,7 @@
     "NEAR-1794484903-6753": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 10,
+      "bars_open": 11,
       "bars_to_activate": 0,
       "confidence": 72.77,
       "engine_name": "PRISM",
@@ -30,7 +30,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794492900000,
+      "last_checked_candle_t": 1794493800000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -80,92 +80,10 @@
       "trend": "Bearish",
       "win_probability": 0.3939
     },
-    "xyz:COPPER-1794487532-2540": {
-      "activated": true,
-      "asset_class": "commodity",
-      "bars_open": 7,
-      "bars_to_activate": 0,
-      "confidence": 72.41,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.6",
-      "entry": 6.2897,
-      "entry_model": "market",
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "atr_stop_quality",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "cmf",
-        "donchian_channels",
-        "ema_stack",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "mitigation_block",
-        "obv",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-11-12T12:45:30.324623+00:00",
-      "grade": "C",
-      "higher_timeframe_alignment": true,
-      "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794492900000,
-      "market_regime": "High Volatility",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 397.475237
-      },
-      "reasons": [
-        "EMA stack bearish (20<50<200)",
-        "SMA50 below SMA200",
-        "Price below session VWAP",
-        "50-bar linear regression slope negative",
-        "Structure printing lower-highs/lower-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 6.2897 broke below prior swing low 6.2983 (BOS, continuation)",
-        "MACD histogram momentum: flat",
-        "Regular bullish RSI divergence at last two swing pivots",
-        "Hidden bearish RSI divergence at last two swing pivots",
-        "Fresh bearish order block supporting the setup",
-        "bearish breaker block supporting the setup"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 14.63,
-        "momentum": 4.49,
-        "risk": 5.61,
-        "structure": 10.3,
-        "trend": 19.72,
-        "volatility": 11.32,
-        "volume": 6.34
-      },
-      "signal": "SHORT",
-      "signal_id": "xyz:COPPER-1794487532-2540",
-      "status": "Activated",
-      "stop_loss": 6.308206,
-      "symbol": "xyz:COPPER",
-      "take_profit": [
-        6.261942,
-        6.243436,
-        6.215678
-      ],
-      "telegram_message_id": 9846,
-      "timeframe": "15M",
-      "trend": "Bearish",
-      "win_probability": 0.3939
-    },
     "xyz:GOLD-1794493840-6679": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -192,7 +110,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794492900000,
+      "last_checked_candle_t": 1794493800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -238,87 +156,6 @@
         3758.882455
       ],
       "telegram_message_id": 9854,
-      "timeframe": "15M",
-      "trend": "Bearish",
-      "win_probability": 0.4118
-    },
-    "xyz:SILVER-1794493841-2013": {
-      "activated": true,
-      "asset_class": "precious_metal",
-      "bars_open": 0,
-      "bars_to_activate": 0,
-      "confidence": 71.64,
-      "engine_name": "PRISM",
-      "engine_version": "1.1.6",
-      "entry": 50.384,
-      "entry_model": "market",
-      "exit_model": "full_exit_at_tp1",
-      "fired_features": [
-        "adx",
-        "atr_stop_quality",
-        "bollinger_bands",
-        "bos",
-        "breaker_block",
-        "ema_stack",
-        "equal_highs_lows",
-        "fair_value_gap",
-        "liquidity_sweep",
-        "mitigation_block",
-        "order_block",
-        "rsi",
-        "sma_trend",
-        "vwap"
-      ],
-      "generated_at": "2026-11-12T14:30:37.656468+00:00",
-      "grade": "C",
-      "higher_timeframe_alignment": true,
-      "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794492900000,
-      "market_regime": "Strong Bear Trend",
-      "position_sizing": {
-        "method": "fixed_risk_pct",
-        "notes": [
-          "Position trimmed to respect portfolio exposure cap."
-        ],
-        "risk_amount": 100.0,
-        "risk_pct_of_equity": 1.0,
-        "size_units": 49.618927
-      },
-      "reasons": [
-        "EMA stack bearish (20<50<200)",
-        "SMA50 below SMA200",
-        "Price below session VWAP",
-        "50-bar linear regression slope negative",
-        "Structure printing lower-highs/lower-lows",
-        "Internal structure aligned with external (major) structure",
-        "Close 50.384 broke below prior swing low 50.741 (BOS, continuation)",
-        "MACD histogram momentum: flat",
-        "Regular bullish RSI divergence at last two swing pivots",
-        "Fresh bearish order block supporting the setup",
-        "bearish breaker block supporting the setup",
-        "bearish mitigation block reacted to price"
-      ],
-      "risk_reward": 1.5,
-      "scores": {
-        "liquidity": 10.63,
-        "momentum": 4.17,
-        "risk": 4.63,
-        "structure": 13.89,
-        "trend": 31.25,
-        "volatility": 7.08,
-        "volume": 0.0
-      },
-      "signal": "SHORT",
-      "signal_id": "xyz:SILVER-1794493841-2013",
-      "status": "Activated",
-      "stop_loss": 50.447602,
-      "symbol": "xyz:SILVER",
-      "take_profit": [
-        50.288597,
-        50.224996,
-        50.129593
-      ],
-      "telegram_message_id": 9855,
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.4118
@@ -1587,6 +1424,175 @@
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.3548
+    },
+    {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 8,
+      "bars_to_activate": 0,
+      "confidence": 72.41,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 6.2897,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "exit_price": 6.261942,
+      "fired_features": [
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T12:45:30.324623+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1794493800000,
+      "market_regime": "High Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 397.475237
+      },
+      "realized_r": 1.5,
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 6.2897 broke below prior swing low 6.2983 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup"
+      ],
+      "resolved_at": "2026-11-12T14:45:31.431162+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 4.49,
+        "risk": 5.61,
+        "structure": 10.3,
+        "trend": 19.72,
+        "volatility": 11.32,
+        "volume": 6.34
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:COPPER-1794487532-2540",
+      "status": "TP1",
+      "stop_loss": 6.308206,
+      "symbol": "xyz:COPPER",
+      "take_profit": [
+        6.261942,
+        6.243436,
+        6.215678
+      ],
+      "telegram_message_id": 9846,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.3939
+    },
+    {
+      "activated": true,
+      "asset_class": "precious_metal",
+      "bars_open": 1,
+      "bars_to_activate": 0,
+      "confidence": 71.64,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 50.384,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "exit_price": 50.447602,
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-12T14:30:37.656468+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794493800000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 49.618927
+      },
+      "realized_r": -1.0,
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 50.384 broke below prior swing low 50.741 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price"
+      ],
+      "resolved_at": "2026-11-12T14:45:32.189027+00:00",
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 10.63,
+        "momentum": 4.17,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:SILVER-1794493841-2013",
+      "status": "SL",
+      "stop_loss": 50.447602,
+      "symbol": "xyz:SILVER",
+      "take_profit": [
+        50.288597,
+        50.224996,
+        50.129593
+      ],
+      "telegram_message_id": 9855,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4118
     }
   ],
   "created_at": "2026-11-10T19:30:34.086847+00:00",
@@ -1623,8 +1629,10 @@
     "2026-11-12": {
       "feature_adjustments": [],
       "feature_adjustments_count": 0,
-      "losses": 4,
+      "losses": 5,
       "risk_pct_list": [
+        1.0,
+        1.0,
         1.0,
         1.0,
         1.0,
@@ -1646,10 +1654,12 @@
         1.5,
         1.5,
         1.5,
-        1.5
+        1.5,
+        1.5,
+        -1.0
       ],
       "signals": 13,
-      "wins": 6
+      "wins": 7
     }
   },
   "daily_stats_archive": {
@@ -2046,7 +2056,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-12",
-  "last_run_at": "2026-11-12T14:30:41.324146+00:00",
+  "last_run_at": "2026-11-12T14:45:32.735704+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2127,7 +2137,7 @@
     "xyz:COPPER": {
       "losses": 0,
       "signals": 1,
-      "wins": 0
+      "wins": 1
     },
     "xyz:GOLD": {
       "losses": 0,
@@ -2135,7 +2145,7 @@
       "wins": 2
     },
     "xyz:SILVER": {
-      "losses": 1,
+      "losses": 2,
       "signals": 3,
       "wins": 1
     },
@@ -2169,7 +2179,7 @@
     "High Volatility": {
       "losses": 0,
       "signals": 3,
-      "wins": 2
+      "wins": 3
     },
     "Low Volatility": {
       "losses": 1,
@@ -2197,7 +2207,7 @@
       "wins": 0
     },
     "Strong Bear Trend": {
-      "losses": 3,
+      "losses": 4,
       "signals": 7,
       "wins": 2
     },
@@ -2216,21 +2226,21 @@
   "self_monitoring": {
     "confidence_calibration": {
       "C": {
-        "mean_advertised_probability": 0.3685,
-        "realized_expectancy_r": 0.1667,
-        "realized_win_rate": 0.4667,
-        "sample_size": 15
+        "mean_advertised_probability": 0.3726,
+        "realized_expectancy_r": 0.1765,
+        "realized_win_rate": 0.4706,
+        "sample_size": 17
       }
     },
-    "overall_win_rate": 0.4667,
-    "rolling_30d_win_rate": 0.4667,
+    "overall_win_rate": 0.4706,
+    "rolling_30d_win_rate": 0.4706,
     "warnings": []
   },
   "starvation": {
     "last_relief_at": null,
     "last_signal_at": "2026-11-12T14:30:41.310858+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
@@ -2449,6 +2459,32 @@
         0.3548,
         1.0,
         485241
+      ],
+      [
+        "xyz:COPPER-1794487532-2540",
+        "2026-11-12T14:45:31.431162+00:00",
+        "xyz:COPPER",
+        "SHORT",
+        "C",
+        72.41,
+        "TP1",
+        1.5,
+        0.3939,
+        1.0,
+        503677
+      ],
+      [
+        "xyz:SILVER-1794493841-2013",
+        "2026-11-12T14:45:32.189027+00:00",
+        "xyz:SILVER",
+        "SHORT",
+        "C",
+        71.64,
+        "SL",
+        -1.0,
+        0.4118,
+        1.0,
+        159741
       ]
     ]
   },
