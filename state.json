@@ -4,7 +4,7 @@
     "NEAR-1794484903-6753": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 12,
+      "bars_open": 13,
       "bars_to_activate": 0,
       "confidence": 72.77,
       "engine_name": "PRISM",
@@ -30,7 +30,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794494700000,
+      "last_checked_candle_t": 1794495600000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -83,7 +83,7 @@
     "xyz:GOLD-1794493840-6679": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 2,
+      "bars_open": 3,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -110,7 +110,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794494700000,
+      "last_checked_candle_t": 1794495600000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2056,7 +2056,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-12",
-  "last_run_at": "2026-11-12T15:01:43.181329+00:00",
+  "last_run_at": "2026-11-12T15:15:32.897822+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2240,7 +2240,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-12T14:30:41.310858+00:00",
     "relief_count": 0,
-    "scans_since_signal": 2
+    "scans_since_signal": 3
   },
   "trade_archive": {
     "features": [
