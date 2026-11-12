@@ -4,7 +4,7 @@
     "TAO-1794460533-8159": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.86,
       "engine_name": "PRISM",
@@ -33,7 +33,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794459600000,
+      "last_checked_candle_t": 1794460500000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -86,7 +86,7 @@
     "XRP-1794460531-4264": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 71.09,
       "engine_name": "PRISM",
@@ -113,7 +113,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794459600000,
+      "last_checked_candle_t": 1794460500000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -1201,7 +1201,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-11",
-  "last_run_at": "2026-11-12T05:15:33.016031+00:00",
+  "last_run_at": "2026-11-12T05:30:39.034071+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -1385,7 +1385,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-12T05:15:33.001822+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
