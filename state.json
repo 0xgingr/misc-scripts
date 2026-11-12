@@ -4,7 +4,7 @@
     "NEAR-1794484903-6753": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 27,
+      "bars_open": 28,
       "bars_to_activate": 0,
       "confidence": 72.77,
       "engine_name": "PRISM",
@@ -30,7 +30,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794508200000,
+      "last_checked_candle_t": 1794509100000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -83,7 +83,7 @@
     "ZEC-1794509130-5338": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 72.11,
       "engine_name": "PRISM",
@@ -109,7 +109,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1794508200000,
+      "last_checked_candle_t": 1794509100000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -162,7 +162,7 @@
     "xyz:GOLD-1794493840-6679": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 17,
+      "bars_open": 18,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -189,7 +189,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794508200000,
+      "last_checked_candle_t": 1794509100000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2219,7 +2219,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-12",
-  "last_run_at": "2026-11-12T18:45:30.187134+00:00",
+  "last_run_at": "2026-11-12T19:01:40.853045+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2403,7 +2403,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-12T18:45:30.173707+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
