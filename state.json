@@ -1,10 +1,88 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "ETH-1794543330-1864": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.57,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 1933.9,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-13T04:15:26.611784+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794542400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 1.292725
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 1933.9 broke below prior swing low 2000.2 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.22,
+        "momentum": 2.5,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "ETH-1794543330-1864",
+      "status": "Activated",
+      "stop_loss": 1998.394796,
+      "symbol": "ETH",
+      "take_profit": [
+        1837.157806,
+        1772.663009,
+        1675.920815
+      ],
+      "telegram_message_id": 9896,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4651
+    },
     "xyz:GOLD-1794493840-6679": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 54,
+      "bars_open": 55,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -31,7 +109,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794541500000,
+      "last_checked_candle_t": 1794542400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2097,7 +2175,7 @@
         1.5,
         1.5
       ],
-      "signals": 3,
+      "signals": 4,
       "wins": 4
     }
   },
@@ -2495,7 +2573,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-12",
-  "last_run_at": "2026-11-13T04:01:41.897515+00:00",
+  "last_run_at": "2026-11-13T04:15:30.399624+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -2525,7 +2603,7 @@
     },
     "ETH": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 1
     },
     "HYPE": {
@@ -2647,7 +2725,7 @@
     },
     "Strong Bear Trend": {
       "losses": 5,
-      "signals": 10,
+      "signals": 11,
       "wins": 4
     },
     "Strong Bull Trend": {
@@ -2677,9 +2755,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-13T03:15:32.218918+00:00",
+    "last_signal_at": "2026-11-13T04:15:30.382209+00:00",
     "relief_count": 0,
-    "scans_since_signal": 3
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
