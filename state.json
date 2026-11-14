@@ -4,7 +4,7 @@
     "AAVE-1794674732-9903": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 3,
+      "bars_open": 4,
       "bars_to_activate": 0,
       "confidence": 72.82,
       "engine_name": "PRISM",
@@ -30,7 +30,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794676500000,
+      "last_checked_candle_t": 1794677400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -80,10 +80,90 @@
       "trend": "Bearish",
       "win_probability": 0.5577
     },
+    "DOGE-1794678331-3505": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.4,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 0.060709,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-14T17:45:28.046080+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794677400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 41180.055675
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 0.060709 broke below prior swing low 0.060909 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "London Low (0.060318) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.22,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "DOGE-1794678331-3505",
+      "status": "Activated",
+      "stop_loss": 0.061377,
+      "symbol": "DOGE",
+      "take_profit": [
+        0.059708,
+        0.05904,
+        0.058039
+      ],
+      "telegram_message_id": 10032,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5472
+    },
     "HYPE-1794628901-8587": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 54,
+      "bars_open": 55,
       "bars_to_activate": 0,
       "confidence": 70.38,
       "engine_name": "PRISM",
@@ -109,7 +189,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794676500000,
+      "last_checked_candle_t": 1794677400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -157,10 +237,171 @@
       "trend": "Bearish",
       "win_probability": 0.4773
     },
-    "NEAR-1794677441-5885": {
+    "LINK-1794678329-4783": {
       "activated": true,
       "asset_class": "crypto",
       "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.99,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 9.2059,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-14T17:45:27.057284+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794677400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 271.564975
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 9.2059 broke below prior swing low 9.2456 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "London Low (9.1755) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "LINK-1794678329-4783",
+      "status": "Activated",
+      "stop_loss": 9.311983,
+      "symbol": "LINK",
+      "take_profit": [
+        9.046775,
+        8.940692,
+        8.781568
+      ],
+      "telegram_message_id": 10030,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5472
+    },
+    "LTC-1794678330-8262": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.99,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 45.986,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-14T17:45:27.722697+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794677400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 54.364372
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 45.986 broke below prior swing low 46.106 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "LTC-1794678330-8262",
+      "status": "Activated",
+      "stop_loss": 46.150527,
+      "symbol": "LTC",
+      "take_profit": [
+        45.73921,
+        45.574684,
+        45.327894
+      ],
+      "telegram_message_id": 10031,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5472
+    },
+    "NEAR-1794677441-5885": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 74.04,
       "engine_name": "PRISM",
@@ -188,7 +429,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794676500000,
+      "last_checked_candle_t": 1794677400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -237,6 +478,86 @@
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.5577
+    },
+    "TAO-1794678333-2822": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.99,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 196.08,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-14T17:45:28.067898+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794677400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 12.749898
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 196.08 broke below prior swing low 204.31 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "London Low (196.03) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "TAO-1794678333-2822",
+      "status": "Activated",
+      "stop_loss": 199.634605,
+      "symbol": "TAO",
+      "take_profit": [
+        190.748092,
+        187.193487,
+        181.86158
+      ],
+      "telegram_message_id": 10033,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5472
     }
   },
   "breaker": {
@@ -3115,7 +3436,7 @@
         1.5,
         -1.0
       ],
-      "signals": 11,
+      "signals": 15,
       "timeouts": 1,
       "wins": 7
     }
@@ -3514,7 +3835,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-14",
-  "last_run_at": "2026-11-14T17:30:41.975700+00:00",
+  "last_run_at": "2026-11-14T17:45:33.290980+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -3539,7 +3860,7 @@
     },
     "DOGE": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "ETH": {
@@ -3555,12 +3876,12 @@
     },
     "LINK": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "LTC": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "NEAR": {
@@ -3575,7 +3896,7 @@
     },
     "TAO": {
       "losses": 1,
-      "signals": 3,
+      "signals": 4,
       "wins": 2
     },
     "XRP": {
@@ -3668,7 +3989,7 @@
     },
     "Strong Bear Trend": {
       "losses": 6,
-      "signals": 21,
+      "signals": 25,
       "timeouts": 2,
       "wins": 10
     },
@@ -3701,7 +4022,7 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-14T17:30:41.956118+00:00",
+    "last_signal_at": "2026-11-14T17:45:33.278373+00:00",
     "relief_count": 0,
     "scans_since_signal": 0
   },
