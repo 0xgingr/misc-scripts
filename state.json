@@ -4,7 +4,7 @@
     "ETH-1794543330-1864": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 95,
+      "bars_open": 96,
       "bars_to_activate": 0,
       "confidence": 70.57,
       "engine_name": "PRISM",
@@ -29,7 +29,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794627900000,
+      "last_checked_candle_t": 1794628800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,7 +82,7 @@
     "HYPE-1794628901-8587": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.38,
       "engine_name": "PRISM",
@@ -108,7 +108,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794627900000,
+      "last_checked_candle_t": 1794628800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -159,7 +159,7 @@
     "NEAR-1794623437-9064": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 6,
+      "bars_open": 7,
       "bars_to_activate": 0,
       "confidence": 77.81,
       "engine_name": "PRISM",
@@ -188,7 +188,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794627900000,
+      "last_checked_candle_t": 1794628800000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -241,7 +241,7 @@
     "XRP-1794623436-2088": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 6,
+      "bars_open": 7,
       "bars_to_activate": 0,
       "confidence": 70.07,
       "engine_name": "PRISM",
@@ -267,7 +267,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1794627900000,
+      "last_checked_candle_t": 1794628800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -2826,7 +2826,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-13",
-  "last_run_at": "2026-11-14T04:01:41.918622+00:00",
+  "last_run_at": "2026-11-14T04:15:32.560213+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -3012,7 +3012,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-14T04:01:41.905870+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
