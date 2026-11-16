@@ -4,7 +4,7 @@
     "BTC-1794831333-8375": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 75.94,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1794830400000,
+      "last_checked_candle_t": 1794831300000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,10 +82,89 @@
       "trend": "Bearish",
       "win_probability": 0.5571
     },
-    "TAO-1794831334-4057": {
+    "LTC-1794832245-4930": {
       "activated": true,
       "asset_class": "crypto",
       "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.5,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 43.967,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-16T12:30:44.551869+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "12-48 hours",
+      "last_checked_candle_t": 1794831300000,
+      "market_regime": "Low Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 56.860827
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 43.967 broke below prior swing low 44.132 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.11,
+        "momentum": 3.28,
+        "risk": 4.7,
+        "structure": 14.94,
+        "trend": 24.75,
+        "volatility": 8.71,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "LTC-1794832245-4930",
+      "status": "Activated",
+      "stop_loss": 44.581565,
+      "symbol": "LTC",
+      "take_profit": [
+        43.045153,
+        42.430588,
+        41.508741
+      ],
+      "telegram_message_id": 10172,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5571
+    },
+    "TAO-1794831334-4057": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 73.11,
       "engine_name": "PRISM",
@@ -112,7 +191,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "2-12 hours",
-      "last_checked_candle_t": 1794830400000,
+      "last_checked_candle_t": 1794831300000,
       "market_regime": "Range",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -4680,7 +4759,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 7,
+      "signals": 8,
       "wins": 1
     }
   },
@@ -5078,7 +5157,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-16",
-  "last_run_at": "2026-11-16T12:15:34.706017+00:00",
+  "last_run_at": "2026-11-16T12:30:45.964180+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -5124,7 +5203,7 @@
     },
     "LTC": {
       "losses": 1,
-      "signals": 3,
+      "signals": 4,
       "wins": 2
     },
     "NEAR": {
@@ -5207,7 +5286,7 @@
     },
     "Low Volatility": {
       "losses": 2,
-      "signals": 6,
+      "signals": 7,
       "wins": 3
     },
     "Mean Reversion": {
@@ -5263,7 +5342,7 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-16T12:15:34.689491+00:00",
+    "last_signal_at": "2026-11-16T12:30:45.950471+00:00",
     "relief_count": 0,
     "scans_since_signal": 0
   },
