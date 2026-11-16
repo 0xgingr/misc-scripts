@@ -1,6 +1,87 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "xyz:BRENTOIL-1794791729-6147": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 74.44,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 92.622,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "vwap"
+      ],
+      "generated_at": "2026-11-16T01:15:28.110780+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1794790800000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 26.991428
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 92.622 broke below prior swing low 92.651 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup",
+        "Asian Low (93.016) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 4.17,
+        "risk": 3.01,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 3.24
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:BRENTOIL-1794791729-6147",
+      "status": "Activated",
+      "stop_loss": 93.148489,
+      "symbol": "xyz:BRENTOIL",
+      "take_profit": [
+        91.832267,
+        91.305778,
+        90.516044
+      ],
+      "telegram_message_id": 10145,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5672
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": null,
@@ -4086,7 +4167,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -4484,7 +4565,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-15",
-  "last_run_at": "2026-11-16T01:01:41.476756+00:00",
+  "last_run_at": "2026-11-16T01:15:29.628646+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -4560,7 +4641,7 @@
     },
     "xyz:BRENTOIL": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "xyz:COPPER": {
@@ -4638,7 +4719,7 @@
     },
     "Strong Bear Trend": {
       "losses": 11,
-      "signals": 32,
+      "signals": 33,
       "timeouts": 2,
       "wins": 19
     },
@@ -4669,9 +4750,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-14T21:30:43.611241+00:00",
+    "last_signal_at": "2026-11-16T01:15:29.614806+00:00",
     "relief_count": 0,
-    "scans_since_signal": 110
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
