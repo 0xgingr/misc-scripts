@@ -2,11 +2,11 @@
   "account_equity_reference": 10000.0,
   "active_signals": {},
   "breaker": {
-    "reason": "Drawdown circuit breaker triggered: 10.50% (limit 10.00%).",
-    "rebaselined_at": null,
-    "status": "tripped",
+    "reason": null,
+    "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
+    "status": "ok",
     "trip_count": 1,
-    "tripped_at": "2026-11-16T15:00:39.790449+00:00"
+    "tripped_at": null
   },
   "closed_signals": [
     {
@@ -5187,7 +5187,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-18",
-  "last_run_at": "2026-11-18T14:45:33.339003+00:00",
+  "last_run_at": "2026-11-18T15:01:49.188302+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -5374,7 +5374,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-16T12:30:45.950471+00:00",
     "relief_count": 0,
-    "scans_since_signal": 199
+    "scans_since_signal": 200
   },
   "trade_archive": {
     "features": [
