@@ -4783,6 +4783,14 @@
       "rr_list": [],
       "signals": 0,
       "wins": 0
+    },
+    "2026-11-18": {
+      "feature_adjustments": [],
+      "feature_adjustments_count": 0,
+      "losses": 0,
+      "rr_list": [],
+      "signals": 0,
+      "wins": 0
     }
   },
   "daily_stats_archive": {
@@ -5179,7 +5187,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-17",
-  "last_run_at": "2026-11-17T23:45:36.700152+00:00",
+  "last_run_at": "2026-11-18T00:01:46.224772+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -5366,7 +5374,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-16T12:30:45.950471+00:00",
     "relief_count": 0,
-    "scans_since_signal": 139
+    "scans_since_signal": 140
   },
   "trade_archive": {
     "features": [
