@@ -4,7 +4,7 @@
     "BTC-1795018538-7606": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 72.69,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795017600000,
+      "last_checked_candle_t": 1795018500000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -5444,7 +5444,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-18",
-  "last_run_at": "2026-11-18T16:15:38.231958+00:00",
+  "last_run_at": "2026-11-18T16:30:37.164438+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -5631,7 +5631,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-18T16:15:38.215284+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
