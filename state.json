@@ -1,6 +1,87 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "NEAR-1795077046-9830": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.28,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 3.4336,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-19T08:30:43.875888+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795076100000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 728.098788
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3.4336 broke above prior swing high 3.4329 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 1.85,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 3.15,
+        "volume": 0.0
+      },
+      "signal": "LONG",
+      "signal_id": "NEAR-1795077046-9830",
+      "status": "Activated",
+      "stop_loss": 3.397608,
+      "symbol": "NEAR",
+      "take_profit": [
+        3.487589,
+        3.523581,
+        3.57757
+      ],
+      "telegram_message_id": 10353,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.5429
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
@@ -5315,7 +5396,7 @@
       "rr_list": [
         -1.0
       ],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -5713,7 +5794,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-19",
-  "last_run_at": "2026-11-19T08:15:31.038949+00:00",
+  "last_run_at": "2026-11-19T08:30:46.785110+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -5764,7 +5845,7 @@
     },
     "NEAR": {
       "losses": 2,
-      "signals": 6,
+      "signals": 7,
       "wins": 4
     },
     "SOL": {
@@ -5873,7 +5954,7 @@
     },
     "Strong Bull Trend": {
       "losses": 2,
-      "signals": 3,
+      "signals": 4,
       "wins": 1
     },
     "Weak Trend": {
@@ -5898,9 +5979,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-18T21:15:28.524223+00:00",
+    "last_signal_at": "2026-11-19T08:30:46.770767+00:00",
     "relief_count": 0,
-    "scans_since_signal": 44
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
