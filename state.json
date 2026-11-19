@@ -5885,7 +5885,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-19",
-  "last_run_at": "2026-11-19T18:45:30.346279+00:00",
+  "last_run_at": "2026-11-19T19:01:38.794195+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -6072,7 +6072,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-19T11:45:30.874749+00:00",
     "relief_count": 0,
-    "scans_since_signal": 28
+    "scans_since_signal": 29
   },
   "trade_archive": {
     "features": [
