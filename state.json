@@ -1,10 +1,92 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "xyz:COPPER-1795137348-1626": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.11,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 5.6153,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-20T01:15:40.008611+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795136400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 445.212188
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 5.6153 broke below prior swing low 5.6307 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 6.67,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:COPPER-1795137348-1626",
+      "status": "Activated",
+      "stop_loss": 5.667538,
+      "symbol": "xyz:COPPER",
+      "take_profit": [
+        5.536943,
+        5.484704,
+        5.406347
+      ],
+      "telegram_message_id": 10407,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5143
+    },
     "xyz:SILVER-1795132903-2963": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 4,
+      "bars_open": 5,
       "bars_to_activate": 0,
       "confidence": 71.9,
       "engine_name": "PRISM",
@@ -31,7 +113,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795135500000,
+      "last_checked_candle_t": 1795136400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -5576,7 +5658,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     }
   },
@@ -5974,7 +6056,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-19",
-  "last_run_at": "2026-11-20T01:01:39.937688+00:00",
+  "last_run_at": "2026-11-20T01:15:48.558127+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -6055,7 +6137,7 @@
     },
     "xyz:COPPER": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 1
     },
     "xyz:GOLD": {
@@ -6128,7 +6210,7 @@
     },
     "Strong Bear Trend": {
       "losses": 17,
-      "signals": 40,
+      "signals": 41,
       "timeouts": 2,
       "wins": 20
     },
@@ -6159,9 +6241,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-20T00:01:43.152188+00:00",
+    "last_signal_at": "2026-11-20T01:15:48.543646+00:00",
     "relief_count": 0,
-    "scans_since_signal": 4
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
