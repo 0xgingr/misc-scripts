@@ -4,7 +4,7 @@
     "AAVE-1795202136-9814": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 0,
       "confidence": 71.94,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795208400000,
+      "last_checked_candle_t": 1795209300000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "ETH-1795201303-2346": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 9,
+      "bars_open": 10,
       "bars_to_activate": 0,
       "confidence": 72.65,
       "engine_name": "PRISM",
@@ -114,7 +114,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795208400000,
+      "last_checked_candle_t": 1795209300000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -167,7 +167,7 @@
     "ZEC-1795189534-6046": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 22,
+      "bars_open": 23,
       "bars_to_activate": 0,
       "confidence": 74.59,
       "engine_name": "PRISM",
@@ -194,7 +194,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795208400000,
+      "last_checked_candle_t": 1795209300000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -245,7 +245,7 @@
     "xyz:SP500-1795209333-3520": {
       "activated": true,
       "asset_class": "index",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 72.27,
       "engine_name": "PRISM",
@@ -272,7 +272,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795208400000,
+      "last_checked_candle_t": 1795209300000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -325,7 +325,7 @@
     "xyz:XYZ100-1795209335-7345": {
       "activated": true,
       "asset_class": "index",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 72.27,
       "engine_name": "PRISM",
@@ -352,7 +352,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795208400000,
+      "last_checked_candle_t": 1795209300000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -7925,7 +7925,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-20",
-  "last_run_at": "2026-11-20T21:15:35.492871+00:00",
+  "last_run_at": "2026-11-20T21:30:39.252258+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -8118,7 +8118,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-20T21:15:35.472549+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
