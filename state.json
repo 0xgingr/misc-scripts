@@ -1,10 +1,90 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
-    "ZEC-1795140098-9739": {
+    "TAO-1795140936-9589": {
       "activated": true,
       "asset_class": "crypto",
       "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.61,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 188.45,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-20T02:15:35.366822+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1795140000000,
+      "market_regime": "High Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 13.266118
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 188.45 broke below prior swing low 190.9 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 5.88,
+        "risk": 5.61,
+        "structure": 13.33,
+        "trend": 21.95,
+        "volatility": 7.78,
+        "volume": 3.41
+      },
+      "signal": "SHORT",
+      "signal_id": "TAO-1795140936-9589",
+      "status": "Activated",
+      "stop_loss": 193.341925,
+      "symbol": "TAO",
+      "take_profit": [
+        181.112113,
+        176.220188,
+        168.882301
+      ],
+      "telegram_message_id": 10415,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.5143
+    },
+    "ZEC-1795140098-9739": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.83,
       "engine_name": "PRISM",
@@ -32,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795139100000,
+      "last_checked_candle_t": 1795140000000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +165,7 @@
     "xyz:COPPER-1795137348-1626": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 3,
+      "bars_open": 4,
       "bars_to_activate": 0,
       "confidence": 76.11,
       "engine_name": "PRISM",
@@ -114,7 +194,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795139100000,
+      "last_checked_candle_t": 1795140000000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -167,7 +247,7 @@
     "xyz:GOLD-1795139130-2071": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 1,
+      "bars_open": 2,
       "bars_to_activate": 0,
       "confidence": 70.32,
       "engine_name": "PRISM",
@@ -193,7 +273,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795139100000,
+      "last_checked_candle_t": 1795140000000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -246,7 +326,7 @@
     "xyz:SILVER-1795132903-2963": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 0,
       "confidence": 71.9,
       "engine_name": "PRISM",
@@ -273,7 +353,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795139100000,
+      "last_checked_candle_t": 1795140000000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -5818,7 +5898,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 4,
+      "signals": 5,
       "wins": 0
     }
   },
@@ -6216,7 +6296,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-19",
-  "last_run_at": "2026-11-20T02:01:38.168873+00:00",
+  "last_run_at": "2026-11-20T02:15:36.789171+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -6277,7 +6357,7 @@
     },
     "TAO": {
       "losses": 3,
-      "signals": 6,
+      "signals": 7,
       "wins": 3
     },
     "XRP": {
@@ -6340,7 +6420,7 @@
     },
     "High Volatility": {
       "losses": 0,
-      "signals": 5,
+      "signals": 6,
       "wins": 4
     },
     "Low Volatility": {
@@ -6401,7 +6481,7 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-20T02:01:38.152286+00:00",
+    "last_signal_at": "2026-11-20T02:15:36.775120+00:00",
     "relief_count": 0,
     "scans_since_signal": 0
   },
