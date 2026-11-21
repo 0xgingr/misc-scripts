@@ -4,7 +4,7 @@
     "xyz:SP500-1795234531-7611": {
       "activated": true,
       "asset_class": "index",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.49,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795233600000,
+      "last_checked_candle_t": 1795234500000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -8042,7 +8042,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-20",
-  "last_run_at": "2026-11-21T04:15:31.615391+00:00",
+  "last_run_at": "2026-11-21T04:30:36.121030+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -8235,7 +8235,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-21T04:15:31.599075+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
