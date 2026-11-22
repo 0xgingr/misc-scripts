@@ -1,6 +1,88 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "AVAX-1795317332-3286": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 78.4,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 6.5107,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "vwap"
+      ],
+      "generated_at": "2026-11-22T03:15:30.009552+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "12-48 hours",
+      "last_checked_candle_t": 1795316400000,
+      "market_regime": "Compression",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 383.983289
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 6.5107 broke below prior swing low 6.5305 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "Asian High (6.5419) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 15.83,
+        "momentum": 3.2,
+        "risk": 5.03,
+        "structure": 17.34,
+        "trend": 20.1,
+        "volatility": 13.57,
+        "volume": 3.34
+      },
+      "signal": "SHORT",
+      "signal_id": "AVAX-1795317332-3286",
+      "status": "Activated",
+      "stop_loss": 6.541726,
+      "symbol": "AVAX",
+      "take_profit": [
+        6.464161,
+        6.433135,
+        6.386595
+      ],
+      "telegram_message_id": 10589,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4429
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
@@ -7912,7 +7994,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -8310,7 +8392,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-21",
-  "last_run_at": "2026-11-22T03:01:43.753013+00:00",
+  "last_run_at": "2026-11-22T03:15:32.180490+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -8320,7 +8402,7 @@
     },
     "AVAX": {
       "losses": 2,
-      "signals": 3,
+      "signals": 4,
       "wins": 1
     },
     "BNB": {
@@ -8424,7 +8506,7 @@
     },
     "Compression": {
       "losses": 0,
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     },
     "Expansion": {
@@ -8501,9 +8583,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-21T22:15:34.008279+00:00",
+    "last_signal_at": "2026-11-22T03:15:32.165441+00:00",
     "relief_count": 0,
-    "scans_since_signal": 19
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
