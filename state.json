@@ -1,10 +1,91 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "xyz:BRENTOIL-1795431707-7007": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 76.98,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 88.803,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-23T11:00:49.653887+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "4-18 hours",
+      "last_checked_candle_t": 1795430700000,
+      "market_regime": "High Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 28.152202
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 88.803 broke below prior swing low 89.004 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 6.15,
+        "risk": 5.61,
+        "structure": 13.9,
+        "trend": 21.95,
+        "volatility": 11.32,
+        "volume": 3.41
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:BRENTOIL-1795431707-7007",
+      "status": "Activated",
+      "stop_loss": 89.469926,
+      "symbol": "xyz:BRENTOIL",
+      "take_profit": [
+        87.802611,
+        87.135685,
+        86.135297
+      ],
+      "telegram_message_id": 10675,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4143
+    },
     "xyz:GOLD-1795397439-7154": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 37,
+      "bars_open": 38,
       "bars_to_activate": 0,
       "confidence": 72.13,
       "engine_name": "PRISM",
@@ -31,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795429800000,
+      "last_checked_candle_t": 1795430700000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -8429,7 +8510,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 3,
+      "signals": 4,
       "wins": 0
     }
   },
@@ -8827,7 +8908,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-23",
-  "last_run_at": "2026-11-23T10:45:31.866459+00:00",
+  "last_run_at": "2026-11-23T11:01:47.571440+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -8903,7 +8984,7 @@
     },
     "xyz:BRENTOIL": {
       "losses": 1,
-      "signals": 2,
+      "signals": 3,
       "wins": 1
     },
     "xyz:COPPER": {
@@ -8951,7 +9032,7 @@
     },
     "High Volatility": {
       "losses": 0,
-      "signals": 8,
+      "signals": 9,
       "wins": 8
     },
     "Low Volatility": {
@@ -9018,9 +9099,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-23T08:45:36.327936+00:00",
+    "last_signal_at": "2026-11-23T11:01:47.553120+00:00",
     "relief_count": 0,
-    "scans_since_signal": 8
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
