@@ -4,7 +4,7 @@
     "LTC-1795443337-1751": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 22,
+      "bars_open": 23,
       "bars_to_activate": 0,
       "confidence": 72.92,
       "engine_name": "PRISM",
@@ -34,7 +34,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795462200000,
+      "last_checked_candle_t": 1795463100000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -9338,7 +9338,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-23",
-  "last_run_at": "2026-11-23T19:45:54.829821+00:00",
+  "last_run_at": "2026-11-23T20:01:40.465158+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -9531,7 +9531,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-23T18:01:47.816427+00:00",
     "relief_count": 0,
-    "scans_since_signal": 7
+    "scans_since_signal": 8
   },
   "trade_archive": {
     "features": [
