@@ -1,6 +1,87 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "xyz:GOLD-1795397439-7154": {
+      "activated": true,
+      "asset_class": "precious_metal",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.13,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 3617.6,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "sma_trend"
+      ],
+      "generated_at": "2026-11-23T01:30:33.961563+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795396500000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.691066
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 3617.6 broke above prior swing high 3589.7 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 4.17,
+        "risk": 0.69,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "xyz:GOLD-1795397439-7154",
+      "status": "Activated",
+      "stop_loss": 3569.442057,
+      "symbol": "xyz:GOLD",
+      "take_profit": [
+        3689.836914,
+        3737.994856,
+        3810.23177
+      ],
+      "telegram_message_id": 10641,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4143
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
@@ -8176,7 +8257,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -8574,7 +8655,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-22",
-  "last_run_at": "2026-11-23T01:15:37.677441+00:00",
+  "last_run_at": "2026-11-23T01:30:39.562887+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -8660,7 +8741,7 @@
     },
     "xyz:GOLD": {
       "losses": 0,
-      "signals": 4,
+      "signals": 5,
       "timeouts": 1,
       "wins": 3
     },
@@ -8734,7 +8815,7 @@
     },
     "Strong Bull Trend": {
       "losses": 4,
-      "signals": 5,
+      "signals": 6,
       "wins": 1
     },
     "Weak Trend": {
@@ -8765,9 +8846,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-22T06:15:32.367593+00:00",
+    "last_signal_at": "2026-11-23T01:30:39.545544+00:00",
     "relief_count": 0,
-    "scans_since_signal": 76
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
