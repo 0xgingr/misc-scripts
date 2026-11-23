@@ -1,10 +1,250 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "AAVE-1795443335-2974": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.92,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 103.83,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "vwap"
+      ],
+      "generated_at": "2026-11-23T14:15:33.481239+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795442400000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 16.360681
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 below SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 103.83 broke above prior swing high 98.66 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 4.17,
+        "risk": 0.69,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "AAVE-1795443335-2974",
+      "status": "Activated",
+      "stop_loss": 97.717785,
+      "symbol": "AAVE",
+      "take_profit": [
+        112.998322,
+        119.110537,
+        128.278859
+      ],
+      "telegram_message_id": 10686,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4286
+    },
+    "LTC-1795443337-1751": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.92,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 42.7,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-23T14:15:33.307205+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795442400000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 50.459433
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 42.7 broke above prior swing high 41.005 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 4.17,
+        "risk": 0.69,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "LTC-1795443337-1751",
+      "status": "Activated",
+      "stop_loss": 40.71821,
+      "symbol": "LTC",
+      "take_profit": [
+        45.672686,
+        47.654476,
+        50.627162
+      ],
+      "telegram_message_id": 10687,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4286
+    },
+    "xyz:BRENTOIL-1795443334-5792": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.46,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 88.075,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-23T14:15:33.157951+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795442400000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 28.384899
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 88.075 broke below prior swing low 88.262 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "PWL (87.594) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 9.44,
+        "momentum": 4.17,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:BRENTOIL-1795443334-5792",
+      "status": "Activated",
+      "stop_loss": 88.846173,
+      "symbol": "xyz:BRENTOIL",
+      "take_profit": [
+        86.918241,
+        86.147069,
+        84.99031
+      ],
+      "telegram_message_id": 10685,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4286
+    },
     "xyz:GOLD-1795397439-7154": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 50,
+      "bars_open": 51,
       "bars_to_activate": 0,
       "confidence": 72.13,
       "engine_name": "PRISM",
@@ -31,7 +271,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795441500000,
+      "last_checked_candle_t": 1795442400000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -8515,7 +8755,7 @@
         -1.0,
         1.5
       ],
-      "signals": 4,
+      "signals": 7,
       "wins": 1
     }
   },
@@ -8913,12 +9153,12 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-23",
-  "last_run_at": "2026-11-23T14:01:48.312546+00:00",
+  "last_run_at": "2026-11-23T14:15:37.041866+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
       "losses": 5,
-      "signals": 8,
+      "signals": 9,
       "wins": 3
     },
     "AVAX": {
@@ -8959,7 +9199,7 @@
     },
     "LTC": {
       "losses": 2,
-      "signals": 4,
+      "signals": 5,
       "wins": 2
     },
     "NEAR": {
@@ -8989,7 +9229,7 @@
     },
     "xyz:BRENTOIL": {
       "losses": 1,
-      "signals": 3,
+      "signals": 4,
       "wins": 2
     },
     "xyz:COPPER": {
@@ -9067,13 +9307,13 @@
     },
     "Strong Bear Trend": {
       "losses": 26,
-      "signals": 60,
+      "signals": 61,
       "timeouts": 2,
       "wins": 32
     },
     "Strong Bull Trend": {
       "losses": 5,
-      "signals": 7,
+      "signals": 9,
       "wins": 1
     },
     "Weak Trend": {
@@ -9104,9 +9344,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-23T11:01:47.553120+00:00",
+    "last_signal_at": "2026-11-23T14:15:37.000773+00:00",
     "relief_count": 0,
-    "scans_since_signal": 12
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
