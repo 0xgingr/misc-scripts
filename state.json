@@ -1,6 +1,85 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "BNB-1795508135-8821": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.8,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 550.27,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "rsi",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-24T08:15:31.675897+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795507200000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 4.543224
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 below SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 550.27 broke below prior swing low 551.43 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Hidden bearish RSI divergence at last two swing pivots",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.22,
+        "momentum": 6.67,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 3.15,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "BNB-1795508135-8821",
+      "status": "Activated",
+      "stop_loss": 553.13442,
+      "symbol": "BNB",
+      "take_profit": [
+        545.97337,
+        543.108951,
+        538.812321
+      ],
+      "telegram_message_id": 10766,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4429
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
@@ -8955,7 +9034,7 @@
       "rr_list": [
         -1.0
       ],
-      "signals": 0,
+      "signals": 1,
       "wins": 0
     }
   },
@@ -9353,7 +9432,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-24",
-  "last_run_at": "2026-11-24T08:01:53.796028+00:00",
+  "last_run_at": "2026-11-24T08:15:35.292697+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -9368,7 +9447,7 @@
     },
     "BNB": {
       "losses": 1,
-      "signals": 4,
+      "signals": 5,
       "wins": 3
     },
     "BTC": {
@@ -9507,7 +9586,7 @@
     },
     "Strong Bear Trend": {
       "losses": 26,
-      "signals": 61,
+      "signals": 62,
       "timeouts": 2,
       "wins": 33
     },
@@ -9544,9 +9623,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-23T18:01:47.816427+00:00",
+    "last_signal_at": "2026-11-24T08:15:35.256951+00:00",
     "relief_count": 0,
-    "scans_since_signal": 56
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
