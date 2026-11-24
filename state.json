@@ -4,7 +4,7 @@
     "DOGE-1795526143-5774": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 9,
+      "bars_open": 10,
       "bars_to_activate": 0,
       "confidence": 76.6,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795533300000,
+      "last_checked_candle_t": 1795534200000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "NEAR-1795533340-2160": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 1,
+      "bars_open": 2,
       "bars_to_activate": 0,
       "confidence": 71.74,
       "engine_name": "PRISM",
@@ -112,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795533300000,
+      "last_checked_candle_t": 1795534200000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -165,7 +165,7 @@
     "SOL-1795526136-2990": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 9,
+      "bars_open": 10,
       "bars_to_activate": 0,
       "confidence": 71.34,
       "engine_name": "PRISM",
@@ -191,7 +191,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795533300000,
+      "last_checked_candle_t": 1795534200000,
       "market_regime": "Breakout",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -240,6 +240,88 @@
       "timeframe": "15M",
       "trend": "Bearish",
       "win_probability": 0.4571
+    },
+    "xyz:XYZ100-1795535134-4998": {
+      "activated": true,
+      "asset_class": "index",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 75.21,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 26011.0,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "obv",
+        "order_block",
+        "rsi",
+        "vwap"
+      ],
+      "generated_at": "2026-11-24T15:45:30.642243+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795534200000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.096113
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 26011 broke below prior swing low 26085 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "Regular bullish RSI divergence at last two swing pivots",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 10.63,
+        "momentum": 4.17,
+        "risk": 4.63,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 2.78
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:XYZ100-1795535134-4998",
+      "status": "Activated",
+      "stop_loss": 26443.558875,
+      "symbol": "xyz:XYZ100",
+      "take_profit": [
+        25362.161687,
+        24929.602812,
+        24280.764499
+      ],
+      "telegram_message_id": 10813,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4714
     }
   },
   "breaker": {
@@ -9876,7 +9958,7 @@
         -1.0,
         1.5
       ],
-      "signals": 11,
+      "signals": 12,
       "wins": 4
     }
   },
@@ -10274,7 +10356,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-24",
-  "last_run_at": "2026-11-24T15:30:42.519885+00:00",
+  "last_run_at": "2026-11-24T15:45:34.940376+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -10376,7 +10458,7 @@
     },
     "xyz:XYZ100": {
       "losses": 4,
-      "signals": 6,
+      "signals": 7,
       "wins": 2
     }
   },
@@ -10428,7 +10510,7 @@
     },
     "Strong Bear Trend": {
       "losses": 29,
-      "signals": 69,
+      "signals": 70,
       "timeouts": 2,
       "wins": 36
     },
@@ -10465,9 +10547,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-24T15:15:40.620147+00:00",
+    "last_signal_at": "2026-11-24T15:45:34.902702+00:00",
     "relief_count": 0,
-    "scans_since_signal": 1
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
