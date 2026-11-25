@@ -4,7 +4,7 @@
     "xyz:BRENTOIL-1795609842-1496": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 12,
+      "bars_open": 16,
       "bars_to_activate": 0,
       "confidence": 70.8,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795619700000,
+      "last_checked_candle_t": 1795623300000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "xyz:COPPER-1795617940-7742": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 3,
+      "bars_open": 7,
       "bars_to_activate": 0,
       "confidence": 74.35,
       "engine_name": "PRISM",
@@ -113,7 +113,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795619700000,
+      "last_checked_candle_t": 1795623300000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -166,7 +166,7 @@
     "xyz:GOLD-1795614339-2843": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 7,
+      "bars_open": 11,
       "bars_to_activate": 0,
       "confidence": 70.83,
       "engine_name": "PRISM",
@@ -194,7 +194,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795619700000,
+      "last_checked_candle_t": 1795623300000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -11310,7 +11310,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-25",
-  "last_run_at": "2026-11-25T15:30:52.838236+00:00",
+  "last_run_at": "2026-11-25T16:31:39.879602+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11504,7 +11504,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-25T15:01:50.361870+00:00",
     "relief_count": 0,
-    "scans_since_signal": 2
+    "scans_since_signal": 3
   },
   "trade_archive": {
     "features": [
