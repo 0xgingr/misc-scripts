@@ -4,7 +4,7 @@
     "NEAR-1795533340-2160": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 91,
+      "bars_open": 92,
       "bars_to_activate": 0,
       "confidence": 71.74,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795614300000,
+      "last_checked_candle_t": 1795615200000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -84,7 +84,7 @@
     "SOL-1795594537-1101": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 23,
+      "bars_open": 24,
       "bars_to_activate": 0,
       "confidence": 71.61,
       "engine_name": "PRISM",
@@ -109,7 +109,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795614300000,
+      "last_checked_candle_t": 1795615200000,
       "market_regime": "Weak Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -162,7 +162,7 @@
     "xyz:BRENTOIL-1795609842-1496": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 6,
+      "bars_open": 7,
       "bars_to_activate": 0,
       "confidence": 70.8,
       "engine_name": "PRISM",
@@ -190,7 +190,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795614300000,
+      "last_checked_candle_t": 1795615200000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -243,7 +243,7 @@
     "xyz:GOLD-1795614339-2843": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 1,
+      "bars_open": 2,
       "bars_to_activate": 0,
       "confidence": 70.83,
       "engine_name": "PRISM",
@@ -271,7 +271,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "4-18 hours",
-      "last_checked_candle_t": 1795614300000,
+      "last_checked_candle_t": 1795615200000,
       "market_regime": "High Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -10961,7 +10961,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-25",
-  "last_run_at": "2026-11-25T14:01:45.913297+00:00",
+  "last_run_at": "2026-11-25T14:15:31.240989+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11154,7 +11154,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-25T13:45:39.602395+00:00",
     "relief_count": 0,
-    "scans_since_signal": 1
+    "scans_since_signal": 2
   },
   "trade_archive": {
     "features": [
