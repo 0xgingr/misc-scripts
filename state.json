@@ -1,6 +1,87 @@
 {
   "account_equity_reference": 10000.0,
-  "active_signals": {},
+  "active_signals": {
+    "LINK-1795727733-3059": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.89,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 9.3493,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "atr_stop_quality",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-26T21:15:29.731734+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795726800000,
+      "market_regime": "Breakout",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 267.399698
+      },
+      "reasons": [
+        "EMA stack bullish (20>50>200)",
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 9.3493 broke above prior swing high 9.3064 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 14.63,
+        "momentum": 3.48,
+        "risk": 2.88,
+        "structure": 13.21,
+        "trend": 26.61,
+        "volatility": 6.34,
+        "volume": 3.73
+      },
+      "signal": "LONG",
+      "signal_id": "LINK-1795727733-3059",
+      "status": "Activated",
+      "stop_loss": 9.246388,
+      "symbol": "LINK",
+      "take_profit": [
+        9.503668,
+        9.606581,
+        9.760949
+      ],
+      "telegram_message_id": 10914,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4571
+    }
+  },
   "breaker": {
     "reason": null,
     "rebaselined_at": "2026-11-18T15:00:48.204331+00:00",
@@ -11369,7 +11450,7 @@
         1.5,
         -1.0
       ],
-      "signals": 3,
+      "signals": 4,
       "wins": 2
     }
   },
@@ -11767,7 +11848,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-26",
-  "last_run_at": "2026-11-26T21:01:45.353423+00:00",
+  "last_run_at": "2026-11-26T21:15:33.222867+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11808,7 +11889,7 @@
     },
     "LINK": {
       "losses": 1,
-      "signals": 4,
+      "signals": 5,
       "wins": 3
     },
     "LTC": {
@@ -11877,7 +11958,7 @@
   "per_regime_stats": {
     "Breakout": {
       "losses": 2,
-      "signals": 6,
+      "signals": 7,
       "wins": 4
     },
     "Compression": {
@@ -11959,9 +12040,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-26T14:15:35.530737+00:00",
+    "last_signal_at": "2026-11-26T21:15:33.204766+00:00",
     "relief_count": 0,
-    "scans_since_signal": 27
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
