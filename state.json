@@ -4,7 +4,7 @@
     "NEAR-1795653041-9707": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 55,
+      "bars_open": 56,
       "bars_to_activate": 0,
       "confidence": 73.06,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795701600000,
+      "last_checked_candle_t": 1795702500000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "ZEC-1795702535-9968": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 71.89,
       "engine_name": "PRISM",
@@ -113,7 +113,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1795701600000,
+      "last_checked_candle_t": 1795702500000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -11758,7 +11758,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-26",
-  "last_run_at": "2026-11-26T14:15:35.550258+00:00",
+  "last_run_at": "2026-11-26T14:30:41.469818+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11952,7 +11952,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-26T14:15:35.530737+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
