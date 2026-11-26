@@ -4,7 +4,7 @@
     "NEAR-1795653041-9707": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 54,
+      "bars_open": 55,
       "bars_to_activate": 0,
       "confidence": 73.06,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795700700000,
+      "last_checked_candle_t": 1795701600000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -81,6 +81,87 @@
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.4571
+    },
+    "ZEC-1795702535-9968": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 71.89,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 721.23,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "order_block",
+        "rsi",
+        "vwap"
+      ],
+      "generated_at": "2026-11-26T14:15:31.889904+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": true,
+      "holding_time": "12-48 hours",
+      "last_checked_candle_t": 1795701600000,
+      "market_regime": "Low Volatility",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 3.466301
+      },
+      "reasons": [
+        "EMA stack bearish (20<50<200)",
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 721.23 broke below prior swing low 722.77 (BOS, continuation)",
+        "MACD histogram momentum: flat",
+        "Fresh bearish order block supporting the setup",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.14,
+        "momentum": 3.53,
+        "risk": 4.7,
+        "structure": 15.59,
+        "trend": 24.75,
+        "volatility": 8.71,
+        "volume": 3.47
+      },
+      "signal": "SHORT",
+      "signal_id": "ZEC-1795702535-9968",
+      "status": "Activated",
+      "stop_loss": 731.384204,
+      "symbol": "ZEC",
+      "take_profit": [
+        705.998694,
+        695.844489,
+        680.613183
+      ],
+      "telegram_message_id": 10901,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4714
     }
   },
   "breaker": {
@@ -11279,7 +11360,7 @@
         1.5,
         -1.0
       ],
-      "signals": 2,
+      "signals": 3,
       "wins": 1
     }
   },
@@ -11677,7 +11758,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-26",
-  "last_run_at": "2026-11-26T14:01:44.065607+00:00",
+  "last_run_at": "2026-11-26T14:15:35.550258+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11749,7 +11830,7 @@
     },
     "ZEC": {
       "losses": 3,
-      "signals": 7,
+      "signals": 8,
       "wins": 4
     },
     "xyz:BRENTOIL": {
@@ -11807,7 +11888,7 @@
     },
     "Low Volatility": {
       "losses": 5,
-      "signals": 9,
+      "signals": 10,
       "wins": 4
     },
     "Mean Reversion": {
@@ -11869,9 +11950,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-26T02:45:35.843174+00:00",
+    "last_signal_at": "2026-11-26T14:15:35.530737+00:00",
     "relief_count": 0,
-    "scans_since_signal": 45
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
