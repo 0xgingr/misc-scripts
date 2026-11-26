@@ -4,7 +4,7 @@
     "NEAR-1795653041-9707": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 0,
       "confidence": 73.06,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795659300000,
+      "last_checked_candle_t": 1795660200000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "xyz:BRENTOIL-1795635043-6130": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 28,
+      "bars_open": 29,
       "bars_to_activate": 0,
       "confidence": 73.61,
       "engine_name": "PRISM",
@@ -115,7 +115,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795659300000,
+      "last_checked_candle_t": 1795660200000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -161,6 +161,85 @@
         92.614584
       ],
       "telegram_message_id": 10865,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4571
+    },
+    "xyz:XYZ100-1795661135-3414": {
+      "activated": true,
+      "asset_class": "index",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 71.32,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 26308.0,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bos",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "vwap"
+      ],
+      "generated_at": "2026-11-26T02:45:31.329049+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795660200000,
+      "market_regime": "Strong Bull Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.095028
+      },
+      "reasons": [
+        "SMA50 below SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 26308 broke above prior swing high 26304 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup",
+        "PDH (26193) swept then closed back inside range",
+        "Asian High (26193) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 4.17,
+        "risk": 1.85,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 5.12,
+        "volume": 3.24
+      },
+      "signal": "LONG",
+      "signal_id": "xyz:XYZ100-1795661135-3414",
+      "status": "Activated",
+      "stop_loss": 26156.413948,
+      "symbol": "xyz:XYZ100",
+      "take_profit": [
+        26535.379079,
+        26686.965131,
+        26914.344209
+      ],
+      "telegram_message_id": 10881,
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.4571
@@ -11187,7 +11266,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     }
   },
@@ -11585,7 +11664,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-25",
-  "last_run_at": "2026-11-26T02:30:39.374778+00:00",
+  "last_run_at": "2026-11-26T02:45:35.861119+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11688,7 +11767,7 @@
     },
     "xyz:XYZ100": {
       "losses": 4,
-      "signals": 8,
+      "signals": 9,
       "wins": 4
     }
   },
@@ -11746,7 +11825,7 @@
     },
     "Strong Bull Trend": {
       "losses": 9,
-      "signals": 14,
+      "signals": 15,
       "wins": 3
     },
     "Weak Trend": {
@@ -11777,9 +11856,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-26T00:30:41.390267+00:00",
+    "last_signal_at": "2026-11-26T02:45:35.843174+00:00",
     "relief_count": 0,
-    "scans_since_signal": 8
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
