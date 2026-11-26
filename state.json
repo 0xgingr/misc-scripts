@@ -4,7 +4,7 @@
     "NEAR-1795653041-9707": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 2,
+      "bars_open": 3,
       "bars_to_activate": 0,
       "confidence": 73.06,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795653900000,
+      "last_checked_candle_t": 1795654800000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "xyz:BRENTOIL-1795635043-6130": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 22,
+      "bars_open": 23,
       "bars_to_activate": 0,
       "confidence": 73.61,
       "engine_name": "PRISM",
@@ -115,7 +115,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795653900000,
+      "last_checked_candle_t": 1795654800000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -11585,7 +11585,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-25",
-  "last_run_at": "2026-11-26T01:01:44.665903+00:00",
+  "last_run_at": "2026-11-26T01:15:28.420331+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -11779,7 +11779,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-26T00:30:41.390267+00:00",
     "relief_count": 0,
-    "scans_since_signal": 2
+    "scans_since_signal": 3
   },
   "trade_archive": {
     "features": [
