@@ -4,7 +4,7 @@
     "BTC-1795791709-2294": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 8,
+      "bars_open": 9,
       "bars_to_activate": 0,
       "confidence": 71.06,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795797900000,
+      "last_checked_candle_t": 1795798800000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -79,10 +79,89 @@
       "trend": "Bearish",
       "win_probability": 0.4429
     },
+    "xyz:BRENTOIL-1795799732-1147": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 70.77,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 90.232,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "rsi"
+      ],
+      "generated_at": "2026-11-27T17:15:30.930930+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795798800000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 27.706357
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 90.232 broke below prior swing low 91.762 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup",
+        "NY Low (90.9) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 8.33,
+        "risk": 2.11,
+        "structure": 13.89,
+        "trend": 27.55,
+        "volatility": 7.08,
+        "volume": 0.0
+      },
+      "signal": "SHORT",
+      "signal_id": "xyz:BRENTOIL-1795799732-1147",
+      "status": "Activated",
+      "stop_loss": 90.594304,
+      "symbol": "xyz:BRENTOIL",
+      "take_profit": [
+        89.688543,
+        89.326239,
+        88.782782
+      ],
+      "telegram_message_id": 10975,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4286
+    },
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 59,
+      "bars_open": 60,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -112,7 +191,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795797900000,
+      "last_checked_candle_t": 1795798800000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12059,7 +12138,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 7,
+      "signals": 8,
       "wins": 1
     }
   },
@@ -12457,7 +12536,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T17:01:48.476521+00:00",
+  "last_run_at": "2026-11-27T17:15:32.650758+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12534,7 +12613,7 @@
     },
     "xyz:BRENTOIL": {
       "losses": 1,
-      "signals": 6,
+      "signals": 7,
       "wins": 5
     },
     "xyz:COPPER": {
@@ -12612,7 +12691,7 @@
     },
     "Strong Bear Trend": {
       "losses": 32,
-      "signals": 76,
+      "signals": 77,
       "timeouts": 3,
       "wins": 40
     },
@@ -12649,9 +12728,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-27T15:01:49.822119+00:00",
+    "last_signal_at": "2026-11-27T17:15:32.630363+00:00",
     "relief_count": 0,
-    "scans_since_signal": 8
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
