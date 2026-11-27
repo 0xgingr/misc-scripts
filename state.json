@@ -4,7 +4,7 @@
     "LTC-1795742136-7579": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 3,
+      "bars_open": 4,
       "bars_to_activate": 0,
       "confidence": 71.58,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "12-48 hours",
-      "last_checked_candle_t": 1795743900000,
+      "last_checked_candle_t": 1795744800000,
       "market_regime": "Low Volatility",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -77,6 +77,89 @@
         45.291755
       ],
       "telegram_message_id": 10921,
+      "timeframe": "15M",
+      "trend": "Bullish",
+      "win_probability": 0.4429
+    },
+    "xyz:COPPER-1795745734-6336": {
+      "activated": true,
+      "asset_class": "commodity",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 72.6,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 5.6202,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "macd",
+        "mitigation_block",
+        "order_block",
+        "sma_trend",
+        "vwap"
+      ],
+      "generated_at": "2026-11-27T02:15:32.953857+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795744800000,
+      "market_regime": "Expansion",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [
+          "Position trimmed to respect portfolio exposure cap."
+        ],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 444.824028
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price above session VWAP",
+        "50-bar linear regression slope positive",
+        "Structure printing higher-highs/higher-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 5.6202 broke above prior swing high 5.4583 (BOS, continuation)",
+        "MACD histogram momentum: accelerating",
+        "Fresh bullish order block supporting the setup",
+        "bullish breaker block supporting the setup",
+        "bullish mitigation block reacted to price",
+        "Aligned bullish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 12.89,
+        "momentum": 3.94,
+        "risk": 0.72,
+        "structure": 15.04,
+        "trend": 27.45,
+        "volatility": 9.07,
+        "volume": 3.51
+      },
+      "signal": "LONG",
+      "signal_id": "xyz:COPPER-1795745734-6336",
+      "status": "Activated",
+      "stop_loss": 5.438631,
+      "symbol": "xyz:COPPER",
+      "take_profit": [
+        5.892553,
+        6.074122,
+        6.346476
+      ],
+      "telegram_message_id": 10928,
       "timeframe": "15M",
       "trend": "Bullish",
       "win_probability": 0.4429
@@ -11543,7 +11626,7 @@
       "feature_adjustments_count": 0,
       "losses": 0,
       "rr_list": [],
-      "signals": 1,
+      "signals": 2,
       "wins": 0
     }
   },
@@ -11941,7 +12024,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-26",
-  "last_run_at": "2026-11-27T02:01:44.867882+00:00",
+  "last_run_at": "2026-11-27T02:15:34.579683+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12023,7 +12106,7 @@
     },
     "xyz:COPPER": {
       "losses": 1,
-      "signals": 4,
+      "signals": 5,
       "wins": 3
     },
     "xyz:GOLD": {
@@ -12061,7 +12144,7 @@
     },
     "Expansion": {
       "losses": 0,
-      "signals": 1,
+      "signals": 2,
       "wins": 1
     },
     "High Volatility": {
@@ -12133,9 +12216,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-27T01:15:36.285372+00:00",
+    "last_signal_at": "2026-11-27T02:15:34.562324+00:00",
     "relief_count": 0,
-    "scans_since_signal": 3
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
