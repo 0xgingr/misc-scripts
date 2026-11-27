@@ -4,7 +4,7 @@
     "BTC-1795791709-2294": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 9,
+      "bars_open": 10,
       "bars_to_activate": 0,
       "confidence": 71.06,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795798800000,
+      "last_checked_candle_t": 1795799700000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,7 +82,7 @@
     "xyz:BRENTOIL-1795799732-1147": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 0,
+      "bars_open": 1,
       "bars_to_activate": 0,
       "confidence": 70.77,
       "engine_name": "PRISM",
@@ -108,7 +108,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795798800000,
+      "last_checked_candle_t": 1795799700000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -161,7 +161,7 @@
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 60,
+      "bars_open": 61,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -191,7 +191,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795798800000,
+      "last_checked_candle_t": 1795799700000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12536,7 +12536,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T17:15:32.650758+00:00",
+  "last_run_at": "2026-11-27T17:30:52.099762+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12730,7 +12730,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-27T17:15:32.630363+00:00",
     "relief_count": 0,
-    "scans_since_signal": 0
+    "scans_since_signal": 1
   },
   "trade_archive": {
     "features": [
