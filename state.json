@@ -4,7 +4,7 @@
     "LINK-1795754730-4264": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 28,
+      "bars_open": 29,
       "bars_to_activate": 0,
       "confidence": 72.78,
       "engine_name": "PRISM",
@@ -32,7 +32,7 @@
       "grade": "C",
       "higher_timeframe_alignment": true,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795779000000,
+      "last_checked_candle_t": 1795779900000,
       "market_regime": "Strong Bull Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -85,7 +85,7 @@
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 38,
+      "bars_open": 39,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -115,7 +115,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795779000000,
+      "last_checked_candle_t": 1795779900000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -168,7 +168,7 @@
     "xyz:SILVER-1795758331-7549": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 24,
+      "bars_open": 25,
       "bars_to_activate": 0,
       "confidence": 73.79,
       "engine_name": "PRISM",
@@ -198,7 +198,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795779000000,
+      "last_checked_candle_t": 1795779900000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12283,7 +12283,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T11:45:31.798920+00:00",
+  "last_run_at": "2026-11-27T12:01:51.051504+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12477,7 +12477,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-27T05:45:31.020895+00:00",
     "relief_count": 0,
-    "scans_since_signal": 24
+    "scans_since_signal": 25
   },
   "trade_archive": {
     "features": [
