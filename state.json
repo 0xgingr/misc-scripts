@@ -4,7 +4,7 @@
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 49,
+      "bars_open": 50,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -34,7 +34,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795788900000,
+      "last_checked_candle_t": 1795789800000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -87,7 +87,7 @@
     "xyz:SILVER-1795758331-7549": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 35,
+      "bars_open": 36,
       "bars_to_activate": 0,
       "confidence": 73.79,
       "engine_name": "PRISM",
@@ -117,7 +117,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795788900000,
+      "last_checked_candle_t": 1795789800000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12374,7 +12374,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T14:30:46.581471+00:00",
+  "last_run_at": "2026-11-27T14:45:35.368968+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12568,7 +12568,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-27T14:01:48.922257+00:00",
     "relief_count": 0,
-    "scans_since_signal": 2
+    "scans_since_signal": 3
   },
   "trade_archive": {
     "features": [
