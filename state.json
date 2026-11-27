@@ -1,10 +1,88 @@
 {
   "account_equity_reference": 10000.0,
   "active_signals": {
+    "BTC-1795791709-2294": {
+      "activated": true,
+      "asset_class": "crypto",
+      "bars_open": 0,
+      "bars_to_activate": 0,
+      "confidence": 71.06,
+      "engine_name": "PRISM",
+      "engine_version": "1.1.6",
+      "entry": 59182.0,
+      "entry_model": "market",
+      "exit_model": "full_exit_at_tp1",
+      "fired_features": [
+        "adx",
+        "atr_stop_quality",
+        "bollinger_bands",
+        "bos",
+        "breaker_block",
+        "cmf",
+        "donchian_channels",
+        "ema_stack",
+        "equal_highs_lows",
+        "fair_value_gap",
+        "liquidity_sweep",
+        "mitigation_block",
+        "vwap"
+      ],
+      "generated_at": "2026-11-27T15:00:48.751357+00:00",
+      "grade": "C",
+      "higher_timeframe_alignment": false,
+      "holding_time": "6-24 hours",
+      "last_checked_candle_t": 1795790700000,
+      "market_regime": "Strong Bear Trend",
+      "position_sizing": {
+        "method": "fixed_risk_pct",
+        "notes": [],
+        "risk_amount": 100.0,
+        "risk_pct_of_equity": 1.0,
+        "size_units": 0.041461
+      },
+      "reasons": [
+        "SMA50 above SMA200",
+        "Price below session VWAP",
+        "50-bar linear regression slope negative",
+        "Structure printing lower-highs/lower-lows",
+        "Internal structure aligned with external (major) structure",
+        "Close 59182 broke below prior swing low 61281 (BOS, continuation)",
+        "MACD histogram momentum: decelerating",
+        "bearish breaker block supporting the setup",
+        "bearish mitigation block reacted to price",
+        "Aligned bearish fair value gap present",
+        "Equal highs/lows liquidity swept in the direction of the setup",
+        "PDH (61643) swept then closed back inside range"
+      ],
+      "risk_reward": 1.5,
+      "scores": {
+        "liquidity": 11.81,
+        "momentum": 0.0,
+        "risk": 3.01,
+        "structure": 13.89,
+        "trend": 31.25,
+        "volatility": 7.87,
+        "volume": 3.24
+      },
+      "signal": "SHORT",
+      "signal_id": "BTC-1795791709-2294",
+      "status": "Activated",
+      "stop_loss": 61593.877703,
+      "symbol": "BTC",
+      "take_profit": [
+        55564.183445,
+        53152.305741,
+        49534.489186
+      ],
+      "telegram_message_id": 10970,
+      "timeframe": "15M",
+      "trend": "Bearish",
+      "win_probability": 0.4429
+    },
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 50,
+      "bars_open": 51,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -34,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795789800000,
+      "last_checked_candle_t": 1795790700000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -87,7 +165,7 @@
     "xyz:SILVER-1795758331-7549": {
       "activated": true,
       "asset_class": "precious_metal",
-      "bars_open": 36,
+      "bars_open": 37,
       "bars_to_activate": 0,
       "confidence": 73.79,
       "engine_name": "PRISM",
@@ -117,7 +195,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795789800000,
+      "last_checked_candle_t": 1795790700000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -11976,7 +12054,7 @@
         -1.0,
         -1.0
       ],
-      "signals": 6,
+      "signals": 7,
       "wins": 1
     }
   },
@@ -12374,7 +12452,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T14:45:35.368968+00:00",
+  "last_run_at": "2026-11-27T15:01:49.838803+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12394,7 +12472,7 @@
     },
     "BTC": {
       "losses": 4,
-      "signals": 8,
+      "signals": 9,
       "wins": 4
     },
     "DOGE": {
@@ -12529,7 +12607,7 @@
     },
     "Strong Bear Trend": {
       "losses": 32,
-      "signals": 75,
+      "signals": 76,
       "timeouts": 3,
       "wins": 40
     },
@@ -12566,9 +12644,9 @@
   },
   "starvation": {
     "last_relief_at": null,
-    "last_signal_at": "2026-11-27T14:01:48.922257+00:00",
+    "last_signal_at": "2026-11-27T15:01:49.822119+00:00",
     "relief_count": 0,
-    "scans_since_signal": 3
+    "scans_since_signal": 0
   },
   "trade_archive": {
     "features": [
