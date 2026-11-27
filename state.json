@@ -4,7 +4,7 @@
     "BTC-1795791709-2294": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 22,
+      "bars_open": 23,
       "bars_to_activate": 0,
       "confidence": 71.06,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795810500000,
+      "last_checked_candle_t": 1795811400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -82,7 +82,7 @@
     "xyz:COPPER-1795745734-6336": {
       "activated": true,
       "asset_class": "commodity",
-      "bars_open": 73,
+      "bars_open": 74,
       "bars_to_activate": 0,
       "confidence": 72.6,
       "engine_name": "PRISM",
@@ -112,7 +112,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795810500000,
+      "last_checked_candle_t": 1795811400000,
       "market_regime": "Expansion",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12541,7 +12541,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-27T20:30:39.438992+00:00",
+  "last_run_at": "2026-11-27T20:45:35.904834+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12735,7 +12735,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-27T17:15:32.630363+00:00",
     "relief_count": 0,
-    "scans_since_signal": 13
+    "scans_since_signal": 14
   },
   "trade_archive": {
     "features": [
