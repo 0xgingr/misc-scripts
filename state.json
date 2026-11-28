@@ -4,7 +4,7 @@
     "BTC-1795791709-2294": {
       "activated": true,
       "asset_class": "crypto",
-      "bars_open": 62,
+      "bars_open": 63,
       "bars_to_activate": 0,
       "confidence": 71.06,
       "engine_name": "PRISM",
@@ -31,7 +31,7 @@
       "grade": "C",
       "higher_timeframe_alignment": false,
       "holding_time": "6-24 hours",
-      "last_checked_candle_t": 1795846500000,
+      "last_checked_candle_t": 1795847400000,
       "market_regime": "Strong Bear Trend",
       "position_sizing": {
         "method": "fixed_risk_pct",
@@ -12568,7 +12568,7 @@
     "vwap": 0.05263157894736842
   },
   "last_daily_summary_date": "2026-11-27",
-  "last_run_at": "2026-11-28T06:30:42.309204+00:00",
+  "last_run_at": "2026-11-28T06:45:34.587504+00:00",
   "pending_notifications": [],
   "per_asset_stats": {
     "AAVE": {
@@ -12764,7 +12764,7 @@
     "last_relief_at": null,
     "last_signal_at": "2026-11-27T17:15:32.630363+00:00",
     "relief_count": 0,
-    "scans_since_signal": 53
+    "scans_since_signal": 54
   },
   "trade_archive": {
     "features": [
